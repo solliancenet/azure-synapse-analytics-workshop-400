@@ -267,20 +267,20 @@ Import the following SQL scripts into `Workspace`:
 
 SQL script name | Source code | Replacements
 --- | --- | ---
-`Exercise 1 - TBD` | [Exercise 1 - TBD.sql](./artifacts/01/TBD.sql) | `<primary_storage>` with the actual name of `PrimaryStorage`
+`Exercise TBD - TBD` | [Exercise TBD - TBD.sql](./artifacts/01/TBD.sql) | `<primary_storage>` with the actual name of `PrimaryStorage`
 
 Import the following Spark notebooks into `Workspace`:
 
 Spark notebook name | Source code | Replacements
 --- | --- | ---
-`Exercise 1 - TBD` | [Exercise 1 - TBD.ipynb](./artifacts/01/TBD.ipynb) | `<primary_storage>` with the actual name of `PrimaryStorage`
+`Exercise TBD - TBD` | [Exercise TBD - TBD.ipynb](./artifacts/01/TBD.ipynb) | `<primary_storage>` with the actual name of `PrimaryStorage`
 
 
 ## Task 7 - Prepare machine learning model
 
 Prepare the `models` container in `BlobStorage` by creating in it two folders: `onnx` and `hex`.
 
-To prepare the machine learning model for Exercise 5, you have two options:
+To prepare the machine learning model for Exercise TBD, you have two options:
 
 - Use the already trained and converted machine learning model (available as a starter artifact)
 - Train and convert a new machine learning model
@@ -303,7 +303,7 @@ To prepare the machine learning model for Exercise 5, you have two options:
 
 ## Task 8 - Configure additional users to access the workspace
 
-For each additional user that needs to have access to `Workspace` and run exercises 1 through 5, the following steps must be performed:
+For each additional user that needs to have access to `Workspace` and run exercises TBD through TBD, the following steps must be performed:
 
 1. Assign the `Reader` role on the `WorkspaceResourceGroup` to the user.
 
