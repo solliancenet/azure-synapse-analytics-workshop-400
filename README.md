@@ -20,7 +20,7 @@
 	}
 </style>
 
-<table class="tableizer-table">
+<table class="tableizer-table" style="background-color: #104E8B;">
     <thead><tr>
         <th colspan=5>Workshop Agenda</th>
     </tr></thead>
