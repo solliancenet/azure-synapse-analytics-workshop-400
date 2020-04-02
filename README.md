@@ -1,26 +1,6 @@
 # Azure Synapse Analytics Workshop (level 400, 4 days)
 
-<style type="text/css">
-	table.tableizer-table {
-		font-size: 12px;
-		border: 1px solid #CCC; 
-	} 
-	.tableizer-table td {
-		padding: 4px;
-		margin: 3px;
-		border: 1px solid #CCC;
-        text-align: center;
-	}
-	.tableizer-table th {
-		background-color: #104E8B; 
-		color: #FFF;
-		font-weight: bold;
-        text-align: center;
-        font-size: 18px;
-	}
-</style>
-
-<table class="tableizer-table" style="background-color: #104E8B;">
+<table>
     <thead><tr>
         <th colspan=5>Workshop Agenda</th>
     </tr></thead>
@@ -133,18 +113,54 @@
             <td rowspan=2>Closing</td>
         </tr>
         <tr><td>15:00</td></tr>
- <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
- <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
- <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
- <tr><td>&nbsp;</td><td>Key</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
- <tr><td>&nbsp;</td><td>Design</td><td>Build</td><td>Deploy</td><td>&nbsp;</td></tr>
- <tr><td>&nbsp;</td><td>SME Presentations L400 Technical</td><td>Guided virtual lab experience with remote SME assistance</td><td>Challenge & team-based learning experience (hack)</td><td>&nbsp;</td></tr>
- <tr><td>&nbsp;</td><td>Q&A / Small Group Cohort Discussions & Activities</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
- <tr><td>&nbsp;</td><td>Q&A Discussion andsmall group cohort activity</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
- <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
- <tr><td>&nbsp;</td><td>9hr</td><td>7.25hr</td><td>5.75hr</td><td>&nbsp;</td></tr>
- <tr><td>&nbsp;</td><td>address "why" design this way</td><td>address the "how" to</td><td>apply "how" and "why" learning to a scenario</td><td>&nbsp;</td></tr>
- <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
- <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
- <tr><td>&nbsp;</td><td>LEVEL 400</td><td>&nbsp;</td><td>LEVEL 200-300</td><td></td></tr>
-</tbody></table>
+        <tr><td colspan=5>&nbsp;</td></tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td colspan=3>Key</td>
+            <td>&nbsp;</td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td>Design</td>
+            <td>Build</td>
+            <td>Deploy</td>
+            <td>&nbsp;</td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td>SME Presentations L400 Technical</td>
+            <td>Guided virtual lab experience with remote SME assistance</td>
+            <td>Challenge & team-based learning experience (hack)</td>
+            <td>&nbsp;</td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td>Q&A Discussion and small group cohort activity</td>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+        </tr>
+        <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td>9hr</td>
+            <td>7.25hr</td>
+            <td>5.75hr</td>
+            <td>&nbsp;</td>
+        </tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td>address "why" design this way</td>
+            <td>address the "how" to</td>
+            <td>apply "how" and "why" learning to a scenario</td>
+            <td>&nbsp;</td>
+        </tr>
+        <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+        <tr>
+            <td>&nbsp;</td>
+            <td colspan=2>LEVEL 400</td>
+            <td>LEVEL 200-300</td>
+            <td>&nbsp;</td>
+        </tr>
+    </tbody>
+    </table>
