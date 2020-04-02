@@ -42,8 +42,8 @@
         <tr>
             <td>09:15</td>
             <td rowspan=4>Design Presentation: Data Loading & Data Lake Organization (*)</td>
-            <td rowspan=4>Build Hands-on: DW Optimization Part 1 (***)</td>
-            <td rowspan=4>Build Hands-on: Machine Learning (***)</td>
+            <td rowspan=4><a href="./day-02/lab03-dw-optimization-part-1.md">Build Hands-on: DW Optimization Part 1 (***)</a></td>
+            <td rowspan=4><a href="./day-03/lab06-machine-learning.md">Build Hands-on: Machine Learning (***)</a></td>
         </tr>
         <tr><td>09:30</td></tr>
         <tr>
@@ -70,8 +70,8 @@
         <tr>
             <td>11:30</td>
             <td rowspan=3><a href="./day-01/lab01-data-integration-part-1.md">Build Hands-on: Data Integration Part 1 (***)</a></td>
-            <td rowspan=3>Build Hands-on: DW Optimization Part 2 (***)</td>
-            <td rowspan=3>Build Hands-on: Spark ML (***)</td>
+            <td rowspan=3><a href="./day-02/lab04-dw-optimization-part-2.md">Build Hands-on: DW Optimization Part 1 (***)</a></td>
+            <td rowspan=3><a href="./day-03/lab07-spark-ml.md">Build Hands-on: Spark ML (***)</a></td>
             <td rowspan=3>Continue POC Challenge (****)</td>
         </tr>
             <tr><td>11:45</td></tr>
@@ -102,9 +102,9 @@
         <tr><td>14:00</td></tr>
         <tr>
             <td>14:15</td>
-            <td rowspan=4>Build Hands-on: Data Integration Part 2 (***)</td>
-            <td rowspan=4>Build Hands-on: Security (***)</td>
-            <td rowspan=4>Build Hands-on: Monitoring (***)</td>
+            <td rowspan=4><a href="./day-01/lab02-data-integration-part-2.md">Build Hands-on: Data Integration Part 2 (***)</a></td>
+            <td rowspan=4><a href="./day-02/lab05-security.md">Build Hands-on: Security (***)</a></td>
+            <td rowspan=4><a href="./day-03/lab08-monitoring">Build Hands-on: Monitoring (***)</a></td>
             <td rowspan=2>Challenge Debrief (****)</td>
         </tr>
         <tr><td>14:30</td></tr>
