@@ -22,7 +22,7 @@ In this challenge, you are expected to achieve the following major goals:
 4. Implement and demonstrate end-to-end security measures for the data warehouse rebuild process.
 5. Monitor all data processes and react to potential problems that might occur.
 
-# Challenge setup
+## Challenge pitfalls
 
 The following table describes the pitfalls hidden in the challenge:
 
