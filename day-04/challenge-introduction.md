@@ -24,6 +24,18 @@ In this challenge, you are expected to achieve the following major goals:
 5. Implement and demonstrate end-to-end security measures for the data warehouse rebuild process.
 6. Monitor all data processes and react to potential problems that might occur.
 
+## Challenge split
+
+**TBD: What is the approach we want to take: one day-long challenge vs. 4 individual challenges?**
+
+Segment | Goals
+---|---
+Begin PoC Challenge | 1 & 2
+Continue PoC Challenge | 3 & 4
+Continue PoC Challenge | 5 & 6
+Finish PoC Challenge | Review all 
+
+
 ## Challenge pitfalls
 
 The following table describes the pitfalls hidden in the challenge:
