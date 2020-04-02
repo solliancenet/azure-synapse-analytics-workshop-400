@@ -24,7 +24,7 @@
             <td rowspan=2>Keynote: Welcome, objectives, Synapse 101</td>
             <td rowspan=4>Design Presentation: DW Optimization (*)</td>
             <td rowspan=4>Design Presentation: Spark for Data Science (*)</td>
-            <td rowspan=2>Challenge Introduction (****)</td>
+            <td rowspan=2><a href="./day-04/challenge-introduction.md">Challenge Introduction (****)</a></td>
         </tr>
         <tr><td>08:15</td></tr>
         <tr>
