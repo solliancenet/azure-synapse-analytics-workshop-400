@@ -1,6 +1,8 @@
 # Challenge introduction
 
-WWI is in the process of building a new analytics solution based on Azure Synapse Analytics. The old analytics solution was built using an older, on-premise version of SQL Server and was based on the relational engine only.
+WWI is in the process of building a new, modern analytics solution. The old analytics solution was built using an older, on-premise version of SQL Server and was based on the relational engine only.
+
+The core objective of this PoC challenge is to prove that Azure Synapse Analytics is the right platform to be used by the new solution.
 
 The current situation is the following:
 
