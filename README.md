@@ -69,7 +69,7 @@
         <tr><td>11:15</td><td>Break</td><td>Break</td><td>Break</td><td>Break</td></tr>
         <tr>
             <td>11:30</td>
-            <td rowspan=3>[Build Hands-on: Data Integration Part 1 (***)](./day-01/lab01-data-integration-part-1.md)</td>
+            <td rowspan=3><a href="./day-01/lab01-data-integration-part-1.md">Build Hands-on: Data Integration Part 1 (***)</a></td>
             <td rowspan=3>Build Hands-on: DW Optimization Part 2 (***)</td>
             <td rowspan=3>Build Hands-on: Spark ML (***)</td>
             <td rowspan=3>Continue POC Challenge (****)</td>
