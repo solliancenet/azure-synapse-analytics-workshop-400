@@ -24,13 +24,13 @@
             <td rowspan=2>Keynote: Welcome, objectives, Synapse 101</td>
             <td rowspan=4>Design Presentation: DW Optimization (*)</td>
             <td rowspan=4>Design Presentation: Spark for Data Science (*)</td>
-            <td rowspan=2>Challenge Introduction</td>
+            <td rowspan=2>Challenge Introduction (****)</td>
         </tr>
         <tr><td>08:15</td></tr>
         <tr>
             <td>08:30</td>
             <td rowspan=2>Demo Walkthrough - MDW In Action</td>
-            <td rowspan=5>Begin POC Challenge</td>
+            <td rowspan=5>Begin POC Challenge (****)</td>
         </tr>
         <tr><td>08:45</td></tr>
         <tr>
@@ -42,8 +42,8 @@
         <tr>
             <td>09:15</td>
             <td rowspan=4>Design Presentation: Data Loading & Data Lake Organization (*)</td>
-            <td rowspan=4>Build Hands-on: DW Optimization Part 1</td>
-            <td rowspan=4>Build Hands-on: Machine Learning</td>
+            <td rowspan=4>Build Hands-on: DW Optimization Part 1 (***)</td>
+            <td rowspan=4>Build Hands-on: Machine Learning (***)</td>
         </tr>
         <tr><td>09:30</td></tr>
         <tr>
@@ -52,13 +52,13 @@
         </tr>
         <tr>
             <td>10:00</td>
-            <td rowspan=5>Continue POC Challenge</td>
+            <td rowspan=5>Continue POC Challenge (****)</td>
         </tr>
         <tr>
             <td>10:15</td>
-            <td rowspan=4>Q&A / Digital Cohort Activity: Data Lake Design & Security Considerations</td>
-            <td rowspan=2>Q&A / Digital Cohort Activity: DW Optimization</td>
-            <td rowspan=4>Q&A / Digital Cohort Activity: Model Implementation (Predict)</td>
+            <td rowspan=4>Q&A / Digital Cohort Activity: Data Lake Design & Security Considerations (**)</td>
+            <td rowspan=2>Q&A / Digital Cohort Activity: DW Optimization (**)</td>
+            <td rowspan=4>Q&A / Digital Cohort Activity: Model Implementation (Predict) (**)</td>
         </tr>
         <tr><td>10:30</td></tr>
         <tr>
@@ -69,10 +69,10 @@
         <tr><td>11:15</td><td>Break</td><td>Break</td><td>Break</td><td>Break</td></tr>
         <tr>
             <td>11:30</td>
-            <td rowspan=3>Build Hands-on: Data Integration Part 1</td>
-            <td rowspan=3>Build Hands-on: DW Optimization Part 2</td>
-            <td rowspan=3>Build Hands-on: Spark ML</td>
-            <td rowspan=3>Continue POC Challenge</td>
+            <td rowspan=3>Build Hands-on: Data Integration Part 1 (***)</td>
+            <td rowspan=3>Build Hands-on: DW Optimization Part 2 (***)</td>
+            <td rowspan=3>Build Hands-on: Spark ML (***)</td>
+            <td rowspan=3>Continue POC Challenge (****)</td>
         </tr>
             <tr><td>11:45</td></tr>
             <tr><td>12:00</td></tr>
@@ -89,23 +89,23 @@
         <tr>
             <td>13:15</td>
             <td rowspan=2>Design Presentation: Data Transformations (*)</td>
-            <td rowspan=4>Q&A / Digital Cohort Activity: Security</td>
+            <td rowspan=4>Q&A / Digital Cohort Activity: Security (**)</td>
             <td rowspan=2>Design Presentation: Monitor & Manage (*)</td>
-            <td rowspan=4>Finish POC Challenge</td>
+            <td rowspan=4>Finish POC Challenge (****)</td>
         </tr>
         <tr><td>13:30</td></tr>
         <tr>
             <td>13:45</td>
-            <td rowspan=2>Q&A / Digital Cohort Activity: Data Engineering Discussion</td>
-            <td rowspan=2>Q&A / Digital Cohort Activity: Monitor & Manage</td>
+            <td rowspan=2>Q&A / Digital Cohort Activity: Data Engineering Discussion (**)</td>
+            <td rowspan=2>Q&A / Digital Cohort Activity: Monitor & Manage (**)</td>
         </tr>
         <tr><td>14:00</td></tr>
         <tr>
             <td>14:15</td>
-            <td rowspan=4>Build Hands-on: Data Integration Part 2</td>
-            <td rowspan=4>Build Hands-on: Security</td>
-            <td rowspan=4>Build Hands-on: Monitoring</td>
-            <td rowspan=2>Challenge Debrief</td>
+            <td rowspan=4>Build Hands-on: Data Integration Part 2 (***)</td>
+            <td rowspan=4>Build Hands-on: Security (***)</td>
+            <td rowspan=4>Build Hands-on: Monitoring (***)</td>
+            <td rowspan=2>Challenge Debrief (****)</td>
         </tr>
         <tr><td>14:30</td></tr>
         <tr>
@@ -129,13 +129,13 @@
         <tr>
             <td>&nbsp;</td>
             <td>* SME Presentations L400 Technical</td>
-            <td>Guided virtual lab experience with remote SME assistance</td>
-            <td>Challenge & team-based learning experience (hack)</td>
+            <td>*** Guided virtual lab experience with remote SME assistance</td>
+            <td>**** Challenge & team-based learning experience (hack)</td>
             <td>&nbsp;</td>
         </tr>
         <tr>
             <td>&nbsp;</td>
-            <td>Q&A Discussion and small group cohort activity</td>
+            <td>** Q&A Discussion and small group cohort activity</td>
             <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td>&nbsp;</td>
