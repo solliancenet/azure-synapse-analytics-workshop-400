@@ -1,1 +1,0 @@
-# azure-synapse-analytics-workshop-400
