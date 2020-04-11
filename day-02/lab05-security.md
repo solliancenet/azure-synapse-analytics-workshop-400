@@ -6,13 +6,127 @@ This lab will guide you through all the security-related steps that cover and en
 TBD: Data discovery and classification features in SQL Pools
 ```
 
-## Task 1 - Secure the data lake with Azure role-based access control
+- [Security](#security)
+  - [Task 1 - Create Azure Active Directory security groups](#task-1---create-azure-active-directory-security-groups)
+  - [Task 2 - Implement Security Group Inheritance in Azure Active Directory](#task-2---implement-security-group-inheritance-in-azure-active-directory)
+  - [Task 3 - Secure the Azure Synapse Workspace storage account](#task-3---secure-the-azure-synapse-workspace-storage-account)
+  - [Task 4 - Secure your Synapse workspace](#task-4---secure-your-synapse-workspace)
+  - [Task 5 - Setting granular permissions in the data lake with Azure role-based access control](#task-5---setting-granular-permissions-in-the-data-lake-with-azure-role-based-access-control)
+  - [Task 6 - Setting granular permissions in the data lake with POSIX-style access control lists](#task-6---setting-granular-permissions-in-the-data-lake-with-posix-style-access-control-lists)
+  - [Task 7 - Secure Synapse SQL Pools](#task-7---secure-synapse-sql-pools)
+  - [Task 8 - Column level security](#task-8---column-level-security)
+  - [Task 9 - Row level security](#task-9---row-level-security)
+  - [Task 10 - Dynamic data masking](#task-10---dynamic-data-masking)
+  - [Task 11 - Secure Synapse SQL Serverless](#task-11---secure-synapse-sql-serverless)
+  - [Task 12 - Secure Synapse Spark pools](#task-12---secure-synapse-spark-pools)
+  - [Task 13 - Secure data flows and pipelines](#task-13---secure-data-flows-and-pipelines)
+  - [Task 14 - Secure Power BI reports](#task-14---secure-power-bi-reports)
+  - [Other Resources:](#other-resources)
 
-## Task 2 - Secure the data lake with POSIX-style access control lists
+## Task 1 - Create Azure Active Directory security groups
 
-## Task 3 - Secure Synapse SQL Pools
+As with many Azure resources, Azure Synapse Analytics has the ability to leverage Azure Active Directory for security. Begin the security implementation by defining appropriate security groups in Azure Active Directory. Each security group will represent a job function in Azure Synapse Analytics and will be granted the necessary permissions to fulfill its function. Individual users will then be assigned to their respective group based on their role in the organization. Structuring security in this way makes it easier to provision users and admins.
 
-## Task 4 - Column level security
+As a general guide, create an Azure Active Directory Security Group for the following job functions, replacing **WORKSPACENAME** with the name of your workspace:
+
+| Group                             | Description                                                                        |
+|-----------------------------------|------------------------------------------------------------------------------------|
+| Synapse_WORKSPACENAME_Users       | General non-administrative users.                                                  |
+| Synapse_WORKSPACENAME_Admins      | Workspace administrators, for users that need complete control over the workspace. |
+| Synapse_WORKSPACENAME_SQLAdmins   | For users that need complete control over the SQL aspects of the workspace.        |
+| Synapse_WORKSPACENAME_SparkAdmins | For users that need complete control over the Spark aspects of the workspace.      |
+
+1. In the [Azure Portal](https://portal.azure.com), expand the left menu by selecting the menu icon in the upper left corner. From the menu that appears, select the **Azure Active Directory** item.
+
+    ![In the Azure Portal, the left menu is expanded by selecting the upper left hand menu icon and the Azure Active Directory item is selected in the list of menu options.](media/lab5_portalaadmenu.png)
+
+2. From the left menu of the **Azure Active Directory** resource page, select **Groups**.
+
+    ![In the left menu of the Azure Active Directory screen, the Groups item is selected.](media/lab5_aadgroupsmenu.png)
+
+3. On the **Groups** page, select **+ New group** from the top toolbar menu.
+
+   ![On the Groups page, the + New Group option is selected from the top toolbar menu.](media/lab5_aadnewgroupmenu.png)
+
+4. In the **New Group** form, fill out the form for the first group from the table in the task description as follows, then select the **Create** button at the bottom of the screen:
+
+   1. **Group type**: Select **Security**.
+
+   2. **Group name**: Type `Synapse_WORKSPACENAME_Users`
+
+   3. **Group description**: Type `General non-administrative users.`
+
+    ![The New group form is displayed with the fields populated with the preceding values.](media/lab5_aadnewgroupform.png)
+
+5. Repeat Steps 3 and 4 for the remaining groups listed in the table located in the task description.
+
+## Task 2 - Implement Security Group Inheritance in Azure Active Directory
+
+Some of the groups that we created in the first task will have permissions that build upon one another. Approaching security groups as an inheritance hierarchy avoids duplicating permissions for every single group. For instance, by adding the **Synapse_WORKSPACE_Admins** group as a member of the **Synapse_WORKSPACE_Users** group, the admin group will automatically inherit the permissions assigned to the Users group. The admin group will add *only* the permissions specific to the admin role that do not exist in the 'base' Users group it inherited. The membership of the groups that we defined in Task 1 are as follows:
+
+| Group                             | Members                                                                                          |
+|-----------------------------------|--------------------------------------------------------------------------------------------------|
+| Synapse_WORKSPACENAME_Users       | Synapse_WORKSPACENAME_Admins, Synapse_WORKSPACENAME_SQLAdmins, Synapse_WORKSPACENAME_SparkAdmins |
+| Synapse_WORKSPACENAME_SQLAdmins   | Synapse_WORKSPACENAME_Admins                                                                     |
+| Synapse_WORKSPACENAME_SparkAdmins | Synapse_WORKSPACENAME_Admins                                                                     |
+
+1. In the Active Directory **Groups** page, select **Synapse_WORKSPACENAME_Users** from the list of groups.
+
+   ![In the list of Active Directory Groups, the Synapse_WORKSPACENAME_Users item is selected.](media/lab5_selectusersaadgrouplist.png)
+
+2. In the left hand menu of the **Group** page, select **Members**.
+
+   ![The Members item is selected from the left menu of the Group page.](media/lab5_aadgroupmembersmenu.png)
+
+3. From the top toolbar menu of the **Members** page, select the **+ Add members** button.
+
+   ![On the Members page, the + Add members button is selected from the toolbar.](media/lab5_aadgroupmembersaddtoolbar.png)
+
+4. In the **Add members** blade, enter `Synapse` into the Search box and press <kbd>Enter</kbd> to filter the list of options. Select the **Synapse_WORKSPACENAME_Admins**, **Synapse_WORKSPACENAME_SQLAdmins**, and **Synapse_WORKSPACENAME_SparkAdmins** security groups, and choose the **Select** button at the bottom of the blade.
+
+   ![In the Add members blade, Synapse is entered in the search box. Synapse_WORKSPACENAME_Admins, Synapse_WORKSPACENAME_SQLAdmins, and Synapse_WORKSPACENAME_SparkAdmins groups are selected. The Select button is highlighted at the bottom of the blade.](media/lab5_aadgroupaddmembersblade.png)
+
+5. Repeat Steps 1 - 4 for each of the remaining groups listed in the table found in the description of this task.
+
+## Task 3 - Secure the Azure Synapse Workspace storage account
+
+Role-based Access Control (RBAC) uses role assignments to apply permission sets to security principals; a principal may be a user, group, service principal, or any managed identity that exists in the Azure Active Directory. So far in this lab, we have defined and configured security groups that represent the various job functions that we need in Azure Synapse Analytics. It is recommended that individual user principals be added only to these Active Directory Security groups. These users will in turn be granted permissions based on the security group (role) that they belong to. All RBAC permissions in this lab will be assigned to security groups, never to an individual user principal.
+
+When the Azure Synapse Workspace was created, it required the selection of an Azure Data Lake Storage Gen 2 account and the creation of a default 'filesystem' container (we will refer to as **wsfilesystemcontainer**). The groups we've created in this lab will require access to this container.
+
+1. In the Azure Portal, open the list of resources and select the  Azure Data Lake Storage Gen 2 account that you selected when creating the Azure Synapse Analytics Workspace.
+
+2. On the **Storage Account Overview** page, select the **Containers** tile.
+
+    ![On the Storage Account Overview screen, the Containers tile is selected.](media/lab5_storageacctcontainerstile.png)
+
+3. Select **wsfilesystemcontainer** from the list of containers.
+  
+   ![In the container list for the storage account, the wsfilesystemcontainer is highlighted.](media/lab5_filesystemcontainerfromlist.png)
+
+4. From the **Container** screen left menu, select **Access Control (IAM)**. From the top toolbar menu select **+ Add**, then choose **Add role assignment**.
+
+    ![On the Container screen, Access Control (IAM) is selected from the left menu. In the top toolbar the + Add button is expanded with the Add role assignment item selected.](media/lab5_containeriammenu.png)
+
+5. In the **Add role assignment** blade, complete it as follows then select the **Save** button at the bottom of the blade:
+
+   1. **Role**: Select **Storage Blob Data Contributor**.  
+
+   2. **Assign access to**: Select **Azure AD user, group, or service principal**.
+
+   3. **Select**: Type `Synapse` , then select **Synapse_WORKSPACENAME_Admins**, **Synapse_WORKSPACENAME_SQLAdmins**, and **Synapse_WORKSPACE_SparkAdmins** from the filtered list.
+
+    ![In the Add role assignment blade, the form is populated with the preceding values, and the Save button is highlighted.](media/lab5_addroleassignmenttocontainerblade.png)
+
+## Task 4 - Secure your Synapse workspace
+
+## Task 5 - Setting granular permissions in the data lake with Azure role-based access control
+
+## Task 6 - Setting granular permissions in the data lake with POSIX-style access control lists
+
+## Task 7 - Secure Synapse SQL Pools
+
+## Task 8 - Column level security
 
 ```sql
 /*  Column-level security feature in Azure Synapse simplifies the design and coding of security in application. 
@@ -62,7 +176,7 @@ select * from Campaign_Analytics
 Revert;
 ```
 
-## Task 5 - Row level security
+## Task 9 - Row level security
 
 ```sql
 /*	Row level Security (RLS) in Azure Synapse enables us to use group membership to control access to rows in a table.
@@ -128,7 +242,7 @@ DROP FUNCTION Security.fn_securitypredicate;
 DROP SCHEMA Security;
 ```
 
-## Task 6 - Dynamic data masking
+## Task 10 - Dynamic data masking
 
 ```sql
 -------------------------------------------------------------------------Dynamic Data Masking (DDM)----------------------------------------------------------------------------------------------------------
@@ -192,15 +306,14 @@ ALTER COLUMN Email DROP MASKED;
 GO
 ```
 
-## Task 7 - Secure Synapse SQL Serverless
+## Task 11 - Secure Synapse SQL Serverless
 
-## Task 8 - Secure Synapse Spark pools
+## Task 12 - Secure Synapse Spark pools
 
-## Task 9 - Secure data flows and pipelines
+## Task 13 - Secure data flows and pipelines
 
-## Task 10 - Secure Power BI reports
+## Task 14 - Secure Power BI reports
 
-## Task 11 - Secure your Synapse workspace
 
   - [IP Firewalls](https://github.com/Azure/azure-synapse-analytics/blob/master/docs/security/synapse-workspace-ip-firewall.md)
   - [Synapse Workspace Managed Identity](https://github.com/Azure/azure-synapse-analytics/blob/master/docs/security/synapse-workspace-managed-identity.md)
