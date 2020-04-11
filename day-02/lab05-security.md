@@ -15,7 +15,7 @@ TBD: Data discovery and classification features in SQL Pools
   - [Task 6 - Access Control to Synapse SQL on-demand](#task-6---access-control-to-synapse-sql-on-demand)
   - [Task 7 - Access Control to Synapse SQL Pools](#task-7---access-control-to-synapse-sql-pools)
   - [Task 8 - Secure Synapse Spark pools](#task-8---secure-synapse-spark-pools)
-  - [Task 9 - Secure data flows and pipelines](#task-9---secure-data-flows-and-pipelines)
+  - [Task 9 - Access control to workspace pipeline runs](#task-9---access-control-to-workspace-pipeline-runs)
   - [Task 10 - Secure Power BI reports](#task-10---secure-power-bi-reports)
   - [Task 11 - Setting granular permissions in the data lake with Azure role-based access control](#task-11---setting-granular-permissions-in-the-data-lake-with-azure-role-based-access-control)
   - [Task 12 - Setting granular permissions in the data lake with POSIX-style access control lists](#task-12---setting-granular-permissions-in-the-data-lake-with-posix-style-access-control-lists)
@@ -24,7 +24,7 @@ TBD: Data discovery and classification features in SQL Pools
   - [Task 15 - Dynamic data masking](#task-15---dynamic-data-masking)
   - [Task 16 - Add IP firewall rules](#task-16---add-ip-firewall-rules)
   - [Task 17 - Managed VNet](#task-17---managed-vnet)
-  - [Task 17 - Private Endpoints](#task-17---private-endpoints)
+  - [Task 18 - Private Endpoints](#task-18---private-endpoints)
   - [Reference](#reference)
   - [Other Resources](#other-resources)
 
@@ -199,7 +199,7 @@ We will now associate the Azure Active Directory groups that we've created with 
 
 ## Task 5 - Set the SQL Active Directory admin
 
-** QUESTION: Doesn't adding the AAD Group to the built-in SQL admin role satisfy this requirement?
+** QUESTION: Not certain if this is needed. Doesn't adding the AAD Group to the built-in SQL admin role satisfy this requirement?
 
 In order to take advantage of the security group structure we've created, we need to ensure the **Synapse_WORKSPACENAME_SQLAdmins** group has administrative permissions to the SQL Pools contained in the workspace.
 
@@ -233,19 +233,19 @@ There may be times when direct user access is required to be added to the SQL on
 4. In the query window, replace the script with the following (documented inline):
 
     ```sql
-    -- Step 1 Create Login - replace the email with the desired login account
+    -- Step 1: Create Login - replace the email with the desired login account
     use master
     go
     CREATE LOGIN [alias@domain.com] FROM EXTERNAL PROVIDER;
     go
 
-    -- Step 2 Create User, using 'joyce' as an example, replace OnDemandPool with
+    -- Step 2: Create User, using 'joyce' as an example, replace OnDemandPool with
     --      the name of the SQL on-demand database
     use OnDemandPool
     go
     CREATE USER joyce FROM LOGIN [alias@domain.com];
 
-    -- Add User to appropriate role
+    -- Step 3: Add User to appropriate role
     go
     alter role db_owner Add member joyce -- Type USER name from step 2
     ```
@@ -253,6 +253,8 @@ There may be times when direct user access is required to be added to the SQL on
 5. Select **Run** from the toolbar menu to execute the SQL command.
 
    ![The Synapse Studio toolbar is displayed with the Run button selected.](media/lab5_synapsestudioqueryruntoolbarmenu.png)
+
+6. You may now close the query tab, when prompted choose **Discard all changes**.
 
 ## Task 7 - Access Control to Synapse SQL Pools
 
@@ -273,9 +275,9 @@ There may be times when direct user access is required to be added to the SQL po
 4. In the query window, replace the script with the following (documented inline), replace <alias@domain.com> with the desired login account:
 
     ```sql
-    -- Create user in SQL DB
+    -- Step 1: Create user in SQL DB
     CREATE USER [<alias@domain.com>] FROM EXTERNAL PROVIDER;
-    -- Add role to user in SQL DB
+    -- Step 2: Add role to user in SQL DB
     EXEC sp_addrolemember 'db_owner', '<alias@domain.com>';
     ```
 
@@ -283,11 +285,43 @@ There may be times when direct user access is required to be added to the SQL po
 
    ![The Synapse Studio toolbar is displayed with the Run button selected.](media/lab5_synapsestudioqueryruntoolbarmenu.png)
 
+6. You may now close the query tab, when prompted choose **Discard all changes**.
+
 > **Note**: db_datareader and db_datawriter can work for read/write if granting db_owner permission is undesired. For a Spark user to read and write directly from Spark into/from a SQL pool, db_owner permission is required.
 
 ## Task 8 - Secure Synapse Spark pools
 
-## Task 9 - Secure data flows and pipelines
+## Task 9 - Access control to workspace pipeline runs
+
+In Task 3 of this lab, we discussed the Managed Identity of the workspace. To successfully run pipelines that include datasets or activities that reference to a SQL pool, the workspace identity needs to be granted access to the SQL pool directly.
+
+1. In Azure Synapse Studio, select **Develop** from the left menu.
+
+   ![In Azure Synapse Studio, the Develop item is selected from the left menu.](media/lab5_synapsestudiodevelopmenuitem.png)
+
+2. From the **Develop** menu, select the **+** button and choose **SQL Script** from the context menu.
+
+   ![In Synapse Studio the develop menu is displayed with the + button expanded, SQL script is selected from the context menu.](media/lab5_synapsestudiodevelopnewsqlscriptmenu.png)
+
+3. In the toolbar menu, connect to the database on which you want to execute the query.
+
+    ![The Synapse Studio query toolbar is shown with the Connect to dropdown list field highlighted.](media/lab5_synapsestudioquerytoolbar.png)
+
+4. In the query window, replace the script with the following (documented inline, replace \<workspacename\> and \<SQLpoolname\> accordingly):
+
+    ```sql
+    -- Step 1: Create user in DB
+    CREATE USER [<workspacename>] FROM EXTERNAL PROVIDER;
+
+    -- Step 2: Granting permission to the identity
+    GRANT CONTROL ON DATABASE::<SQLpoolname> TO <workspacename>;
+    ```
+
+5. Select **Run** from the toolbar menu to execute the SQL command.
+
+   ![The Synapse Studio toolbar is displayed with the Run button selected.](media/lab5_synapsestudioqueryruntoolbarmenu.png)
+
+6. You may now close the query tab, when prompted choose **Discard all changes**.
 
 ## Task 10 - Secure Power BI reports
 
@@ -453,7 +487,7 @@ There may be times when direct user access is required to be added to the SQL po
 
 5. Once complete, you may choose to save this script by selecting the Properties icon located toward the right side of the toolbar menu, and assigning it a name and description.
 
-    ![The right side of the query window is displayed with the Properties icon selected from the toolbar and the Properties blade displayed. The Properties form has a Name and Description field that will be used to identify the script.](media/lab5_synapsestudioquerywindowpropertiesmenuandform.png)
+    ![The right side of the query window is displayed with the Properties icon selected from the toolbar and the Properties blade displayed. The Properties form has a Name and Description field that will be used to identify the script.](media/lab5_synapsestudiosaverowlevelscript.png)
 
 6. Now the script has a Name and Description, all that is left to do is to publish it to the workspace. Press the **Publish** button from the query toolbar menu.
 
@@ -541,7 +575,7 @@ There may be times when direct user access is required to be added to the SQL po
 
 5. Once complete, you may choose to save this script by selecting the Properties icon located toward the right side of the toolbar menu, and assigning it a name and description.
 
-    ![The right side of the query window is displayed with the Properties icon selected from the toolbar and the Properties blade displayed. The Properties form has a Name and Description field that will be used to identify the script.](media/lab5_synapsestudioquerywindowpropertiesmenuandform.png)
+    ![The right side of the query window is displayed with the Properties icon selected from the toolbar and the Properties blade displayed. The Properties form has a Name and Description field that will be used to identify the script.](media/lab5_synapsestudiosavedynamicdatamaskingscript.png)
 
 6. Now the script has a Name and Description, all that is left to do is to publish it to the workspace. Press the **Publish** button from the query toolbar menu.
 
@@ -579,7 +613,7 @@ Azure Synapse Analytics can also be secured at the transport layer using IP fire
 
 *** TODO: clarify what is needed here, this is a setting that can't be changed after a workspace is created. The choice to associate a managed workspace vnet is only available as a network option during the workspace creation process.
 
-## Task 17 - Private Endpoints
+## Task 18 - Private Endpoints
 
 ## Reference
 
