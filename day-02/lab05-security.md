@@ -373,7 +373,7 @@ Possible POSIX access permissions are as follows:
 
 4. On the **Manage Access** blade, select the individual principals from the top table and review their permissions in the permissions section below.
 
-   ![The Manage Access blade is shown for a directory. The $superuser principal is selected from the top table, and in the permissions section it shows the access as being Read and Execute. The Default box is present (but not checked), and there is a textbox and Add button available to add additional principals to the access list.](lab5_synapsestudiomanageaccessdirectoryblade.png)
+   ![The Manage Access blade is shown for a directory. The $superuser principal is selected from the top table, and in the permissions section it shows the access as being Read and Execute. The Default box is present (but not checked), and there is a textbox and Add button available to add additional principals to the access list.](media/lab5_synapsestudiomanageaccessdirectoryblade.png)
 
 5. In order to add a user group or permission, you would need to first enter the User Principal Name (UPN) or Object ID for the principal and select the **Add** button. As an example, we will obtain the Object ID for the **Synapse_WORKSPACE_Users** security group.
 
