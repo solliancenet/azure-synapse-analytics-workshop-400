@@ -379,11 +379,11 @@ Possible POSIX access permissions are as follows:
 
    1. In Azure Portal, expand the left menu and select **Azure Active Directory**.
 
-        ![In the Azure Portal, the left menu is expanded and Azure Active Directory is selected.](media\lab5_portalaadmenu.png)
+        ![In the Azure Portal, the left menu is expanded and Azure Active Directory is selected.](media/lab5_portalaadmenu.png)
 
    2. On the **Azure Active Directory** screen left menu, select **Groups**.
 
-        ![On the Azure Active Directory screen, Groups is selected from the left menu](media\lab5_aadgroupsmenu.png)
+        ![On the Azure Active Directory screen, Groups is selected from the left menu](media/lab5_aadgroupsmenu.png)
 
    3. From the listing of Groups, select the **Synapse_WORKSPACE_Users** group.
 
