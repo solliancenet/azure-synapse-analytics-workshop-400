@@ -9,7 +9,7 @@ Workload Management
 
 ## Task 1 - Workload Importance in Azure Synapse
 
-1. Open Synapse Analytics Studio, and then navigate to the `Develop` hub. Then open `3 WorkLoad Importance` from the list of SQL Scripts. 
+1. Open Synapse Analytics Studio, and then navigate to the `Develop` hub. Then open `Lab 08 - Exercise 1 - WorkLoad Importance` from the list of SQL Scripts. 
 
 2. Select `AzureSynapseDW` under `Connect To` and highlight the first SQL Command shown below. Select `Run` to confirm that there are no queries currently being run by users logged in as `CEONYC` or `AnalystNYC`.
 
@@ -33,7 +33,7 @@ Workload Management
 
 ## Task 2 - Workload Isolation
 
-1. Open Synapse Analytics Studio, and then navigate to the `Develop` hub. Then open `4 Workload Isolation` from the list of SQL Scripts. 
+1. Open Synapse Analytics Studio, and then navigate to the `Develop` hub. Then open `Lab 08 - Exercise 2 - Workload Isolation` from the list of SQL Scripts. 
 
 2. Select `AzureSynapseDW` under `Connect To` and highlight the first SQL Command shown below. 
 
