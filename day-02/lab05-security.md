@@ -32,7 +32,7 @@ Content
   - SQL Pools add spiel on Transparent Data Encryption (<https://docs.microsoft.com/en-us/azure/sql-database/transparent-data-encryption-azure-sql?view=sql-server-ver15&tabs=azure-portal>)
   - Exercise 3 - Task 2 - verify connecting key vault to Managed VNet Steps with a Workspace that has one.
   
-  - Add Key Vault to a pipeline using web activity
+  - data classification fed into predicate filter for RLS
   - Add key vault to store secret to linked services, (Storage key)
   - Key vault and power bi ?
   - Add Storage Accounts to the Managed VNet
@@ -43,12 +43,12 @@ Content
   - [Exercise 1 - Securing Azure Synapse Analytics supporting infrastructure](#exercise-1---securing-azure-synapse-analytics-supporting-infrastructure)
     - [Task 1 - Create Azure Active Directory security groups](#task-1---create-azure-active-directory-security-groups)
     - [Task 2 - Implement Security Group Inheritance in Azure Active Directory](#task-2---implement-security-group-inheritance-in-azure-active-directory)
-  - [Task 3 - Secure the Azure Synapse Workspace storage account](#task-3---secure-the-azure-synapse-workspace-storage-account)
+    - [Task 3 - Secure the Azure Synapse Workspace storage account](#task-3---secure-the-azure-synapse-workspace-storage-account)
     - [Task 4 - Set the SQL Active Directory admin](#task-4---set-the-sql-active-directory-admin)
     - [Task 5 - Add IP firewall rules](#task-5---add-ip-firewall-rules)
     - [Task 6 - Managed VNet](#task-6---managed-vnet)
     - [Task 7 - Private Endpoints](#task-7---private-endpoints)
-  - [Exercise 3 - Securing the Azure Synapse Analytics workspace and managed services](#exercise-3---securing-the-azure-synapse-analytics-workspace-and-managed-services)
+  - [Exercise 2 - Securing the Azure Synapse Analytics workspace and managed services](#exercise-2---securing-the-azure-synapse-analytics-workspace-and-managed-services)
     - [Task 1 - Secure your Synapse workspace](#task-1---secure-your-synapse-workspace)
     - [Task 2 - Managing secrets with Azure Key Vault](#task-2---managing-secrets-with-azure-key-vault)
     - [Task 2 - Access control to workspace pipeline runs](#task-2---access-control-to-workspace-pipeline-runs)
@@ -56,7 +56,7 @@ Content
     - [Task 4 - Access Control to Synapse SQL Pools](#task-4---access-control-to-synapse-sql-pools)
     - [Task 5 - Secure Synapse Spark pools](#task-5---secure-synapse-spark-pools)
     - [Task 6 - Secure Power BI reports](#task-6---secure-power-bi-reports)
-  - [Exercise 4 - Securing Azure Synapse Analytics workspace data](#exercise-4---securing-azure-synapse-analytics-workspace-data)
+  - [Exercise 3 - Securing Azure Synapse Analytics workspace data](#exercise-3---securing-azure-synapse-analytics-workspace-data)
     - [Task 1 - Setting granular permissions in the data lake with POSIX-style access control lists](#task-1---setting-granular-permissions-in-the-data-lake-with-posix-style-access-control-lists)
     - [Task 2 - Column Level Security](#task-2---column-level-security)
     - [Task 3 - Row level security](#task-3---row-level-security)
@@ -155,7 +155,7 @@ Some of the groups that we created in the first task will have permissions that 
 
 5. Repeat Steps 1 - 4 for each of the remaining groups listed in the table found in the description of this task.
 
-## Task 3 - Secure the Azure Synapse Workspace storage account
+### Task 3 - Secure the Azure Synapse Workspace storage account
 
 One of the benefits of using Azure Storage Accounts is that all data at rest is encrypted. Azure Storage automatically encrypts and decrypts data transparently using 256-bit AES encryption and is FPS 140-2 compliant. In addition to encrypted data at rest, Role Based Access Control is available to further secure storage accounts and containers.
 
@@ -260,7 +260,7 @@ In the previous task, you were introduced to the concept of managed private endp
 If the user creating the private endpoint is also an Owner on the requested Azure resource (RBAC), then the private IP address is assigned to the resource and its [Private Link](https://docs.microsoft.com/en-us/azure/private-link/private-link-overview
 ) established so that it can start being used to send data. Otherwise, it enters a pending state until an Owner of the Azure resource approves of the connection. Only upon approval will the private link be established. To demonstrate the concept of establishing a private endpoint, we will create a new Storage Account and leverage Azure Synapse Analytics to create a managed private endpoint.
 
-## Exercise 3 - Securing the Azure Synapse Analytics workspace and managed services
+## Exercise 2 - Securing the Azure Synapse Analytics workspace and managed services
 
 ### Task 1 - Secure your Synapse workspace
 
@@ -593,7 +593,7 @@ Azure Synapse manages the creation of new Apache Spark Pools. It is recommended 
 
 *** Question: I am thinking that this is established when adding a link (Manage -> Linked Services). There is a limit to one Power BI linked service, so I didn't walk through a new one. I am making note of this item -> <https://github.com/solliancenet/azure-synapse-analytics-day/blob/master/00-setup-workspace.md#task-5---configure-power-bi> that says in the Power BI Portal to authenticate to the pool using the asa.sql.admin account (I am guessing this needs to be created manually or is it built-in?). Any new user added to the workspace must also be set as a Contributor on the Power BI workspace (can do this through adding Synapse_WORKSPACE_Users). I don't have sufficient access in the demo lab to see the Users in the Power BI Admin portal, but going through some of the motions on my personal account, it looks like all users need managed through O365. I can see where my custom AAD security groups are listed, but not how to add the Synapse_Workspace_Users to the Power BI Contributor role. I see in the Power BI Admin portal, the Tenant settings has some security things listed, but nothing like simply adding a group to a role.
 
-## Exercise 4 - Securing Azure Synapse Analytics workspace data
+## Exercise 3 - Securing Azure Synapse Analytics workspace data
 
 ### Task 1 - Setting granular permissions in the data lake with POSIX-style access control lists
 
