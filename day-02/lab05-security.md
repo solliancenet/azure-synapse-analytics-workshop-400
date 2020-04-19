@@ -1,36 +1,66 @@
 # End-to-end security with Azure Synapse Analytics
 
-This lab will guide you through all the security-related steps that cover and end-to-end security story for Azure Synapse Analytics.
+Wide World Importers is host to a plethora of data coming from many disparate sources. The idea of bringing all of their data together into Azure Synapse Analytics for them to query, gain insights, and consume in ways they have never done before is exhilarating! As much as it is an exciting game-changer for this business, it opens up a large amount of surface area for potential attack. Security must be established at the forefront at the time of design of this solution.
+
+This lab will guide you through all the security-related steps that cover an end-to-end security story for Azure Synapse Analytics. Some key take-aways from this lab are:
+
+1. Clearly define job functions and the access that each requires to Azure resources - keeping in mind the principle of least privilege. Define Azure Security Groups to match these functions and assign users to these groups, and not to specific resources directly. On Azure resources, grant permissions to Azure Security Groups, and not individual users.
+
+2. Leverage a private Virtual Network for all Azure resources, create private endpoints/links wherever possible to enable private network communication over the Azure backend network.
+
+    > **Note**: You must enable ASA Managed VNet at the time of creation of your Azure Synapse Analytics workspace, this can't be added after the fact.
+
+3. Leverage Azure Key Vault to store sensitive connection information, such as access keys and passwords for linked services as well as in pipelines.
+
+4. Introspect the data that is contained within the SQL Pools in the context of potential sensitive/confidential data disclosure. Identify the columns representing sensitive data, then secure it by adding column-level security. Determine at the table level what data should be hidden from specific groups of users then define security predicates to apply row level security (filters) on the table. If desired, you also have the option of applying Dynamic Data Masking to mask sensitive data returned in queries.
 
 ```text
-TBD: Data discovery and classification features in SQL Pools
+Team Recommendations:  
+    - ADS on SQL Pools isn't available yet, would have included column sensitivity classification, discovery, as well as vulnerability/advanced threat protection.
+    - Column Level Encryption (not available) - can't create a cert with Encryption By Password (statement fails) <-- this was demonstrated at ignite :(
+    - Would be great to be able to rename SQL Scripts
 ```
 
-> **Question**: Should this document also cover security recommendations for when creating linked services as well?
-> Sql AAD Admin account for sql pools and account keys for storage accounts.
+---
+
+Lab Pre-requisites:
+
+- workspace MUST created with a managed vnet, this is the backbone/key of a secure ASA workspace
+
+- will need the Security group wwi-readers
+
+- will need an AAD User created (walking through adding aad user to sql)
+
+Lab Testing:
+
+- will need a workspace with a Managed VNet to test the content of this lab.
+
+---
 
 - [End-to-end security with Azure Synapse Analytics](#end-to-end-security-with-azure-synapse-analytics)
   - [Resource naming throughout this lab](#resource-naming-throughout-this-lab)
   - [Exercise 1 - Securing Azure Synapse Analytics supporting infrastructure](#exercise-1---securing-azure-synapse-analytics-supporting-infrastructure)
     - [Task 1 - Create Azure Active Directory security groups](#task-1---create-azure-active-directory-security-groups)
     - [Task 2 - Implement Security Group Inheritance in Azure Active Directory](#task-2---implement-security-group-inheritance-in-azure-active-directory)
-  - [Task 3 - Secure the Azure Synapse Workspace storage account](#task-3---secure-the-azure-synapse-workspace-storage-account)
-    - [Task 6 - Set the SQL Active Directory admin](#task-6---set-the-sql-active-directory-admin)
-    - [Task 7 - Add IP firewall rules](#task-7---add-ip-firewall-rules)
-    - [Task 8 - Managed VNet](#task-8---managed-vnet)
-    - [Task 9 - Private Endpoints](#task-9---private-endpoints)
-  - [Exercise 3 - Securing the Azure Synapse Analytics workspace and managed services](#exercise-3---securing-the-azure-synapse-analytics-workspace-and-managed-services)
+    - [Task 3 - Secure the Azure Synapse Workspace storage account](#task-3---secure-the-azure-synapse-workspace-storage-account)
+    - [Task 4 - Set the SQL Active Directory admin](#task-4---set-the-sql-active-directory-admin)
+    - [Task 5 - Add IP firewall rules](#task-5---add-ip-firewall-rules)
+    - [Task 6 - Managed VNet](#task-6---managed-vnet)
+    - [Task 7 - Private Endpoints](#task-7---private-endpoints)
+  - [Exercise 2 - Securing the Azure Synapse Analytics workspace and managed services](#exercise-2---securing-the-azure-synapse-analytics-workspace-and-managed-services)
     - [Task 1 - Secure your Synapse workspace](#task-1---secure-your-synapse-workspace)
-    - [Task 2 - Access control to workspace pipeline runs](#task-2---access-control-to-workspace-pipeline-runs)
-    - [Task 3 - Access Control to Synapse SQL Serverless](#task-3---access-control-to-synapse-sql-serverless)
-    - [Task 4 - Access Control to Synapse SQL Pools](#task-4---access-control-to-synapse-sql-pools)
-    - [Task 5 - Secure Synapse Spark pools](#task-5---secure-synapse-spark-pools)
-    - [Task 6 - Secure Power BI reports](#task-6---secure-power-bi-reports)
-  - [Exercise 4 - Securing Azure Synapse Analytics workspace data](#exercise-4---securing-azure-synapse-analytics-workspace-data)
+    - [Task 2 - Managing secrets with Azure Key Vault](#task-2---managing-secrets-with-azure-key-vault)
+    - [Task 3 - Use Azure Key Vault for secrets when creating Linked Services](#task-3---use-azure-key-vault-for-secrets-when-creating-linked-services)
+    - [Task 4 - Secure workspace pipeline runs](#task-4---secure-workspace-pipeline-runs)
+    - [Task 5 - Access Control to Synapse SQL Serverless](#task-5---access-control-to-synapse-sql-serverless)
+    - [Task 6 - Secure Azure Synapse Analytics SQL Pools](#task-6---secure-azure-synapse-analytics-sql-pools)
+    - [Task 7 - Secure Azure Synapse Analytics Spark pools](#task-7---secure-azure-synapse-analytics-spark-pools)
+    - [Task 8 - Secure Power BI reports](#task-8---secure-power-bi-reports)
+  - [Exercise 3 - Securing Azure Synapse Analytics workspace data](#exercise-3---securing-azure-synapse-analytics-workspace-data)
     - [Task 1 - Setting granular permissions in the data lake with POSIX-style access control lists](#task-1---setting-granular-permissions-in-the-data-lake-with-posix-style-access-control-lists)
     - [Task 2 - Column Level Security](#task-2---column-level-security)
     - [Task 3 - Row level security](#task-3---row-level-security)
-  - [Exercise 6 - Dynamic data masking](#exercise-6---dynamic-data-masking)
+    - [Task 4 - Dynamic data masking](#task-4---dynamic-data-masking)
   - [Reference](#reference)
   - [Other Resources](#other-resources)
 
@@ -42,20 +72,25 @@ For the remainder of this guide, the following terms will be used for various AS
 |-----------------------------------|------------------------------------------------------------------------------------|
 | Workspace resource group          | `WorkspaceResourceGroup`                                                           |
 | Workspace / workspace name        | `Workspace`                                                                        |
-| Identity used to create workspace | `MasterUser`                                                                       |
 | Primary Storage Account           | `PrimaryStorage`                                                                   |
 | Default file system container     | `DefaultFileSystem`                                                                |
 | SQL Pool                          | `SqlPool01`                                                                        |
-| Active Directory New User         | `user@domain.com`                                                                  |
+| Active Directory Principal of  New User         | `user@domain.com`                                                    |
 | SQL username of New User          | `newuser`                                                                          |
+| Azure Key Vault                   | `KeyVault01`                                                                       |
+| Azure Key Vault Private Endpoint Name  | `KeyVaultPrivateEndpointName`                                                 |
+| Azure Subscription                | `WorkspaceSubscription`                                                            |
+| Azure Region                      | `WorkspaceRegion`                                                                  |
 
 ## Exercise 1 - Securing Azure Synapse Analytics supporting infrastructure
 
+Azure Synapse Analytics (ASA) is a powerful solution that handles security for many of the resources that it creates and manages. In order to run ASA, however, some foundational security measures need to be put in place to ensure the infrastructure that it relies upon is secure. In this exercise, we will walk through securing the supporting infrastructure of ASA.
+
 ### Task 1 - Create Azure Active Directory security groups
 
-As with many Azure resources, Azure Synapse Analytics has the ability to leverage Azure Active Directory for security. Begin the security implementation by defining appropriate security groups in Azure Active Directory. Each security group will represent a job function in Azure Synapse Analytics and will be granted the necessary permissions to fulfill its function. Individual users will then be assigned to their respective group based on their role in the organization. Structuring security in this way makes it easier to provision users and admins.
+As with many Azure resources, Azure Synapse Analytics has the ability to leverage Azure Active Directory for security. Begin the security implementation by defining appropriate security groups in Azure Active Directory. Each security group will represent a job function in Azure Synapse Analytics and will be granted the necessary permissions to fulfill its function. Individual users will then be assigned to their respective group based on their role in the organization. Structuring security such a way makes it easier to provision users and admins.
 
-As a general guide, create an Azure Active Directory Security Group for the following job functions:
+As a general guide, create an Azure Active Directory Security Group for the following Synapse-specific job functions:
 
 | Group                             | Description                                                                        |
 |-----------------------------------|------------------------------------------------------------------------------------|
@@ -63,6 +98,8 @@ As a general guide, create an Azure Active Directory Security Group for the foll
 | Synapse_`Workspace`_Admins        | Workspace administrators, for users that need complete control over the workspace. |
 | Synapse_`Workspace`_SQLAdmins     | For users that need complete control over the SQL aspects of the workspace.        |
 | Synapse_`Workspace`_SparkAdmins   | For users that need complete control over the Spark aspects of the workspace.      |
+
+Follow this guidance to create additional security groups matching job functions in your organization. When designing these groups, keep in mind the principle of least privilege. Permissions to specific Azure resources will be granted to these groups and not directly to users - users will only be assigned to security groups.
 
 1. In the [Azure Portal](https://portal.azure.com), expand the left menu by selecting the menu icon in the upper left corner. From the menu that appears, select the **Azure Active Directory** item.
 
@@ -118,11 +155,11 @@ Some of the groups that we created in the first task will have permissions that 
 
 5. Repeat Steps 1 - 4 for each of the remaining groups listed in the table found in the description of this task.
 
-## Task 3 - Secure the Azure Synapse Workspace storage account
+### Task 3 - Secure the Azure Synapse Workspace storage account
 
-One of the benefits of using Azure Storage Accounts is that all data at rest is encrypted. Azure Storage encrypts and decrypts data transparently using 256-bit AES encryption and is FPS 140-2 compliant. In addition to encrypted data at rest, Role Based Access Control is available to further secure storage accounts and containers.
+One of the benefits of using Azure Storage Accounts is that all data at rest is encrypted. Azure Storage automatically encrypts and decrypts data transparently using 256-bit AES encryption and is FPS 140-2 compliant. In addition to encrypted data at rest, Role Based Access Control is available to further secure storage accounts and containers.
 
-Role-based Access Control (RBAC) uses role assignments to apply permission sets to security principals; a principal may be a user, group, service principal, or any managed identity that exists in the Azure Active Directory. So far in this lab, we have defined and configured security groups that represent the various job functions that we need in Azure Synapse Analytics. It is recommended that individual user principals be added only to these Active Directory Security groups. These users will in turn be granted permissions based on the security group (role) that they belong to. All RBAC permissions in this lab will be assigned to security groups, never to an individual user principal.
+Role-based Access Control (RBAC) uses role assignments to apply permission sets to security principals; a principal may be a user, group, service principal, or any managed identity that exists in the Azure Active Directory. So far in this lab, we have defined and configured security groups that represent the various job functions that we need in Azure Synapse Analytics. It is recommended that individual user principals be added only to these Active Directory Security groups. These users will in turn be granted permissions based on the security group (role) that they belong to. All RBAC permissions in this lab will be assigned to security groups, and never to an individual user principal.
 
 When the Azure Synapse Workspace was created, it required the selection of an Azure Data Lake Storage Gen 2 account (`PrimaryStorage`) and the creation of a default filesystem container: `DefaultFileSystem`. The groups we've created in this lab will require access to this container.
 
@@ -156,9 +193,21 @@ When the Azure Synapse Workspace was created, it required the selection of an Az
 
    2. Ensure the MSI with the same name as your workspace (`Workspace`) is listed as a **Contributor**. If it isn't listed, please add it now following the instruction in Step 5.
 
-    **** TODO: NEED A SCREENSHOT, the default container for the workspace (tempdata in labworkspace123654) doesn't allow me to add role assignments and the MSI isn't listed as a contributor ****
+    **** TODO: NEED A SCREENSHOT, the default container for the workspace (tempdata in asadatalake01) doesn't allow me to add role assignments and the MSI isn't listed as a contributor ****
 
-### Task 6 - Set the SQL Active Directory admin
+ Additional security precautions can be taken such as enabling **Advanced Threat detection** on all Storage accounts. When this feature is enabled, the Azure Security Center will monitor all traffic to and from the storage account and is able to identify suspicious activity. When such an event occurs, an email is sent out indicating the details of the anomaly along with potential causes and remediation recommendations. These events are also available for review in the **Azure Security Center**. [See this article](https://docs.microsoft.com/en-us/azure/security-center/security-center-intro) for more about Azure Security Center.
+
+ 1. In **Azure Portal**, open a storage account resource such as `PrimaryStorage`.
+
+ 2. From the left menu, select **Advanced Security**.
+
+ 3. On the **Advanced Security** screen, select the **Enable Advanced Threat Protection**.
+
+ 4. For this lab, we will not enable this setting.
+
+    ![In the Storage Account screen, Advanced security is selected from the left menu and the Enable Advanced Threat Protection Button is highlighted.](media/lab5_storageadvancedthreatprotection.png)
+
+### Task 4 - Set the SQL Active Directory admin
 
 In order to take advantage of the security group structure we've created, we need to ensure the **Synapse_`Workspace`_SQLAdmins** group has administrative permissions to the SQL Pools contained in the workspace.
 
@@ -174,9 +223,9 @@ In order to take advantage of the security group structure we've created, we nee
 
    **** TODO: NEED A SCREENSHOT, unable to get one due to not having AAD permissions on the Azure Account to create the security groups ****
 
-### Task 7 - Add IP firewall rules
+### Task 5 - Add IP firewall rules
 
-Azure Synapse Analytics can also be secured at the transport layer using IP firewall rules. When applied at the workspace level, these rules will be applied to all public endpoints of the workspace (SQL pools, SQL Serverless, and Development).
+Having robust Internet security is a must for every technology system. One way to mitigate internet threat vectors is by reducing the number of public IP addresses that can access the Azure Synapse Analytics Workspace through the use of IP firewall rules. The Azure Synapse Analytics workspace will then delegate those same rules to all managed public endpoints of the workspace, including those for SQL pools and SQL Serverless.
 
 1. Define the IP range that should have access to the workspace.
 
@@ -202,29 +251,28 @@ Azure Synapse Analytics can also be secured at the transport layer using IP fire
 
 > **Note**: When connecting to Synapse from your local network, certain ports need to be open. To support the functions of Synapse Studio, ensure outgoing TCP ports 80, 443, and 1143, and UDP port 53 are open.
 
-### Task 8 - Managed VNet
+### Task 6 - Managed VNet
 
-*** TODO: clarify what is needed here, this is a setting that can't be changed after a workspace is created. The choice to associate a managed workspace vnet is only available as a network option during the workspace creation process.
+When creating an Azure Synapse Analytics workspace, you are given the option of associating it with a VNet. Doing so shifts the management of the VNet to Azure Synapse. Once associated with Synapse, the VNet is then referred to as a **Managed workspace VNet**. Azure Synapse takes on the responsibility of creating subnets for each Spark Cluster as well as configuring Network Security Group (NSG) rules to harden the security of all managed Synapse resources.
 
-When creating an Azure Synapse Analytics workspace, you are given the option of associating it with a VNet. Doing so shifts the management of the VNet to Azure Synapse. Once associated with Synapse, the VNet is then referred to as a **Managed workspace VNet**. Azure Synapse takes on the responsibility of creating subnets for Spark Clusters as well as configuring Network Security Group (NSG) rules to avoid service disruption.
+Leveraging the Managed workspace VNet provides network isolation from other ASA workspaces. All data integration and Spark resources are deployed within the confines of the associated VNet as well. In addition to network isolation, user-level isolation is obtained for Spark Clusters, as Synapse automatically deploys them to their own subnet. A Managed workspace VNet combined with the use of managed private endpoints (covered in depth in the next task) ensures that all traffic between the workspace and external (to the Managed VNet) Azure resources traverses entirely over the Azure backbone network. These external resources are those multi-tenant/shared resources that reside outside the VNet including: Storage Accounts, Cosmos DB, SQL Pools and SQL Serverless.
 
-Leveraging the Managed workspace VNet provides network isolation from other workspaces. All data integration and Spark resources are deployed within the confines of the associated VNet. User-level isolation is obtained for Spark Clusters, as the Managed workspace VNet automatically deploys them to their own subnet. A Managed workspace VNet combined with the usage managed private endpoints (covered in depth in the next task) ensure that all traffic between the workspace and external Azure resources traverses entirely over the Azure backbone network. These external resources are those multi-tenant/shared resources that reside outside the VNet including: Storage Accounts, Cosmos DB, SQL Pools and SQL Serverless.
+> **Note**: Managed private endpoints are only available on workspaces that have a Managed workspace VNet. Verify if your workspace resource has a managed virtual network by opening the `Workspace` resource and selecting the **Overview** tab.
 
-> **Note**: Managed private endpoints are only available on workspaces that have a Managed workspace VNet.
+![On the Overview tab of the workspace resource has the Managed virtual network setting of Yes.](media/lab5_workspacehasvnet.png)
 
 1. When creating an Azure Synapse workspace, select the **Security + networking** tab, and check the **Enable managed virtual network** checkbox.
 
 *** TODO: Screenshot needed
 
-### Task 9 - Private Endpoints
+### Task 7 - Private Endpoints
 
-In the previous task, you were introduced to the concept of managed private endpoints. Azure Synapse Analytics manages these endpoints to ensure all traffic to other Azure resources remains on the Azure backbone network - protecting against the risk of data theft. Under the hood, a private endpoint assigns a private IP address from the Managed workspace VNet and maps it to the external resource, effectively bringing that service into the VNet.
+In the previous task, you were introduced to the concept of managed private endpoints. Azure Synapse Analytics manages these endpoints to ensure all traffic to other Azure resources remains on the private Azure backbone network - protecting against the risk of data theft by eliminating public communication over the internet. Under the hood, a private endpoint assigns a private IP address from the Managed workspace VNet and maps it to the external Azure resource, bringing that service into the VNet.
 
-When a private endpoint is first created, it enters a pending state until the owner of the Azure resource that is being connected to approves of the connection. Only upon approval will the private link be established and be used to send data. To demonstrate the concept of establishing a private endpoint, we will create a new Storage Account and leverage Azure Synapse Analytics to create a managed private endpoint.
+If the user creating the private endpoint is also an Owner on the requested Azure resource (RBAC), then the private IP address is assigned to the resource and its [Private Link](https://docs.microsoft.com/en-us/azure/private-link/private-link-overview
+) established so that it can start being used to send data. Otherwise, it enters a pending state until an Owner of the Azure resource approves of the connection. Only upon approval will the private link be established. To demonstrate the concept of establishing a private endpoint, we will create a new Storage Account and leverage Azure Synapse Analytics to create a managed private endpoint.
 
-*** TODO: demo environment has workspace created without a managed VNet so creating private endpoints is not available.
-
-## Exercise 3 - Securing the Azure Synapse Analytics workspace and managed services
+## Exercise 2 - Securing the Azure Synapse Analytics workspace and managed services
 
 ### Task 1 - Secure your Synapse workspace
 
@@ -292,7 +340,121 @@ We will now associate the Azure Active Directory groups that we've created with 
 
 6. Repeat Steps 4 and 5 for the remaining Azure Active Directory group assignments described in the table found in the task description.
 
-### Task 2 - Access control to workspace pipeline runs
+### Task 2 - Managing secrets with Azure Key Vault
+
+When dealing with connectivity to external data sources and services, sensitive connection information such as passwords and access keys should be properly handled. It is recommended that this type of information be stored in an Azure Key Vault. Leveraging Azure Key Vault not only protects against secrets being compromised, it also serves as a central source of truth; meaning that if a secret value needs to be updated (such as when cycling access keys on a storage account), it can be changed in one place and all services consuming this key will start pulling the new value immediately. Azure Key Vault encrypts and decrypts information transparently using 256-bit AES encryption, which is FIPS 140-2 compliant.
+
+Azure Key Vault supports private endpoints. By establishing a private endpoint in the workspace managed VNet, all communication with the key vault from the workspace will occur on the private Azure network backbone.
+
+1. In **Azure Portal**, from the left menu select **+ Create a resource**.
+
+   ![A portion of the Azure Portal left navigation menu is shown with the + Create a resource item selected.](media/lab5_portalcreatearesource.png)
+
+2. Search for **Key Vault** in the search box, and select it from the search results.
+
+3. On the **Key Vault** resource overview screen, select the **Create** button.
+
+4. On the **Create key vault** screen, on the **Basics** tab, fill out the fields as follows:
+
+   1. **Subscription**: Select `WorkspaceSubscription`.
+
+   2. **Resource group**: Select `WorkspaceResourceGroup`.
+
+   3. **Key vault name**: Enter `KeyVault01`
+
+   4. **Soft delete**: Select **Disable** (for this lab, in production you may choose to leave this enabled).
+
+   5. **Region**: Select `WorkspaceRegion`.
+
+    ![The form on the basics tab of the Create key vault screen is displayed populated with the previous values.](media/lab5_keyvaultbasicstab.png)
+
+5. Select the **Next:Access policy >** button.
+
+6. On the **Access policy** tab, select the **+ Add Access Policy** link.
+
+    ![On the Access policy tab of the Create key vault screen, the + Add Access Policy link is highlighted.](media/lab5_keyvaultaddaccesspolicymenu.png)
+
+7. On the **Add policy** screen, fill the form as follows, and select **Add**:
+
+   1. **Secret permissions**: Select **Get** and **List**.
+
+   2. **Select principal**: Select the MSI (Managed Service Identity) that has the same name as your `Workspace`.
+
+   ![The Add access policy screen is displayed with the fields listed above highlighted and the Add button selected at the bottom of the form.](media/lab5_keyvaultaddaccesspolicy.png)
+
+8. Select the **Networking** tab.
+
+9. For **Connectivity** method, select **Private endpoint**, then choose the **+ Add** link.
+
+    ![On the Connectivity tab of the Key vault create screen, Private endpoint is selected as the connectivity method, and the + Add link is highlighted.](media/lab5_keyvaultnetworkaddlink.png)
+
+10. On the **Create private endpoint** blade, fill out the form as follows:
+
+    1. **Subscription**: Select `WorkspaceSubscription`.
+
+    2. **Resource group**: Select `ResourceGroup`.
+
+    3. **Location**: Select `WorkspaceRegion`.
+
+    4. **Name**: Enter a name of your choice.
+
+    5. **Virtual network**: Select the workspace managed VNet.
+
+    6. **Subnet**: Select the subnet you defined when setting up the workspace.
+
+    7. **Private DNS Zone**: Keep the default, allowing for the creation of a new Private DNS Zone.
+
+    ![The Create private endpoint form is displayed populated with the previous values.](media/lab5_keyvaultprivateendpoint.png)
+
+11. Select **Review + create**.
+
+12. Select **Create** once validation completes.
+
+13. Once the `KeyVault01` is created, open the resource in the Azure Portal.
+
+14. From the left menu, select **Networking**.
+
+15. In the **Firewall IPv4 address or CIDR**, enter your corporate IP range - this will allow you to add keys from your public IP address.
+
+16. Select **Save** from the top toolbar.
+
+    ![In the Firewall settings for the key vault, the IP address field is highlighted and the Save button is selected in the top toolbar.](media/lab5_keyvaultfirewall.png)
+
+### Task 3 - Use Azure Key Vault for secrets when creating Linked Services
+
+Linked Services are synonymous with connection strings in Azure Synapse Analytics. Azure Synapse Analytics linked services provides the ability to connect to nearly 100 different types of external services ranging from Azure Storage Accounts to Amazon S3 and more. When connecting to external services, having secrets related to connection information is guaranteed. The best place to store these secrets is the Azure Key Vault. Azure Synapse Analytics provides the ability to configure all linked service connections with values from Azure Key Vault.
+
+In order to leverage Azure Key Vault in linked services, you must first add `KeyVault01` as a linked service in Azure Synapse Analytics.
+
+1. In **Azure Synapse Studio**, select **Manage** from the left menu.
+
+2. Beneath **External Connections**, select **Linked Services**, then select the **+ New** button from the toolbar menu.
+
+   ![In Azure Synapse Studio, the Manage item is selected from the left menu. From the center menu, Linked services is selected. On the Linked services screen the + Add button is highlighted on the toolbar.](media/lab5_linkedservicesnewmenu.png)
+
+3. In the **New linked service** blade, search for **Azure Key Vault** and select it from the search results then press **Continue**.
+
+   ![In the New linked service blade, Azure Key Vault is entered in the search textbox. The Azure Key Vault search result is the only visible tile in the search results.](media/lab5_azurekeyvaultlinkedservicesearch.png)
+
+4. Fill out the **New linked service (Azure Key Vault)** form as follows, then select **Create**:
+
+   1. **Name**: Enter `KeyVault01`
+
+   2. **Description**: Enter **Key Vault for Linked Service Secrets**.
+
+   3. **Azure key vault selection method**: Select **From Azure subscription**.
+
+   4. **Azure subscription**: Select `WorkspaceSubscription`.
+
+   5. **Azure key vault name**: Select `KeyVault01`.
+
+    ![The New linked service (Azure Key Vault) form is displayed populated with the previous values.](media/lab5_keyvaultlinkedserviceform.png)
+
+Now that we have the Azure Key Vault setup as a linked service, we can now leverage it when defining new linked services. Every New linked service provides the option to retrieve secrets from Azure Key Vault. The form requests the selection of the Azure Key Vault linked service, the secret name, and (optional) specific version of the secret.
+
+![A New linked service form is displayed with teh Azure Key Vault setting highlighted with the fields described in the preceding paragraph.](media/lab5_newlinkedservicewithakv.png)
+
+### Task 4 - Secure workspace pipeline runs
 
 To successfully run pipelines that include datasets or activities that reference a SQL pool, the workspace Managed Identity needs to be granted access to the SQL pool directly.
 
@@ -324,7 +486,69 @@ To successfully run pipelines that include datasets or activities that reference
 
 6. You may now close the query tab, when prompted choose **Discard all changes**.
 
-### Task 3 - Access Control to Synapse SQL Serverless
+It is recommended to store any secrets that are part of your pipeline in Azure Key Vault, you will be able to retrieve these values using a Web activity. The second part of this task demonstrates using a Web activity in the pipeline to retrieve a secret from the Key Vault.
+
+1. Open the `KeyVault01` resource, and select **Secrets** from the left menu. From the top toolbar, select **+ Generate/Import**.
+
+   ![In Azure Key Vault, Secrets is selected from the left menu, and + Generate/Import is selected from the top toolbar.](media/lab5_pipelinekeyvaultsecretmenu.png)
+
+2. Create a secret, with the name **PipelineSecret** and assign it a value of **IsNotASecret**, and select the **Create** button.
+
+   ![The Create a secret form is displayed populated with the specified values.](media/lab5_keyvaultcreatesecretforpipeline.png)
+
+3. Open the secret that you just created, drill into the current version, and copy the value in the Secret Identifier field. Save this value in a text editor, or retain it in your clipboard for a future step.
+
+    ![On the Secret Version form, the Copy icon is selected next to the Secret Identifier text field.](media/lab5_keyvaultsecretidentifier.png)
+
+4. Open the Azure Synapse Analytics Studio, select **Orchestrate** from the left menu.
+
+    ![The Azure Synapse Analytics Studio left menu is displayed with the Orchestrate item selected.](media/lab5_synapsestudioorchestratemenu.png)
+
+5. From the **Orchestrate** blade, select the **+** button and add a new **Pipeline**.
+
+    ![On the Orchestrate blade the + button is expanded with the Pipeline item selected beneath it.](media/lab5_synapsestudiocreatenewpipelinemenu.png)
+
+6. On the **Pipeline** tab, in the **Activities** pane search for **Web** and then drag an instance of a **Web** activity to the design area.
+
+    ![In the Activities pane, Web is entered into the search field. Under General, the Web activity is displayed in the search results. An arrow indicates the drag and drop movement of the activity to the design surface of the pipeline. The Web activity is displayed on the design surface.](media/lab5_pipelinewebactivitynew.png)
+
+7. Select the **Web1** web activity, and select the **Settings** tab. Fill out the form as follows:
+
+    1. **URL**: Paste the Secret Identifier value for the secret **append** `?api-version=7.0` to this value.
+  
+    2. **Method**: Select **Get**.
+
+    3. Expand the **Advanced** section, and for **Authentication** select **MSI**. We have already established an Access Policy for the Managed Service Identity of our `Workspace`, this means that the pipeline activity has permissions to access the key vault via an HTTP call.
+  
+    4. **Resource**: Enter **<https://vault.azure.net>**
+
+    ![The Web Activity Settings tab is selected and the form is populated with the values indicated above.](media/lab5_pipelineconfigurewebactivity.png)
+
+8. Repeat Step 12, but this time add a **Set variable** activity to the design surface of the pipeline.
+
+9. On the design surface of the pipeline, select the **Web1** activity and drag a **Success** activity pipeline connection (green box) to the **Set variable1** activity.
+
+10. With the pipeline selected in the designer, select the **Variables** tab and add a new **String** parameter named **SecretValue**.
+
+      ![The design surface of the pipeline is shown with a new pipeline arrow connecting the Web1 and Set variable1 activities. The pipeline is selected, and beneath the design surface, the Variables tab is selected with a variable with the name of SecretValue highlighted.](media/lab5_newpipelinevariable.png)
+
+11. Select the **Set variable1** activity and select the **Variables** tab. Fill out the form as follows:
+
+    1. **Name**: Select **SecretValue** (the variable that we just created on our pipeline).
+
+    2. **Value**: Enter  **@activity('Web1').output.value**
+
+    ![On the pipeline designer, the Set Variable1 activity is selected. Below the designer, the Variables tab is selected with the form set the previously specified values.](media/lab5_pipelineconfigsetvaractivity.png)
+
+12. Debug the pipeline by selecting **Debug** from the toolbar menu. When it runs observe the inputs and outputs of both activities.
+
+    ![The pipeline toolbar is displayed with the Debug item highlighted.](media/lab5_pipelinedebugmenu.png)
+
+    ![In the output of the pipeline, the Set variable 1 activity is selected with its input displayed. The input shows the value of NotASecret that was pulled from the key vault being assigned to the SecretValue pipeline variable.](media/lab5_pipelinesetvariableactivityinputresults.png)
+
+    > **Note**: On the **Web1** activity, on the **General** tab there is a **Secure Output** checkbox that when checked will prevent the secret value from being logged in plain text, for instance in the pipeline run, you would see a masked value ***** instead of the actual value retrieved from the Key vault. Any activity that consumes this value should also have their **Secure Input** checkbox checked.
+
+### Task 5 - Access Control to Synapse SQL Serverless
 
 When creating a new SQL Serverless pool, you will need to ensure that it has sufficient rights to read/query the primary workspace storage account. Execute the following SQL script to grant this access:
 
@@ -334,7 +558,7 @@ CREATE CREDENTIAL [https://<PrimaryStorage>.dfs.core.windows.net]
 WITH IDENTITY='User Identity';
 ```
 
-When provisioning new users to the workspace, in addition to adding them to one of the workspace security groups, they can also be added with direct user access to the SQL Serverless databases. You have the ability to manually add users to SQL Serverless databases on a per database basis. If a user needs to be added to multiple databases, these steps must be repeated for each one.
+When provisioning new users to the workspace, in addition to adding them to one of the workspace security groups, they can also be added with direct user access to the SQL Serverless databases. You have the ability to manually add users to SQL Serverless databases on a per database basis. If a user needs to be added to multiple databases, these steps must be repeated for each one. 
 
 1. In **Azure Synapse Studio**, select **Develop** from the left menu.
 
@@ -374,7 +598,18 @@ When provisioning new users to the workspace, in addition to adding them to one 
 
 6. You may now close the query tab, when prompted choose **Discard all changes**.
 
-### Task 4 - Access Control to Synapse SQL Pools
+### Task 6 - Secure Azure Synapse Analytics SQL Pools
+
+Transparent Data Encryption (TDE) is a feature of SQL Server provides encryption and decryption of data at rest, this includes: databases, log files, and back ups. When using this feature with ASA SQL Pools, you have the option of using a built in symmetric Database Encryption Key (DEK) that is provided by the pool itself, or optionally by bringing in your own customer-managed asymmetric key. When using the latter approach, leverage Azure Key Vault functionality to safely store this key. With TDE, all stored data is encrypted on disk, when the data is requested, TDE will decrypt this data at the page level as it's read into memory, and vice-versa encrypting in-memory data before it gets written back to disk. As with the name, this happens transparently without affecting any application code. When creating a SQL Pool through ASA, Transparent Data Encryption is not enabled. The first part of this task will show you how to enable this feature.
+
+1. In the **Azure Portal**, locate and open the `SqlPool01` resource.
+
+2. On the **SQL pool** resource screen, select **Transparent data encryption** from the left menu.
+   ![On the SQL pool resource screen, Transparent data encryption is selected from the menu.](media/lab5_sqlpoolresourcetransparentdataencryptionmenu.png)
+
+3. If your SQL Pool is not currently taking advantage of TDE, slide the **Data encryption** slider to the **ON** position, and select **Save**.
+
+    ![On the SQL Pool Transparent Data Encryption screen, the Data Encryption toggle is set to the ON position and the Save button is highlighted in the toolbar.](media/lab5_sqlpoolenabletdeform.png)
 
 When provisioning new users to the workspace, in addition to adding them to one our workspace security groups, they can also be added with direct user access to the SQL pools. You have the ability to manually add users to SQL databases on a per database basis. If a user needs to be added to multiple databases, these steps must be repeated for each one.
 
@@ -407,17 +642,15 @@ When provisioning new users to the workspace, in addition to adding them to one 
 
 > **Note**: db_datareader and db_datawriter roles can work for read/write if you are not comfortable granting db_owner permissions. However, for a Spark user to read and write directly from Spark into/from a SQL pool, db_owner permission is required.
 
-### Task 5 - Secure Synapse Spark pools
+### Task 7 - Secure Azure Synapse Analytics Spark pools
 
-*** Question: it doesn't look like you can bring existing Spark pools into the workspace, the pools are managed directory through Synapse. I am not seeing additional guidance that recommends additional security configuration here. Maybe remove this task altogether since it's technically covered in Manged VNet?
+Azure Synapse Analytics manages the creation and security of new Apache Spark Pools. It is recommended that when creating the Azure Synapse Workspace in the **Networking + Security** tab that you enable a managed VNet. Doing so will increase the security of the Spark Pools by ensuring both network isolation at the Synapse workspace level, but also at the user isolation level as each pool will be created in its own subnet.
 
-Azure Synapse manages the creation of new Apache Spark Pools. It is recommended that when creating the Azure Synapse Workspace in the **Networking + Security** tab that you enable a managed VNet. Doing so will increase the security of the Spark Pools by ensuring both network isolation at the Synapse workspace level, but also at the User-isolation level as each pool will be created in its own subnet. We will learn more about this in Task 16.
+### Task 8 - Secure Power BI reports
 
-### Task 6 - Secure Power BI reports
+*** Question: I am thinking that this is established when adding a link (Manage -> Linked Services). There is a limit to one Power BI linked service, so I didn't walk through a new one. I am making note of this item -> <https://github.com/solliancenet/azure-synapse-analytics-day/blob/master/00-setup-workspace.md#task-5---configure-power-bi> that says in the Power BI Portal to authenticate to the pool using the asa.sql.admin account (I am guessing this needs to be created manually or is it built-in?). Any new user added to the workspace must also be set as a Contributor on the Power BI workspace (can do this through adding Synapse_WORKSPACE_Users). I don't have sufficient access in the demo lab to see the Users in the Power BI Admin portal, but going through some of the motions on my personal account, it looks like all users need managed through O365. I can see where my custom AAD security groups are listed, but not how to add the Synapse_Workspace_Users to the Power BI Contributor role. I see in the Power BI Admin portal, the Tenant settings has some security things listed, but nothing like simply adding a group to a role. Power BI reports using datasets from Synapse will automatically inherit the security in ASA.
 
-*** Question: I am thinking that this is established when adding a link (Manage -> Linked Services). There is a limit to one Power BI linked service, so I didn't walk through a new one. I am making note of this item -> <https://github.com/solliancenet/azure-synapse-analytics-day/blob/master/00-setup-workspace.md#task-5---configure-power-bi> that says in the Power BI Portal to authenticate to the pool using the asa.sql.admin account (I am guessing this needs to be created manually or is it built-in?). Any new user added to the workspace must also be set as a Contributor on the Power BI workspace (can do this through adding Synapse_WORKSPACE_Users). I don't have sufficient access in the demo lab to see the Users in the Power BI Admin portal, but going through some of the motions on my personal account, it looks like all users need managed through O365. I can see where my custom AAD security groups are listed, but not how to add the Synapse_Workspace_Users to the Power BI Contributor role. I see in the Power BI Admin portal, the Tenant settings has some security things listed, but nothing like simply adding a group to a role.
-
-## Exercise 4 - Securing Azure Synapse Analytics workspace data
+## Exercise 3 - Securing Azure Synapse Analytics workspace data
 
 ### Task 1 - Setting granular permissions in the data lake with POSIX-style access control lists
 
@@ -431,25 +664,25 @@ Possible POSIX access permissions are as follows:
 | 4            | R--        | Read                   |
 | 0            | ---        | No permissions         |
 
-*** Question: should I dive deeper here on POSIX concepts like super-users, owning group, mask, etc.? It is covered very well in the link I put at the end of the task intro.
+On the first day, in Activity 1, you were introduced to the concept of the security surrounding storage account containers and files. As part of that exercise, the **wwi-readers** Active Directory Group is to be granted read-only access to all sales data (for all years) stored in CSV files in a container in storage.
 
 1. In **Synapse Analytics Studio**, select the **Data** item from the left menu.
 
     ![The Azure Analytics Studio left menu is expanded with the Data item selected.](media/lab5_synapsestudiodatamenuitem.png)
 
-2. Expand **Storage accounts**, expand the `PrimaryStorage` account, and choose the **customer-insight** container.
+2. Expand **Storage accounts**, expand the `PrimaryStorage` account, and choose the **wwi** container.
 
-    ![In the Data blade, the Storage accounts section is expanded as well as the default storage account item. The customer-insight container is selected from the list.](media/lab5_synapsestudiodatabladecustomerinsights.png)
+    ![In the Data blade, the Storage accounts section is expanded as well as the default storage account item. The wwi container is selected from the list.](media/lab5_synapsestudiodatabladewwi.png)
 
-3. On the **customer-insight** tab, select any directory, then from the toolbar menu select the **Manage Access** item.
+3. On the **wwi** tab, select the **factsale-csv** directory, then from the toolbar menu select the **Manage Access** item.
 
-    ![On the customer-insight tab, the Manage Access item is selected from the toolbar menu.](media/lab5_synapsestudiodatalakemanageaccess.png)
+    ![On the wwi tab, the Manage Access item is selected from the toolbar menu.](media/lab5_synapsestudiodatalakemanageaccess.png)
 
 4. On the **Manage Access** blade, select the individual principals from the top table and review their permissions in the permissions section below.
 
    ![The Manage Access blade is shown for a directory. The $superuser principal is selected from the top table, and in the permissions section it shows the access as being Read and Execute. The Default box is present (but not checked), and there is a textbox and Add button available to add additional principals to the access list.](media/lab5_synapsestudiomanageaccessdirectoryblade.png)
 
-5. In order to add a user group or permission, you would need to first enter the User Principal Name (UPN) or Object ID for the principal and select the **Add** button. As an example, we will obtain the Object ID for the **Synapse_`Workspace`_Users** security group.
+5. In order to add a user group or permission, you would need to first enter the User Principal Name (UPN) or Object ID for the principal and select the **Add** button. As an example, we will obtain the Object ID for the **wwi-readers** security group.
 
    1. In Azure Portal, expand the left menu and select **Azure Active Directory**.
 
@@ -459,23 +692,27 @@ Possible POSIX access permissions are as follows:
 
         ![On the Azure Active Directory screen, Groups is selected from the left menu](media/lab5_aadgroupsmenu.png)
 
-   3. From the listing of Groups, select the **Synapse_`Workspace`_Users** group.
+   3. In the search box, type **wwi-readers**, then select the group from the search results.
 
    4. On the **Overview** screen, use the **Copy** button next to the Object Id textbox to copy the value to the clipboard.
 
-        ![On the Overview screen of the Synapse_Workspace_Users group, the copy button is selected next to the Object Id textbox.](media/lab5_aadgroupcopyobjectid.png)
+        ![On the Overview screen of the wwi-readers group, the copy button is selected next to the Object Id textbox.](media/lab5_aadgroupcopyobjectid.png)
 
    5. Return to **Synapse Analytics Studio**, and paste this value into the **Add user, group, or service principal** field.
 
-   6. Do **not** select the **Add** button, we are not setting additional permissions at this time.
+   6. Select the **Add** button to add **wwi-readers** to the ACL list.
 
-6. Repeat steps 3-5 and observe a similar experience when selecting an individual file rather than a directory.
+   7. With **wwi-readers** selected, check the **Access** checkbox, along with the **Read** and **Execute** permissions.
+
+        ![In the principals list wwi-readers is selected. In permissions, the Access checkbox is checked along with the Read checkbox and Execute checkbox.](media/lab5_posixaclwwireaders.png)
+
+6. You can also provide POSIX ACL security at the individual file level. All you would have to do is repeat steps 3-7 and observe a similar experience when selecting an individual file rather than a directory.
 
 > **Note**: When adding permissions at the directory level, there is an additional **Default** checkbox in the permissions table. By checking this box, you are able to set default permissions that will be automatically applied to any new children (directories or files) created within this directory.
 
-*** TODO: Screenshot of putting the object id in the textbox (didn't have access to create groups so didn't have a valid object id to validate on the form)
-
 ### Task 2 - Column Level Security
+
+It is important to identify data columns of that hold sensitive information. Types of sensitive could be social security numbers, email addresses, credit card numbers, financial totals, and more. Azure Synapse Analytics allows you define permissions that prevent specific users or roles select privileges on specific columns. In task 6, we created a new user in SQL Server. This user is also a member of the **wwi-readers** AAD security group. In this task, we have identified 
 
 1. In **Azure Synapse Studio**, select **Develop** from the left menu.
 
@@ -494,11 +731,11 @@ Possible POSIX access permissions are as follows:
    ![The Synapse Studio toolbar is displayed with the Run button selected.](media/lab5_synapsestudioqueryruntoolbarmenu.png)
 
     ```sql
-    /*  Column-level security feature in Azure Synapse simplifies the design and coding of security in application.
+        /*  Column-level security feature in Azure Synapse simplifies the design and coding of security in application.
         It ensures column level security by restricting column access to protect sensitive data. */
 
     --Step 1: Let us see how this feature in Azure Synapse works. Before that let us have a look at the Campaign table.
-    select  Top 100 * from Campaign_Analytics
+    select  Top 100 * from wwi.CampaignAnalytics
     where City is not null and state is not null
 
     /*  Consider a scenario where there are two users.
@@ -512,32 +749,32 @@ Possible POSIX access permissions are as follows:
 
     -- Step:3 Now let us enforcing column level security for the DataAnalystMiami.
     /*  Let us see how.
-        The Campaign_Analytics table in the warehouse has information like Region, Country, Product_Category, Campaign_Name, City,State,Revenue_Target , and Revenue.
+        The CampaignAnalytics table in the warehouse has information like Region, Country, ProductCategory, CampaignName, City,State,RevenueTarget , and Revenue.
         Of all the information, Revenue generated from every campaign is a classified one and should be hidden from DataAnalystMiami.
         To conceal this information, we execute the following query: */
 
-    GRANT SELECT ON Campaign_Analytics([Region],[Country],[Product_Category],[Campaign_Name],[Revenue_Target],
+    GRANT SELECT ON wwi.CampaignAnalytics([Region],[Country],[ProductCategory],[CampaignName],[RevenueTarget],
     [City],[State]) TO DataAnalystMiami;
-    -- This provides DataAnalystMiami access to all the columns of the Campaign_Analytics table but Revenue.
+    -- This provides DataAnalystMiami access to all the columns of the CampaignAnalytics table but Revenue.
 
     -- Step:4 Then, to check if the security has been enforced, we execute the following query with current User As 'DataAnalystMiami'
     EXECUTE AS USER ='DataAnalystMiami'
-    select * from Campaign_Analytics
+    select * from wwi.CampaignAnalytics
     ---
     EXECUTE AS USER ='DataAnalystMiami'
-    select [Region],[Country],[Product_Category],[Campaign_Name],[Revenue_Target],
-    [City],[state] from Campaign_Analytics
+    select [Region],[Country],[ProductCategory],[CampaignName],[RevenueTarget],
+    [City],[state] from wwi.CampaignAnalytics
 
-    /*  And look at that, when the user logged in as DataAnalystMiami tries to view all the columns from the Campaign_Analytics table,
+    /*  And look at that, when the user logged in as DataAnalystMiami tries to view all the columns from the CampaignAnalytics table,
         he is prompted with a ‘permission denied error’ on Revenue column.*/
 
     -- Step:5 Whereas, the CEO of the company should be authorized with all the information present in the warehouse.To do so, we execute the following query.
     Revert;
-    GRANT SELECT ON Campaign_Analytics TO CEO;  --Full access to all columns.
+    GRANT SELECT ON wwi.CampaignAnalytics TO CEO;  --Full access to all columns.
 
     -- Step:6 Let us check if our CEO user can see all the information that is present. Assign Current User As 'CEO' and the execute the query
     EXECUTE AS USER ='CEO'
-    select * from Campaign_Analytics
+    select * from wwi.CampaignAnalytics
     Revert;
     ```
 
@@ -568,15 +805,15 @@ Possible POSIX access permissions are as follows:
    ![The Synapse Studio toolbar is displayed with the Run button selected.](media/lab5_synapsestudioqueryruntoolbarmenu.png)
 
     ```sql
-    /*  Row level Security (RLS) in Azure Synapse enables us to use group membership to control access to rows in a table.
-        Azure Synapse applies the access restriction every time the data access is attempted from any user.
+    /*	Row level Security (RLS) in Azure Synapse enables us to use group membership to control access to rows in a table.
+        Azure Synapse applies the access restriction every time the data access is attempted from any user. 
         Let see how we can implement row level security in Azure Synapse.*/
 
     ----------------------------------Row-Level Security (RLS), 1: Filter predicates------------------------------------------------------------------
-    -- Step:1 The FactSales table has two Analyst values i.e. DataAnalystMiami and DataAnalystSanDiego
-    SELECT * FROM FactSales order by Analyst ;
+    -- Step:1 The Sale table has two Analyst values i.e. DataAnalystMiami and DataAnalystSanDiego
+    SELECT DISTINCT Analyst FROM wwi_security.Sale order by Analyst ;
 
-    /* Moving ahead, we Create a new schema, and an inline table-valued function.
+    /* Moving ahead, we Create a new schema, and an inline table-valued function. 
     The function returns 1 when a row in the Analyst column is the same as the user executing the query (@Analyst = USER_NAME())
     or if the user executing the query is the CEO user (USER_NAME() = 'CEO').
     */
@@ -585,7 +822,6 @@ Possible POSIX access permissions are as follows:
     SELECT * FROM sys.security_predicates
 
     --Step:2 To set up RLS, the following query creates three login users :  CEO, DataAnalystMiami, DataAnalystSanDiego
-    EXEC dbo.Sp_rls;
     GO
     CREATE SCHEMA Security
     GO
@@ -596,29 +832,30 @@ Possible POSIX access permissions are as follows:
         RETURN SELECT 1 AS fn_securitypredicate_result
         WHERE @Analyst = USER_NAME() OR USER_NAME() = 'CEO'
     GO
-    -- Now we define security policy that allows users to filter rows based on thier login name.
+    -- Now we define security policy that allows users to filter rows based on their login name.
     CREATE SECURITY POLICY SalesFilter  
     ADD FILTER PREDICATE Security.fn_securitypredicate(Analyst)
-    ON dbo.FactSales
+    ON wwi_security.Sale
     WITH (STATE = ON);
-    ------ Allow SELECT permissions to the fn_securitypredicate function.------
-    GRANT SELECT ON security.fn_securitypredicate TO CEO, DataAnalystMiami, DataAnalystSanDiego;
 
-    -- Step:3 Let us now test the filtering predicate, by selecting data from the FactSales table as 'DataAnalystMiami' user.
+    ------ Allow SELECT permissions to the Sale Table.------
+    GRANT SELECT ON wwi_security.Sale TO CEO, DataAnalystMiami, DataAnalystSanDiego;
+
+    -- Step:3 Let us now test the filtering predicate, by selecting data from the Sale table as 'DataAnalystMiami' user.
     EXECUTE AS USER = 'DataAnalystMiami'
-    SELECT * FROM FactSales;
+    SELECT * FROM wwi_security.Sale;
     revert;
     -- As we can see, the query has returned rows here Login name is DataAnalystMiami
 
     -- Step:4 Let us test the same for  'DataAnalystSanDiego' user.
     EXECUTE AS USER = 'DataAnalystSanDiego';
-    SELECT * FROM FactSales;
+    SELECT * FROM wwi_security.Sale;
     revert;
     -- RLS is working indeed.
 
     -- Step:5 The CEO should be able to see all rows in the table.
     EXECUTE AS USER = 'CEO';  
-    SELECT * FROM FactSales;
+    SELECT * FROM wwi_security.Sale;
     revert;
     -- And he can.
 
@@ -639,7 +876,7 @@ Possible POSIX access permissions are as follows:
 
     ![The query window toolbar menu is displayed with the Publish item selected.](media/lab5_synapsestudioquerytoolbarpublishmenu.png)
 
-## Exercise 6 - Dynamic data masking
+### Task 4 - Dynamic data masking
 
 1. In Azure Synapse Studio, select **Develop** from the left menu.
 
