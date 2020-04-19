@@ -12,27 +12,31 @@ This lab will guide you through all the security-related steps that cover an end
 
 3. Leverage Azure Key Vault to store sensitive connection information, such as access keys and passwords for linked services as well as in pipelines.
 
-4. Introspect the data that is contained within the SQL Pools in the context of potential sensitive/confidential data disclosure. Identify and classify this data, then secure it by adding column-level and/or row level security. If desired, you also have the option of applying Dynamic Data Masking to mask sensitive data returned in queries.
+4. Introspect the data that is contained within the SQL Pools in the context of potential sensitive/confidential data disclosure. Identify the columns representing sensitive data, then secure it by adding column-level security. Determine at the table level what data should be hidden from specific groups of users then define security predicates to apply row level security (filters) on the table. If desired, you also have the option of applying Dynamic Data Masking to mask sensitive data returned in queries.
 
 ```text
-Team Recommendations:
-    - Data discovery (for classification recommendations - not available)
+Team Recommendations:  
+    - ADS on SQL Pools isn't available yet, would have included column sensitivity classification, discovery, as well as vulnerability/advanced threat protection.
     - Column Level Encryption (not available) - can't create a cert with Encryption By Password (statement fails) <-- this was demonstrated at ignite :(
+    - Would be great to be able to rename SQL Scripts
 ```
 
 ---
 
 Lab Pre-requisites:
-    - workspace MUST created with managed vnet, this is the backbone/key of a secure ASA workspace
-    - have an AAD User that student can use for walking through adding them to SQL Pool with an ID (they will not be logging in as them)
+
+- workspace MUST created with a managed vnet, this is the backbone/key of a secure ASA workspace
+
+- will need the Security group wwi-readers
+
+- will need an AAD User created (walking through adding aad user to sql)
+
 Lab Testing:
-    - will need a workspace with a Managed VNet to test the content of this lab.
+
+- will need a workspace with a Managed VNet to test the content of this lab.
 
 ---
 
-- data classification fed into predicate filter for CLS  
-- Key vault and power bi ?
-  
 - [End-to-end security with Azure Synapse Analytics](#end-to-end-security-with-azure-synapse-analytics)
   - [Resource naming throughout this lab](#resource-naming-throughout-this-lab)
   - [Exercise 1 - Securing Azure Synapse Analytics supporting infrastructure](#exercise-1---securing-azure-synapse-analytics-supporting-infrastructure)
@@ -46,12 +50,12 @@ Lab Testing:
   - [Exercise 2 - Securing the Azure Synapse Analytics workspace and managed services](#exercise-2---securing-the-azure-synapse-analytics-workspace-and-managed-services)
     - [Task 1 - Secure your Synapse workspace](#task-1---secure-your-synapse-workspace)
     - [Task 2 - Managing secrets with Azure Key Vault](#task-2---managing-secrets-with-azure-key-vault)
-    - [Task 2 - Use Azure Key Vault for secrets when creating Linked Services](#task-2---use-azure-key-vault-for-secrets-when-creating-linked-services)
-    - [Task 2 - Secure workspace pipeline runs](#task-2---secure-workspace-pipeline-runs)
-    - [Task 3 - Access Control to Synapse SQL Serverless](#task-3---access-control-to-synapse-sql-serverless)
-    - [Task 4 - Secure Azure Synapse Analytics SQL Pools](#task-4---secure-azure-synapse-analytics-sql-pools)
-    - [Task 5 - Secure Azure Synapse Analytics Spark pools](#task-5---secure-azure-synapse-analytics-spark-pools)
-    - [Task 6 - Secure Power BI reports](#task-6---secure-power-bi-reports)
+    - [Task 3 - Use Azure Key Vault for secrets when creating Linked Services](#task-3---use-azure-key-vault-for-secrets-when-creating-linked-services)
+    - [Task 4 - Secure workspace pipeline runs](#task-4---secure-workspace-pipeline-runs)
+    - [Task 5 - Access Control to Synapse SQL Serverless](#task-5---access-control-to-synapse-sql-serverless)
+    - [Task 6 - Secure Azure Synapse Analytics SQL Pools](#task-6---secure-azure-synapse-analytics-sql-pools)
+    - [Task 7 - Secure Azure Synapse Analytics Spark pools](#task-7---secure-azure-synapse-analytics-spark-pools)
+    - [Task 8 - Secure Power BI reports](#task-8---secure-power-bi-reports)
   - [Exercise 3 - Securing Azure Synapse Analytics workspace data](#exercise-3---securing-azure-synapse-analytics-workspace-data)
     - [Task 1 - Setting granular permissions in the data lake with POSIX-style access control lists](#task-1---setting-granular-permissions-in-the-data-lake-with-posix-style-access-control-lists)
     - [Task 2 - Column Level Security](#task-2---column-level-security)
@@ -416,7 +420,7 @@ Azure Key Vault supports private endpoints. By establishing a private endpoint i
 
     ![In the Firewall settings for the key vault, the IP address field is highlighted and the Save button is selected in the top toolbar.](media/lab5_keyvaultfirewall.png)
 
-### Task 2 - Use Azure Key Vault for secrets when creating Linked Services
+### Task 3 - Use Azure Key Vault for secrets when creating Linked Services
 
 Linked Services are synonymous with connection strings in Azure Synapse Analytics. Azure Synapse Analytics linked services provides the ability to connect to nearly 100 different types of external services ranging from Azure Storage Accounts to Amazon S3 and more. When connecting to external services, having secrets related to connection information is guaranteed. The best place to store these secrets is the Azure Key Vault. Azure Synapse Analytics provides the ability to configure all linked service connections with values from Azure Key Vault.
 
@@ -450,7 +454,7 @@ Now that we have the Azure Key Vault setup as a linked service, we can now lever
 
 ![A New linked service form is displayed with teh Azure Key Vault setting highlighted with the fields described in the preceding paragraph.](media/lab5_newlinkedservicewithakv.png)
 
-### Task 2 - Secure workspace pipeline runs
+### Task 4 - Secure workspace pipeline runs
 
 To successfully run pipelines that include datasets or activities that reference a SQL pool, the workspace Managed Identity needs to be granted access to the SQL pool directly.
 
@@ -482,7 +486,7 @@ To successfully run pipelines that include datasets or activities that reference
 
 6. You may now close the query tab, when prompted choose **Discard all changes**.
 
-You should also store any secrets that are part of your pipeline in Azure Key Vault, you will be able to retrieve these values using a Web activity. The second part of this task demonstrates using a Web activity in the pipeline to retrieve a secret from the Key Vault.
+It is recommended to store any secrets that are part of your pipeline in Azure Key Vault, you will be able to retrieve these values using a Web activity. The second part of this task demonstrates using a Web activity in the pipeline to retrieve a secret from the Key Vault.
 
 1. Open the `KeyVault01` resource, and select **Secrets** from the left menu. From the top toolbar, select **+ Generate/Import**.
 
@@ -544,7 +548,7 @@ You should also store any secrets that are part of your pipeline in Azure Key Va
 
     > **Note**: On the **Web1** activity, on the **General** tab there is a **Secure Output** checkbox that when checked will prevent the secret value from being logged in plain text, for instance in the pipeline run, you would see a masked value ***** instead of the actual value retrieved from the Key vault. Any activity that consumes this value should also have their **Secure Input** checkbox checked.
 
-### Task 3 - Access Control to Synapse SQL Serverless
+### Task 5 - Access Control to Synapse SQL Serverless
 
 When creating a new SQL Serverless pool, you will need to ensure that it has sufficient rights to read/query the primary workspace storage account. Execute the following SQL script to grant this access:
 
@@ -554,7 +558,7 @@ CREATE CREDENTIAL [https://<PrimaryStorage>.dfs.core.windows.net]
 WITH IDENTITY='User Identity';
 ```
 
-When provisioning new users to the workspace, in addition to adding them to one of the workspace security groups, they can also be added with direct user access to the SQL Serverless databases. You have the ability to manually add users to SQL Serverless databases on a per database basis. If a user needs to be added to multiple databases, these steps must be repeated for each one.
+When provisioning new users to the workspace, in addition to adding them to one of the workspace security groups, they can also be added with direct user access to the SQL Serverless databases. You have the ability to manually add users to SQL Serverless databases on a per database basis. If a user needs to be added to multiple databases, these steps must be repeated for each one. 
 
 1. In **Azure Synapse Studio**, select **Develop** from the left menu.
 
@@ -594,9 +598,9 @@ When provisioning new users to the workspace, in addition to adding them to one 
 
 6. You may now close the query tab, when prompted choose **Discard all changes**.
 
-### Task 4 - Secure Azure Synapse Analytics SQL Pools
+### Task 6 - Secure Azure Synapse Analytics SQL Pools
 
-Transparent Data Encryption (TDE) is a feature of SQL Server provides encryption and decryption of data at rest, this includes: databases, log files, and back ups. When using this feature with ASA SQL Pools, you have the option of using a built in symmetric Database Encryption Key (DEK) that is provided by the pool itself, or optionally by bringing in your own customer-managed asymmetric key. When using the latter approach, leverage Azure Key Vault functionality to safely store this key. All stored data is encrypted on disk, when the data is requested, TDE will decrypt this data at the page level as it's read into memory, and vice-versa encrypting in-memory data before it gets written back to disk. As with the name, this happens transparently without affecting any application code. When creating a SQL Pool through ASA, Transparent Data Encryption is not enabled. The first part of this task will show you how to enable this feature.
+Transparent Data Encryption (TDE) is a feature of SQL Server provides encryption and decryption of data at rest, this includes: databases, log files, and back ups. When using this feature with ASA SQL Pools, you have the option of using a built in symmetric Database Encryption Key (DEK) that is provided by the pool itself, or optionally by bringing in your own customer-managed asymmetric key. When using the latter approach, leverage Azure Key Vault functionality to safely store this key. With TDE, all stored data is encrypted on disk, when the data is requested, TDE will decrypt this data at the page level as it's read into memory, and vice-versa encrypting in-memory data before it gets written back to disk. As with the name, this happens transparently without affecting any application code. When creating a SQL Pool through ASA, Transparent Data Encryption is not enabled. The first part of this task will show you how to enable this feature.
 
 1. In the **Azure Portal**, locate and open the `SqlPool01` resource.
 
@@ -638,13 +642,13 @@ When provisioning new users to the workspace, in addition to adding them to one 
 
 > **Note**: db_datareader and db_datawriter roles can work for read/write if you are not comfortable granting db_owner permissions. However, for a Spark user to read and write directly from Spark into/from a SQL pool, db_owner permission is required.
 
-### Task 5 - Secure Azure Synapse Analytics Spark pools
+### Task 7 - Secure Azure Synapse Analytics Spark pools
 
 Azure Synapse Analytics manages the creation and security of new Apache Spark Pools. It is recommended that when creating the Azure Synapse Workspace in the **Networking + Security** tab that you enable a managed VNet. Doing so will increase the security of the Spark Pools by ensuring both network isolation at the Synapse workspace level, but also at the user isolation level as each pool will be created in its own subnet.
 
-### Task 6 - Secure Power BI reports
+### Task 8 - Secure Power BI reports
 
-*** Question: I am thinking that this is established when adding a link (Manage -> Linked Services). There is a limit to one Power BI linked service, so I didn't walk through a new one. I am making note of this item -> <https://github.com/solliancenet/azure-synapse-analytics-day/blob/master/00-setup-workspace.md#task-5---configure-power-bi> that says in the Power BI Portal to authenticate to the pool using the asa.sql.admin account (I am guessing this needs to be created manually or is it built-in?). Any new user added to the workspace must also be set as a Contributor on the Power BI workspace (can do this through adding Synapse_WORKSPACE_Users). I don't have sufficient access in the demo lab to see the Users in the Power BI Admin portal, but going through some of the motions on my personal account, it looks like all users need managed through O365. I can see where my custom AAD security groups are listed, but not how to add the Synapse_Workspace_Users to the Power BI Contributor role. I see in the Power BI Admin portal, the Tenant settings has some security things listed, but nothing like simply adding a group to a role.
+*** Question: I am thinking that this is established when adding a link (Manage -> Linked Services). There is a limit to one Power BI linked service, so I didn't walk through a new one. I am making note of this item -> <https://github.com/solliancenet/azure-synapse-analytics-day/blob/master/00-setup-workspace.md#task-5---configure-power-bi> that says in the Power BI Portal to authenticate to the pool using the asa.sql.admin account (I am guessing this needs to be created manually or is it built-in?). Any new user added to the workspace must also be set as a Contributor on the Power BI workspace (can do this through adding Synapse_WORKSPACE_Users). I don't have sufficient access in the demo lab to see the Users in the Power BI Admin portal, but going through some of the motions on my personal account, it looks like all users need managed through O365. I can see where my custom AAD security groups are listed, but not how to add the Synapse_Workspace_Users to the Power BI Contributor role. I see in the Power BI Admin portal, the Tenant settings has some security things listed, but nothing like simply adding a group to a role. Power BI reports using datasets from Synapse will automatically inherit the security in ASA.
 
 ## Exercise 3 - Securing Azure Synapse Analytics workspace data
 
@@ -707,6 +711,8 @@ On the first day, in Activity 1, you were introduced to the concept of the secur
 > **Note**: When adding permissions at the directory level, there is an additional **Default** checkbox in the permissions table. By checking this box, you are able to set default permissions that will be automatically applied to any new children (directories or files) created within this directory.
 
 ### Task 2 - Column Level Security
+
+It is important to identify data columns of that hold sensitive information. Types of sensitive could be social security numbers, email addresses, credit card numbers, financial totals, and more. Azure Synapse Analytics allows you define permissions that prevent specific users or roles select privileges on specific columns. In task 6, we created a new user in SQL Server. This user is also a member of the **wwi-readers** AAD security group. In this task, we have identified 
 
 1. In **Azure Synapse Studio**, select **Develop** from the left menu.
 
@@ -832,17 +838,17 @@ On the first day, in Activity 1, you were introduced to the concept of the secur
     ON wwi_security.Sale
     WITH (STATE = ON);
 
-    ------ Allow SELECT permissions to the Sale Table.------   
+    ------ Allow SELECT permissions to the Sale Table.------
     GRANT SELECT ON wwi_security.Sale TO CEO, DataAnalystMiami, DataAnalystSanDiego;
 
     -- Step:3 Let us now test the filtering predicate, by selecting data from the Sale table as 'DataAnalystMiami' user.
-    EXECUTE AS USER = 'DataAnalystMiami' 
+    EXECUTE AS USER = 'DataAnalystMiami'
     SELECT * FROM wwi_security.Sale;
     revert;
     -- As we can see, the query has returned rows here Login name is DataAnalystMiami
 
     -- Step:4 Let us test the same for  'DataAnalystSanDiego' user.
-    EXECUTE AS USER = 'DataAnalystSanDiego'; 
+    EXECUTE AS USER = 'DataAnalystSanDiego';
     SELECT * FROM wwi_security.Sale;
     revert;
     -- RLS is working indeed.
