@@ -9,7 +9,7 @@
     - [Task 2: Query sales Parquet data with Azure Synapse Spark](#task-2-query-sales-parquet-data-with-azure-synapse-spark)
     - [Task 3: Query user profile JSON data with Azure Synapse Spark](#task-3-query-user-profile-json-data-with-azure-synapse-spark)
   - [Exercise 3: Create data pipeline to copy a month of customer data](#exercise-3-create-data-pipeline-to-copy-a-month-of-customer-data)
-  - [Exercise 4: Create custom integration runtime](#exercise-4-create-custom-integration-runtime)
+  - [Exercise 4: Create custom Integration Runtime (IR)](#exercise-4-create-custom-integration-runtime-ir)
   - [Exercise 5: Update data pipeline with new integration runtime](#exercise-5-update-data-pipeline-with-new-integration-runtime)
 
 ```
@@ -33,13 +33,21 @@ Large IR (32 cores) speed test:
 
 Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Cosmos DB. The linked service for ADLS Gen2 already exists as it is the primary ADLS Gen2 account for the workspace.
 
-1. Open Synapse Analytics Studio, and then navigate to the **Manage** hub. Open **Linked services** and create a new linked service to the Azure Cosmos DB account for the lab. Name the linked service after the name of the Azure Cosmos DB account and set the **Database name** value to `CustomerProfile`.
+1. Open Synapse Analytics Studio, and then navigate to the **Manage** hub.
+
+    ![The Manage menu item is highlighted.](media/manage-hub.png "Manage hub")
+
+2. Open **Linked services** and create a new linked service to the Azure Cosmos DB account for the lab. Name the linked service after the name of the Azure Cosmos DB account and set the **Database name** value to `CustomerProfile`.
 
     ![New Azure Cosmos DB linked service.](media/create-cosmos-db-linked-service.png "New linked service")
 
 ### Task 2: Create datasets
 
-1. Navigate to the **Data** hub. Create a new **Azure Cosmos DB (SQL API)** dataset with the following characteristics:
+1. Navigate to the **Data** hub.
+
+    ![The Data menu item is highlighted.](media/data-hub.png "Data hub")
+
+2. Create a new **Azure Cosmos DB (SQL API)** dataset with the following characteristics:
 
     - **Name**: Enter `asal400_customerprofile_cosmosdb`.
     - **Linked service**: Select the Azure Cosmos DB linked service.
@@ -47,19 +55,19 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
 
     ![New Azure Cosmos DB dataset.](media/create-cosmos-db-dataset.png "New Cosmos DB dataset")
 
-2. After creating the dataset, navigate to its **Connection** tab, then select **Preview data**.
+3. After creating the dataset, navigate to its **Connection** tab, then select **Preview data**.
 
     ![The preview data button on the dataset is highlighted.](media/cosmos-dataset-preview-data-link.png "Preview data")
 
-3. Preview data queries the selected Azure Cosmos DB collection and returns a sample of the documents within. The documents are stored in JSON format and include a `userId` field, `cartId`, `preferredProducts` (an array of product IDs that may be empty), and `productReviews` (an array of written product reviews that may be empty). We will use this data in lab 2.
+4. Preview data queries the selected Azure Cosmos DB collection and returns a sample of the documents within. The documents are stored in JSON format and include a `userId` field, `cartId`, `preferredProducts` (an array of product IDs that may be empty), and `productReviews` (an array of written product reviews that may be empty). We will use this data in lab 2.
 
     ![A preview of the Azure Cosmos DB data is displayed.](media/cosmos-db-dataset-preview-data.png "Preview data")
 
-4. Select the **Schema** tab, then select **Import schema**. Synapse Analytics evaluates the JSON documents within the collection and infers the schema based on the nature of the data within. Since we are only storing one document type in this collection, you will see the inferred schema for all documents within.
+5. Select the **Schema** tab, then select **Import schema**. Synapse Analytics evaluates the JSON documents within the collection and infers the schema based on the nature of the data within. Since we are only storing one document type in this collection, you will see the inferred schema for all documents within.
 
     ![The inferred schema for the Azure Cosmos DB documents is displayed.](media/cosmos-db-dataset-schema.png "Schema")
 
-5. Create a new **Azure Data Lake Storage Gen2** dataset with the **Parquet** format type with the following characteristics:
+6. Create a new **Azure Data Lake Storage Gen2** dataset with the **Parquet** format type with the following characteristics:
 
     - **Name**: Enter `asal400_sales_adlsgen2`.
     - **Linked service**: Select the `asadatalake01` linked service.
@@ -68,7 +76,7 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
 
     ![The create ADLS Gen2 dataset form is displayed.](media/create-adls-dataset.png "Create ADLS Gen2 dataset")
 
-6. Create a new **Azure Data Lake Storage Gen2** dataset with the **JSON** format type with the following characteristics:
+7. Create a new **Azure Data Lake Storage Gen2** dataset with the **JSON** format type with the following characteristics:
 
     - **Name**: Enter `asal400_ecommerce_userprofiles_source`.
     - **Linked service**: Select the `asadatalake01` linked service.
@@ -405,7 +413,15 @@ In addition to the sales data, we have customer profile data from an e-commerce 
 
 ## Exercise 3: Create data pipeline to copy a month of customer data
 
-## Exercise 4: Create custom integration runtime
+**TODO**: Waiting on updated source Sale dataset.
+
+## Exercise 4: Create custom Integration Runtime (IR)
+
+The Integration Runtime (IR) is the compute infrastructure used by Azure Synapse Analytics to provide data integration capabilities across different network environments. There are different types of IR, including Azure IR and self-hosted IR, which installs on-premises to bridge connectivity between your network on Azure. In this lab, we focus on the Azure IR.
+
+When you create a new linked service, Azure IR provides fully managed compute resources to perform data movement and dispatch data transformation activities for the linked service. Unless otherwise specified in the linked service settings, the default Azure IR is used. However, sometimes the default IR configuration isn't enough for highly demanding data movement and transformation activities. If this is the case, you can create a custom IR.
+
+
 
 Go to code view and set the timeToLive value to 60. Discuss what this means as far as cost, etc.
 Set the concurrency on the pipeline to a higher number. Default value if unset is 4.
