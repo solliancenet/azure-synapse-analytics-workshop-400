@@ -1,5 +1,11 @@
 # Data Integration Part 2
 
+- [Data Integration Part 2](#data-integration-part-2)
+  - [Exercise 1: Create data flow to import poorly formatted CSV](#exercise-1-create-data-flow-to-import-poorly-formatted-csv)
+  - [Exercise 2: Create data flow to join disparate data sources](#exercise-2-create-data-flow-to-join-disparate-data-sources)
+  - [Exercise 3: Create pipeline trigger window to import remaining Parquet data](#exercise-3-create-pipeline-trigger-window-to-import-remaining-parquet-data)
+  - [Exercise 4: Create Synapse Spark notebook to find top products](#exercise-4-create-synapse-spark-notebook-to-find-top-products)
+
 ```
 Create e2e pipeline for initial load & update
 Data Prep: Handle bad data, file formats, join disparate sources
@@ -19,3 +25,11 @@ Spark notebook to connect to the wwi.UserTopProductPurchases Synapse database ta
     - Top 5 products overall
 
 ```
+
+## Exercise 1: Create data flow to import poorly formatted CSV
+
+## Exercise 2: Create data flow to join disparate data sources
+
+## Exercise 3: Create pipeline trigger window to import remaining Parquet data
+
+## Exercise 4: Create Synapse Spark notebook to find top products
