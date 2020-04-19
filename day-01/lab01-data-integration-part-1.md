@@ -7,6 +7,7 @@
   - [Exercise 2: Explore source data in the Data hub](#exercise-2-explore-source-data-in-the-data-hub)
     - [Task 1: Query sales Parquet data with SQL Serverless](#task-1-query-sales-parquet-data-with-sql-serverless)
     - [Task 2: Query sales Parquet data with Azure Synapse Spark](#task-2-query-sales-parquet-data-with-azure-synapse-spark)
+    - [Task 3: Query user profile JSON data with Azure Synapse Spark](#task-3-query-user-profile-json-data-with-azure-synapse-spark)
   - [Exercise 3: Create data pipeline to copy a month of customer data](#exercise-3-create-data-pipeline-to-copy-a-month-of-customer-data)
   - [Exercise 4: Create custom integration runtime](#exercise-4-create-custom-integration-runtime)
   - [Exercise 5: Update data pipeline with new integration runtime](#exercise-5-update-data-pipeline-with-new-integration-runtime)
@@ -130,6 +131,73 @@ Optional: If you wish to keep this SQL script for future reference, select the P
 1. Navigate to the **Data** hub, browse to the data lake storage account folder `wwi-02/sale/TransactionDate=20100101`, then right-click the Parquet file and select New notebook.
 
     ![The Parquet file is displayed with the New notebook menu item highlighted.](media/new-spark-notebook-sales.png "New notebook")
+
+2. This will generate a notebook with PySpark code to load the data in a dataframe and display 100 rows with the header.
+
+    ![The new Spark notebook is displayed.](media/new-spark-notebook-sales-displayed.png "New notebook")
+
+3. Attach the notebook to a Spark pool.
+
+    ![The Spark pool list is displayed.](media/attach-spark-pool.png "Attach to Spark pool")
+
+4. Select **Run all** on the notebook toolbar to execute the notebook.
+
+    > **Note:** The first time you run a notebook in a Spark pool, Synapse creates a new session. This can take approximately 3 minutes.
+
+5. As you can see, the output is not formatted very well. To change this, replace the last line of code with the following and run the cell again to see the improved display:
+
+    ```python
+    display(data_path.limit(100))
+    ```
+
+    ![The Sales query is shown with the Display option.](media/spark-display-sales.png "Sales - Display")
+
+6. Create a new cell underneath by selecting **{} Add code** when hovering over the blank space at the bottom of the notebook.
+
+    ![The Add Code menu option is highlighted.](media/new-cell.png "Add code")
+
+7. The Spark engine can analyze the Parquet files and infer the schema. To do this, enter the following in the new cell:
+
+    ```python
+    data_path.printSchema()
+    ```
+
+    Your output should look like the following:
+
+    ```text
+    root
+     |-- TransactionId: string (nullable = true)
+     |-- CustomerId: integer (nullable = true)
+     |-- ProductId: short (nullable = true)
+     |-- Quantity: short (nullable = true)
+     |-- Price: decimal(29,2) (nullable = true)
+     |-- TotalAmount: decimal(29,2) (nullable = true)
+     |-- TransactionDate: integer (nullable = true)
+     |-- ProfitAmount: decimal(29,2) (nullable = true)
+     |-- Hour: byte (nullable = true)
+     |-- Minute: byte (nullable = true)
+     |-- StoreId: short (nullable = true)
+    ```
+
+8. Now let's use the dataframe to perform the same grouping and aggregate query we performed with the SQL Serverless pool. Create a new cell and enter the following:
+
+    ```python
+    from pyspark.sql import SparkSession
+    from pyspark.sql.types import *
+    from pyspark.sql.functions import *
+
+    profitByDateProduct = (data_path.groupBy("TransactionDate","ProductId")
+        .agg(
+            sum("ProfitAmount").alias("(sum)ProfitAmount"),
+            round(avg("Quantity"), 4).alias("(avg)Quantity"),
+            sum("Quantity").alias("(sum)Quantity"))
+        .orderBy("TransactionDate"))
+    display(profitByDateProduct.limit(100))
+    ```
+
+    > We import required Python libraries to use aggregation functions and types defined in the schema to successfully execute the query.
+
+### Task 3: Query user profile JSON data with Azure Synapse Spark
 
 ## Exercise 3: Create data pipeline to copy a month of customer data
 
