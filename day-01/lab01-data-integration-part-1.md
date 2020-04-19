@@ -1,7 +1,7 @@
 # Data Integration Part 1
 
 - [Data Integration Part 1](#data-integration-part-1)
-  - [Exercise 1: Explore source data in the Data Hub](#exercise-1-explore-source-data-in-the-data-hub)
+  - [Exercise 1: Configure linked service and create datasets](#exercise-1-configure-linked-service-and-create-datasets)
     - [Task 1: Create linked service](#task-1-create-linked-service)
     - [Task 2: Create datasets](#task-2-create-datasets)
   - [Exercise 2: Explore source data in the Data hub](#exercise-2-explore-source-data-in-the-data-hub)
@@ -27,7 +27,7 @@ Large IR (32 cores) speed test:
     - Compute: 3:23
 ```
 
-## Exercise 1: Explore source data in the Data Hub
+## Exercise 1: Configure linked service and create datasets
 
 ### Task 1: Create linked service
 
