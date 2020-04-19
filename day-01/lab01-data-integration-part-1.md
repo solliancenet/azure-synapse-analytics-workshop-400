@@ -55,7 +55,11 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
 
     ![A preview of the Azure Cosmos DB data is displayed.](media/cosmos-db-dataset-preview-data.png "Preview data")
 
-4. Create a new **Azure Data Lake Storage Gen2** dataset with the **Parquet** format type with the following characteristics:
+4. Select the **Schema** tab, then select **Import schema**. Synapse Analytics evaluates the JSON documents within the collection and infers the schema based on the nature of the data within. Since we are only storing one document type in this collection, you will see the inferred schema for all documents within.
+
+    ![The inferred schema for the Azure Cosmos DB documents is displayed.](media/cosmos-db-dataset-schema.png "Schema")
+
+5. Create a new **Azure Data Lake Storage Gen2** dataset with the **Parquet** format type with the following characteristics:
 
     - **Name**: Enter `asal400_sales_adlsgen2`.
     - **Linked service**: Select the `asadatalake01` linked service.
@@ -64,7 +68,7 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
 
     ![The create ADLS Gen2 dataset form is displayed.](media/create-adls-dataset.png "Create ADLS Gen2 dataset")
 
-5. Create a new **Azure Data Lake Storage Gen2** dataset with the **JSON** format type with the following characteristics:
+6. Create a new **Azure Data Lake Storage Gen2** dataset with the **JSON** format type with the following characteristics:
 
     - **Name**: Enter `asal400_ecommerce_userprofiles_source`.
     - **Linked service**: Select the `asadatalake01` linked service.
