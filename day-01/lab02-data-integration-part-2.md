@@ -296,7 +296,7 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
       - City
       - State
 
-    ![The select settings are displayed.](media/data-flow-campaign-analysis-select-settings.png "Select settings")
+    ![The select settings are displayed as described.](media/data-flow-campaign-analysis-select-settings.png "Select settings")
 
 11. Select the **+** to the right of the `MapCampaignAnalytics` source, then select the **Derived Column** schema modifier from the context menu.
 
@@ -313,6 +313,50 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
         | Revenue | `toDecimal(replace(concat(toString(RevenuePart1), toString(Revenue)), '\\', ''), 10, 2, '$###,###.##')` | Concatenate the `RevenuePart1` and `Revenue` fields, replace the invalid `\` character, then convert and format the data to a decimal type. |
         | RevenueTarget | `toDecimal(replace(concat(toString(RevenueTargetPart1), toString(RevenueTarget)), '\\', ''), 10, 2, '$###,###.##')` | Concatenate the `RevenueTargetPart1` and `RevenueTarget` fields, replace the invalid `\` character, then convert and format the data to a decimal type. |
         | ProductCategory | `replace(toString(ProductCategory), 'Ã©', 'e')` | Replace the invalid characters in the `ProductCategory` field with the letter e. |
+
+    ![The derived column's settings are displayed as described.](media/data-flow-campaign-analysis-derived-column-settings.png "Derived column's settings")
+
+13. Select **Data preview** and select **Refresh** to verify the expressions work as expected.
+
+    ![The data preview is displayed.](media/data-flow-campaign-analysis-derived-column-preview.png "Data preview")
+
+14. Select the **+** to the right of the `ConvertColumnTypesAndValues` source, then select the **Select** schema modifier from the context menu.
+
+    ![The new Select schema modifier is highlighted.](media/data-flow-campaign-analysis-new-select2.png "New Select schema modifier")
+
+15. Under **Select settings**, configure the following:
+
+    - **Output stream name**: Enter `SelectCampaignAnalyticsColumns`.
+    - **Incoming stream**: Select `ConvertColumnTypesAndValues`.
+    - **Options**: Check both options.
+    - **Input columns**: make sure `Auto mapping` is unchecked, then **Delete** `RevenuePart1` and `RevenueTargetPart1`. We no longer need these fields.
+
+    ![The select settings are displayed as described.](media/data-flow-campaign-analysis-select-settings2.png "Select settings")
+
+16. Select the **+** to the right of the `SelectCampaignAnalyticsColumns` source, then select the **Sink** destination from the context menu.
+
+    ![The new Sink destination is highlighted.](media/data-flow-campaign-analysis-new-sink.png "New sink")
+
+17. Under **Sink**, configure the following:
+
+    - **Output stream name**: Enter `CampaignAnalyticsASA`.
+    - **Incoming stream**: Select `SelectCampaignAnalyticsColumns`.
+    - **Dataset**: Select `asal400_wwi_campaign_analytics_asa`, which is the CampaignAnalytics SQL table.
+    - **Options**: Check `Allow schema drift` and uncheck `Validate schema`.
+
+    ![The sink settings are shown.](media/data-flow-campaign-analysis-new-sink-settings.png "Sink settings")
+
+18. Select **Settings**, then configure the following:
+
+    - **Update method**: Check `Allow insert` and leave the rest unchecked.
+    - **Table action**: Select `Truncate table`.
+    - **Enable staging**: Uncheck this option. The sample CSV file is small, making the staging option unnecessary.
+
+    ![The settings are shown.](media/data-flow-campaign-analysis-new-sink-settings-options.png "Settings")
+
+19. Select **Publish all** to save your new data flow.
+
+    ![Publish all is highlighted.](media/publish-all-1.png "Pubish all")
 
 ### Task 2: Create data pipeline
 
