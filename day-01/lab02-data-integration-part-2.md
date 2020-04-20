@@ -4,7 +4,8 @@
   - [Resource naming throughout this lab](#resource-naming-throughout-this-lab)
   - [Exercise 1: Create datasets and SQL tables](#exercise-1-create-datasets-and-sql-tables)
     - [Task 1: Create SQL tables](#task-1-create-sql-tables)
-    - [Task 2: Create datasets](#task-2-create-datasets)
+    - [Task 2: Create campaign analytics datasets](#task-2-create-campaign-analytics-datasets)
+    - [Task 3: Create user profile datasets](#task-3-create-user-profile-datasets)
   - [Exercise 2: Create data flow to import poorly formatted CSV](#exercise-2-create-data-flow-to-import-poorly-formatted-csv)
   - [Exercise 3: Create data flow to join disparate data sources](#exercise-3-create-data-flow-to-join-disparate-data-sources)
   - [Exercise 4: Create pipeline trigger window to import remaining Parquet data](#exercise-4-create-pipeline-trigger-window-to-import-remaining-parquet-data)
@@ -152,7 +153,7 @@ For the remainder of this guide, the following terms will be used for various AS
 
 11. Select **Run** from the toolbar menu to execute the SQL command.
 
-### Task 2: Create datasets
+### Task 2: Create campaign analytics datasets
 
 Your organization was provided a poorly formatted CSV file containing marketing campaign data. The file was uploaded to the data lake and now it must be imported into the data warehouse.
 
@@ -192,6 +193,39 @@ Issues include invalid characters in some product categories, invalid characters
 5. Preview data displays a sample of the CSV file. You can see some of the issues shown in the screenshot at the beginning of this task. Notice that since we are not setting the first row as the header, the header columns appear as the first row. Also, notice that the city and state values seen in the earlier screenshot do not appear. This is because of the mismatch in the number of columns in the header row compared to the rest of the file. We will exclude the first row when we create the data flow in the next exercise.
 
     ![A preview of the CSV file is displayed.](media/campaign-analytics-dataset-preview-data.png "Preview data")
+
+6. Create a new **Azure Synapse Analytics** dataset with the following characteristics:
+
+    - **Name**: Enter `asal400_wwi_campaign_analytics_asa`.
+    - **Linked service**: Select the `SqlPool01` service.
+    - **Table name**: Select `wwi.CampaignAnalytics`.
+    - **Import schema**: Select `From connection/store`.
+
+    ![New dataset form is displayed with the described configuration.](media/new-dataset-campaign-analytics-asa.png "New dataset")
+
+### Task 3: Create user profile datasets
+
+User profile data comes from two different data sources. In lab 1, you created datasets for these sources: `asal400_ecommerce_userprofiles_source` and `asal400_customerprofile_cosmosdb`. The customer profile data from an e-commerce system that provides top product purchases for each visitor of the site (customer) over the past 12 months is stored within JSON files in the data lake. User profile data containing, among other things, product preferences and product reviews is stored as JSON documents in Cosmos DB.
+
+In this task, you'll create datasets for the SQL tables that will serve as data sinks for data pipelines you'll create later in this lab.
+
+1. Create a new **Azure Synapse Analytics** dataset with the following characteristics:
+
+    - **Name**: Enter `asal400_wwi_userproductreviews_asa`.
+    - **Linked service**: Select the `SqlPool01` service.
+    - **Table name**: Select `wwi.UserProductReviews`.
+    - **Import schema**: Select `From connection/store`.
+
+    ![New dataset form is displayed with the described configuration.](media/new-dataset-userproductreviews.png "New dataset")
+
+2. Create a new **Azure Synapse Analytics** dataset with the following characteristics:
+
+    - **Name**: Enter `asal400_wwi_usertopproductpurchases_asa`.
+    - **Linked service**: Select the `SqlPool01` service.
+    - **Table name**: Select `wwi.UserTopProductPurchases`.
+    - **Import schema**: Select `From connection/store`.
+
+    ![New dataset form is displayed with the described configuration.](media/new-dataset-usertopproductpurchases.png "New dataset")
 
 ## Exercise 2: Create data flow to import poorly formatted CSV
 
