@@ -17,7 +17,7 @@
   - [Exercise 4: Create data pipeline to join disparate data sources](#exercise-4-create-data-pipeline-to-join-disparate-data-sources)
     - [Task 1: Create user profile data flow](#task-1-create-user-profile-data-flow)
     - [Task 2: Create user profile data pipeline](#task-2-create-user-profile-data-pipeline)
-    - [Task 3: Run the user profile data pipeline](#task-3-run-the-user-profile-data-pipeline)
+    - [Task 3: Trigger, monitor, and analyze the user profile data pipeline](#task-3-trigger-monitor-and-analyze-the-user-profile-data-pipeline)
   - [Exercise 5: Create pipeline trigger window to import remaining Parquet data](#exercise-5-create-pipeline-trigger-window-to-import-remaining-parquet-data)
   - [Exercise 6: Create Synapse Spark notebook to find top products](#exercise-6-create-synapse-spark-notebook-to-find-top-products)
 
@@ -398,6 +398,10 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
     ![The custom IR is selected in the mapping data flow activity settings.](media/pipeline-campaign-analysis-data-flow-settings.png "Mapping data flow activity settings")
 
+8. Select **Publish all** to save your new pipeline.
+
+    ![Publish all is highlighted.](media/publish-all-1.png "Publish all")
+
 ### Task 3: Run the campaign analytics data pipeline
 
 1. Select **Debug** in the toolbar at the top of the pipeline canvas to start running the pipeline in debug mode.
@@ -614,7 +618,7 @@ Now that the pipeline run is complete, let's take a look at the SQL table to ver
 
     ![The join optimization settings are configured as described.](media/data-flow-user-profiles-join-optimize.png "Optimize")
 
-    Optimization description.
+    **TODO**: Add optimization description.
 
 25. Select the **Inspect** tab to see the join mapping, including the column feed source and whether the column is used in a join.
 
@@ -724,13 +728,41 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
     ![The mapping data flow activity settings are configured as described.](media/pipeline-user-profiles-data-flow-settings.png "Mapping data flow activity settings")
 
-### Task 3: Run the user profile data pipeline
+9. Select **Publish all** to save your new pipeline.
 
-1. Select **Debug** in the toolbar at the top of the pipeline canvas to start running the pipeline in debug mode.
+    ![Publish all is highlighted.](media/publish-all-1.png "Publish all")
 
-2. The pipeline run displays below the pipeline canvas when you execute the debug session. Wait for the **Status** to change to `Succeeded`. You may need to refresh the view a few times.
+### Task 3: Trigger, monitor, and analyze the user profile data pipeline
 
-    ![The debug status shows as succeeded.](media/pipeline-user-profiles-debug-succeeded.png "Debug succeeded")
+Since there are more than 1,000 records that the user profile pipeline will import, we want to trigger a full pipeline run rather than simply debugging.
+
+1. Select **Add trigger** and select **Trigger now** in the toolbar at the top of the pipeline canvas.
+
+    ![The trigger now menu item is selected.](media/pipeline-trigger-now.png "Trigger now")
+
+2. In the `Pipeline run` blade, select **OK** to start the pipeline run.
+
+    ![The pipeline run blade is displayed.](media/pipeline-trigger-run.png "Pipeline run")
+
+3. Navigate to the **Monitor** hub.
+
+    ![The Monitor hub menu item is selected.](media/monitor-hub.png "Monitor hub")
+
+4. Wait for the pipeline run to successfully complete. You may need to refresh the view.
+
+    ![The pipeline run succeeded.](media/pipeline-user-profiles-run-complete.png "Pipeline runs")
+
+5. Select the name of the pipeline to view the pipeline's activity runs. Notice that the custom `AzureLargeComputeOptimizedIntegrationRuntime` IR was used. Hover over the data flow activity name in the `Activity runs` list, then select the **Data flow details** icon.
+
+    ![The data flow details icon is highlighted.](media/pipeline-user-profiles-activity-runs.png "Activity runs")
+
+6. The data flow details displays the data flow steps and processing details. In our example, processing time took around 45 seconds to process and output around 15 million rows. You can see which activities took longest to complete. The cluster startup time contributed almost three minutes to the total pipeline run.
+
+    ![The data flow details are displayed.](media/pipeline-user-profiles-data-flow-details.png "Data flow details")
+
+7. Select the `UserTopProductPurchasesASA` sink to view its details. We can see that 15,308,766 rows were calculated with a total of 30 partitions. It took around seven seconds to stage the data in ADLS Gen2 prior to writing the data to the SQL table. The total sink processing time in our case was around 45 seconds. It is also apparent that we have a hot partition that is significantly larger than the others. If we need to squeeze extra performance out of this pipeline, we can re-evaluate data partitioning to more evenly spread the partitions to better facilitate parallel data loading and filtering. We could also experiment with disabling staging to see if there's a processing time difference. Finally, the size of the SQL Pool plays a factor in how long it takes to ingest data into the sink.
+
+    ![The sink details are displayed.](media/pipeline-user-profiles-data-flow-sink-details.png "Sink details")
 
 ## Exercise 5: Create pipeline trigger window to import remaining Parquet data
 
