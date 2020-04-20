@@ -172,6 +172,8 @@ Optional: If you wish to keep this SQL script for future reference, select the P
 
     ![The Sales query is shown with the Display option.](media/spark-display-sales.png "Sales - Display")
 
+    > **Note:** To run just the cell, either hover over the cell and select the _Run cell_ icon to the left of the cell, or select the cell then type **Ctrl+Enter** on your keyboard.
+
 6. Create a new cell underneath by selecting **{} Add code** when hovering over the blank space at the bottom of the notebook.
 
     ![The Add Code menu option is highlighted.](media/new-cell.png "Add code")

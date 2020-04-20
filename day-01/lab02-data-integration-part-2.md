@@ -18,8 +18,8 @@
     - [Task 1: Create user profile data flow](#task-1-create-user-profile-data-flow)
     - [Task 2: Create user profile data pipeline](#task-2-create-user-profile-data-pipeline)
     - [Task 3: Trigger, monitor, and analyze the user profile data pipeline](#task-3-trigger-monitor-and-analyze-the-user-profile-data-pipeline)
-  - [Exercise 5: Create pipeline trigger window to import remaining Parquet data](#exercise-5-create-pipeline-trigger-window-to-import-remaining-parquet-data)
-  - [Exercise 6: Create Synapse Spark notebook to find top products](#exercise-6-create-synapse-spark-notebook-to-find-top-products)
+  - [Exercise 5: Create Synapse Spark notebook to find top products](#exercise-5-create-synapse-spark-notebook-to-find-top-products)
+  - [Exercise 6: Create pipeline trigger window to import remaining Parquet data](#exercise-6-create-pipeline-trigger-window-to-import-remaining-parquet-data)
 
 ```
 Create e2e pipeline for initial load & update
@@ -764,8 +764,150 @@ Since there are more than 1,000 records that the user profile pipeline will impo
 
     ![The sink details are displayed.](media/pipeline-user-profiles-data-flow-sink-details.png "Sink details")
 
-## Exercise 5: Create pipeline trigger window to import remaining Parquet data
+## Exercise 5: Create Synapse Spark notebook to find top products
+
+Now that we have processed, joined, and imported the user profile data, let's analyze it in greater detail. In this exercise, you will execute code to find the top 5 products for each user, based on which ones are both preferred and top, and have the most purchases in past 12 months. Then, you will calculate the top 5 products overall.
+
+1. Navigate to the **Data** hub.
+
+    ![The Data menu item is highlighted.](media/data-hub.png "Data hub")
+
+2. Expand the `SqlPool01` database underneath the **Databases** section. Right-click the `wwi.UserTopProductPurchases` table, then select the **Load to DataFrame** menu item under the New notebook context menu.
+
+    ![The load to DataFrame new notebook option is highlighted.](media/synapse-studio-usertopproductpurchases-new-notebook.png "New notebook")
+
+3. Attach the notebook to a Spark pool.
+
+    ![The attach to Spark pool menu item is highlighted.](media/notebook-top-products-attach-pool.png "Select Spark pool")
+
+4. Select **Run all** on the notebook toolbar to execute the notebook.
+
+    > **Note:** The first time you run a notebook in a Spark pool, Synapse creates a new session. This can take approximately 3 minutes.
+    > **Note:** To run just the cell, either hover over the cell and select the _Run cell_ icon to the left of the cell, or select the cell then type **Ctrl+Enter** on your keyboard.
+
+5. Create a new cell underneath by selecting **{} Add code** when hovering over the blank space at the bottom of the notebook.
+
+    ![The Add Code menu option is highlighted.](media/new-cell.png "Add code")
+
+6. Enter and execute the following in the new cell to show the first 10 rows and to create a new temporary view named `df`:
+
+    ```python
+    df.head(10)
+
+    df.createTempView("df")
+    ```
+
+    The output should look similar to the following:
+
+    ```text
+    res4: Array[org.apache.spark.sql.Row] = Array([9065916,3020,null,false,true], [9065916,2735,null,false,true], [9065916,1149,null,false,true], [9065916,2594,null,false,true], [9065916,4591,null,false,true], [9065916,3012,null,false,true], [9065916,1985,null,false,true], [9065916,1773,null,false,true], [9065916,380,null,false,true], [9068349,4383,null,false,true])
+    ```
+
+7. Notice that the language for this notebook is Spark Scala. We want to use Python to explore the data. To do this, we load the data into a temporary view, then we can load the view's contents into a dataframe in a new PySpark cell. To do this, execute the following in a new cell:
+
+    ```python
+    %%pyspark
+    # Calling the dataframe df created in Scala to Python
+    df = sqlContext.table("df")
+    # *********************
+
+    topPurchases = df.select(
+        "UserId", "ProductId",
+        "ItemsPurchasedLast12Months", "IsTopProduct",
+        "IsPreferredProduct")
+
+    topPurchases.show(100)
+    ```
+
+    We set the language of the cell to PySpark with the `%%pyspark` magic. Then we loaded the `df` view into a new dataframe. Finally, we created a new dataframe named `topPurchases` and displayed its contents.
+
+    ![The cell code and output are displayed.](media/notebook-top-products-load-python-df.png "Load Python dataframe")
+
+8. Execute the following in a new cell to create a new dataframe to hold only top preferred products where both `IsTopProduct` and `IsPreferredProduct` are true:
+
+    ```python
+    %%pyspark
+    from pyspark.sql.functions import *
+
+    topPreferredProducts = (topPurchases
+        .filter( col("IsTopProduct") == True)
+        .filter( col("IsPreferredProduct") == True)
+        .orderBy( col("ItemsPurchasedLast12Months").desc() ))
+
+    topPreferredProducts.show(100)
+    ```
+
+    ![The cell code and output are displayed.](media/notebook-top-products-top-preferred-df.png "Notebook cell")
+
+9. Execute the following in a new cell to create a new temporary view by using SQL:
+
+    ```sql
+    %%sql
+
+    CREATE OR REPLACE TEMPORARY VIEW top_5_products
+    AS
+        select UserId, ProductId, ItemsPurchasedLast12Months
+        from (select *,
+                    row_number() over (partition by UserId order by ItemsPurchasedLast12Months desc) as seqnum
+            from df
+            ) a
+        where seqnum <= 5 and IsTopProduct == true and IsPreferredProduct = true
+        order by a.UserId
+    ```
+
+    *Note that there is no output for the above query.* The query uses the `df` temporary view as a source and applies a `row_number() over` method to apply a row number for the records for each user where `ItemsPurchasedLast12Months` is greatest. The `where` clause filters the results so we only retrieve up to five products where both `IsTopProduct` and `IsPreferredProduct` are set to true. This gives us the top five most purchased products for each user where those products are _also_ identified as their favorite products, according to their user profile stored in Azure Cosmos DB.
+
+10. Execute the following in a new cell to create and display a new dataframe that stores the results of the `top_5_products` temporary view you created in the previous cell:
+
+    ```python
+    %%pyspark
+
+    top5Products = sqlContext.table("top_5_products")
+
+    display(top5Products.limit(100))
+    ```
+
+    You should see an output similar to the following, which displays the top five preferred products per user:
+
+    ![The top five preferred products are displayed per user.](media/notebook-top-products-top-5-preferred-output.png "Top 5 preferred products")
+
+11. Execute the following in a new cell to compare the number of top preferred products to the top five preferred products per customer:
+
+    ```python
+    %%pyspark
+    print('before filter: ', topPreferredProducts.count(), ', after filter: ', top5Products.count())
+    ```
+
+    The output should be similar to `before filter:  9662384 , after filter:  822044`.
+
+12. Finally, let's calculate the top five products overall, based on those that are both preferred by customers and purchased the most. To do this, execute the following in a new cell:
+
+    ```python
+    %%pyspark
+
+    top5ProductsOverall = (top5Products.select("ProductId","ItemsPurchasedLast12Months")
+        .groupBy("ProductId")
+        .agg( sum("ItemsPurchasedLast12Months").alias("Total") )
+        .orderBy( col("Total").desc() )
+        .limit(5))
+
+    top5ProductsOverall.show()
+    ```
+
+    In this cell, we grouped the top five preferred products by product ID, summed up the total items purchased in the last 12 months, sorted that value in descending order, and returned the top five results. Your output should be similar to the following:
+
+    ```text
+    +---------+-----+
+    |ProductId|Total|
+    +---------+-----+
+    |     1974|23444|
+    |     3861|22368|
+    |     2050|22050|
+    |     1465|21892|
+    |     4649|21784|
+    +---------+-----+
+    ```
+
+## Exercise 6: Create pipeline trigger window to import remaining Parquet data
 
 **TODO**: Waiting on updated source Sale dataset.
-
-## Exercise 6: Create Synapse Spark notebook to find top products
