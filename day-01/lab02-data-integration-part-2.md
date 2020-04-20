@@ -6,8 +6,10 @@
     - [Task 1: Create SQL tables](#task-1-create-sql-tables)
     - [Task 2: Create campaign analytics datasets](#task-2-create-campaign-analytics-datasets)
     - [Task 3: Create user profile datasets](#task-3-create-user-profile-datasets)
-  - [Exercise 2: Create data flow to import poorly formatted CSV](#exercise-2-create-data-flow-to-import-poorly-formatted-csv)
-  - [Exercise 3: Create data flow to join disparate data sources](#exercise-3-create-data-flow-to-join-disparate-data-sources)
+  - [Exercise 2: Create data pipeline to import poorly formatted CSV](#exercise-2-create-data-pipeline-to-import-poorly-formatted-csv)
+    - [Task 1: Create data flow](#task-1-create-data-flow)
+    - [Task 2: Create data pipeline](#task-2-create-data-pipeline)
+  - [Exercise 3: Create data pipeline to join disparate data sources](#exercise-3-create-data-pipeline-to-join-disparate-data-sources)
   - [Exercise 4: Create pipeline trigger window to import remaining Parquet data](#exercise-4-create-pipeline-trigger-window-to-import-remaining-parquet-data)
   - [Exercise 5: Create Synapse Spark notebook to find top products](#exercise-5-create-synapse-spark-notebook-to-find-top-products)
 
@@ -227,10 +229,97 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
 
     ![New dataset form is displayed with the described configuration.](media/new-dataset-usertopproductpurchases.png "New dataset")
 
-## Exercise 2: Create data flow to import poorly formatted CSV
+## Exercise 2: Create data pipeline to import poorly formatted CSV
 
-## Exercise 3: Create data flow to join disparate data sources
+### Task 1: Create data flow
+
+1. Navigate to the **Develop** hub.
+
+    ![The Develop menu item is highlighted.](media/develop-hub.png "Develop hub")
+
+2. Select + then **Data flow** to create a new data flow.
+
+    ![The new data flow link is highlighted.](media/new-data-flow-link.png "New data flow")
+
+3. In the **General** tab of the new data flow, update the **Name** to the following: `ASAL400 - Lab 2 - Write Campaign Analytics to ASA`.
+
+    ![The name field is populated with the defined value.](media/data-flow-campaign-analysis-name.png "Name")
+
+4. Select **Add Source** on the data flow canvas.
+
+    ![Select Add Source on the data flow canvas.](media/data-flow-canvas-add-source.png "Add Source")
+
+5. Under **Source settings**, configure the following:
+
+    - **Output stream name**: Enter `CampaignAnalytics`.
+    - **Dataset**: Select `asal400_campaign_analytics_source`.
+    - **Options**: Select `Allow schema drift` and leave the other options unchecked.
+    - **Skip line count**: Enter `1`. This allows us to skip the header row which has two fewer columns than the rest of the rows in the CSV file, truncating the last two data columns.
+    - **Sampling**: Select `Disable`.
+
+    ![The form is configured with the defined settings.](media/data-flow-campaign-analysis-source-settings.png "Source settings")
+
+6. Select the **Projection** tab, then select **Import projection**.
+
+    ![The import projection button is highlighted in the projection tab.](media/data-flow-import-projection.png "Import projection")
+
+    The projection should display the following schema:
+
+    ![The imported projection is displayed.](media/data-flow-campaign-analysis-source-projection.png "Projection")
+
+7. If a data flow debug session is not currently running, select the **AzureLargeComputeOptimizedIntegrationRuntime** IR, then select **Turn on debug**.
+
+    ![Select the IR then select turn on debug.](media/data-flow-debug-session-large-ir.png "Data Flow Debug Session Required")
+
+8. Select the **Data preview** tab, then select **Refresh** to display data from the CSV file. If you scroll to the right, you should see that the City and State columns are now included.
+
+    ![The data preview is displayed.](media/data-flow-campaign-analysis-source-preview.png "Data preview")
+
+9. Select the **+** to the right of the `CampaignAnalytics` source, then select the **Select** schema modifier from the context menu.
+
+    ![The new Select schema modifier is highlighted.](media/data-flow-campaign-analysis-new-select.png "New Select schema modifier")
+
+10. Under **Select settings**, configure the following:
+
+    - **Output stream name**: Enter `MapCampaignAnalytics`.
+    - **Incoming stream**: Select `CampaignAnalytics`.
+    - **Options**: Check both options.
+    - **Input columns**: make sure `Auto mapping` is unchecked, then provide the following values in the **Name as** fields:
+      - Region
+      - Country
+      - ProductCategory
+      - CampaignName
+      - RevenuePart1
+      - Revenue
+      - RevenueTargetPart1
+      - RevenueTarget
+      - City
+      - State
+
+    ![The select settings are displayed.](media/data-flow-campaign-analysis-select-settings.png "Select settings")
+
+11. Select the **+** to the right of the `MapCampaignAnalytics` source, then select the **Derived Column** schema modifier from the context menu.
+
+    ![The new Derived Column schema modifier is highlighted.](media/data-flow-campaign-analysis-new-derived.png "New Derived Column")
+
+12. Under **Derived column's settings**, configure the following:
+
+    - **Output stream name**: Enter `ConvertColumnTypesAndValues`.
+    - **Incoming stream**: Select `MapCampaignAnalytics`.
+    - **Columns**: Provide the following information:
+
+        | Column | Expression | Description |
+        | --- | --- | --- |
+        | Revenue | `toDecimal(replace(concat(toString(RevenuePart1), toString(Revenue)), '\\', ''), 10, 2, '$###,###.##')` | Concatenate the `RevenuePart1` and `Revenue` fields, replace the invalid `\` character, then convert and format the data to a decimal type. |
+        | RevenueTarget | `toDecimal(replace(concat(toString(RevenueTargetPart1), toString(RevenueTarget)), '\\', ''), 10, 2, '$###,###.##')` | Concatenate the `RevenueTargetPart1` and `RevenueTarget` fields, replace the invalid `\` character, then convert and format the data to a decimal type. |
+        | ProductCategory | `replace(toString(ProductCategory), 'Ã©', 'e')` | Replace the invalid characters in the `ProductCategory` field with the letter e. |
+
+### Task 2: Create data pipeline
+
+## Exercise 3: Create data pipeline to join disparate data sources
 
 ## Exercise 4: Create pipeline trigger window to import remaining Parquet data
+
+**TODO**: Waiting on updated source Sale dataset.
 
 ## Exercise 5: Create Synapse Spark notebook to find top products
