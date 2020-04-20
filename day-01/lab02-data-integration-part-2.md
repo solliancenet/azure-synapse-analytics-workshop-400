@@ -550,15 +550,19 @@ Now that the pipeline run is complete, let's take a look at the SQL table to ver
 
     ![The source settings are configured as described.](media/data-flow-user-profiles-source2-settings.png "Source settings")
 
-17. Select **Data preview** and select **Refresh** to display the data. Select a row under the `preferredProducts` column to see an expanded view of the array.
+17. Select **Projection** and inspect the inferred schema. If the `preferredProducts` type is not identified as an integer array (`[] integer`), select **Import projection**.
+
+    ![The import projection button and preferredProducts row are highlighted.](media/data-flow-user-profiles-source2-projection.png "Projection")
+
+18. Select **Data preview** and select **Refresh** to display the data. Select a row under the `preferredProducts` column to see an expanded view of the array.
 
     ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-data-preview2.png "Data preview")
 
-18. Select the **+** to the right of the `UserProfiles` source, then select the **Flatten** schema modifier from the context menu.
+19. Select the **+** to the right of the `UserProfiles` source, then select the **Flatten** schema modifier from the context menu.
 
     ![The plus sign and the Flatten schema modifier are highlighted.](media/data-flow-user-profiles-new-flatten2.png "New Flatten schema modifier")
 
-19. Under **Flatten settings**, configure the following:
+20. Under **Flatten settings**, configure the following:
 
     - **Output stream name**: Enter `UserPreferredProducts`.
     - **Incoming stream**: Select `UserProfiles`.
@@ -572,9 +576,66 @@ Now that the pipeline run is complete, let's take a look at the SQL table to ver
 
     ![The flatten settings are configured as described.](media/data-flow-user-profiles-flatten2-settings.png "Flatten settings")
 
-20. Select **Data preview** and select **Refresh** to display the data. You should now see a flattened view of the data source with one or more rows per `userId`.
+21. Select **Data preview** and select **Refresh** to display the data. You should now see a flattened view of the data source with one or more rows per `userId`.
 
     ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-flatten2-data-preview.png "Data preview")
+
+22. Now it is time to join the two data sources. Select the **+** to the right of the `DeriveProductColumns` step, then select the **Join** option from the context menu.
+
+    ![The plus sign and new Join menu item are highlighted.](media/data-flow-user-profiles-new-join.png "New Join")
+
+23. Under **Join settings**, configure the following:
+
+    - **Output stream name**: Enter `JoinTopProductsWithPreferredProducts`.
+    - **Left stream**: Select `DeriveProductColumns`.
+    - **Right stream**: Select `UserPreferredProducts`.
+    - **Join type**: Select `Full outer`.
+    - **Join conditions**: Provide the following information:
+
+        | Left: DeriveProductColumns's column | Right: UserPreferredProducts's column |
+        | --- | --- |
+        | `visitorId` | `userId` |
+
+    ![The join settings are configured as described.](media/data-flow-user-profiles-join-settings.png "Join settings")
+
+24. Select **Optimize** and configure the following:
+
+    - **Broadcast**: Check `Left: 'DeriveProductColumns'`.
+    - **Partition option**: Select `Set partitioning`.
+    - **Partition type**: Select `Hash`.
+    - **Number of partitions**: Enter `30`.
+    - **Column**: Select `productId`.
+
+    ![The join optimization settings are configured as described.](media/data-flow-user-profiles-join-optimize.png "Optimize")
+
+    Optimization description.
+
+25. Select the **Inspect** tab to see the join mapping, including the column feed source and whether the column is used in a join.
+
+    ![The inspect blade is displayed.](media/data-flow-user-profiles-join-inspect.png "Inspect")
+
+26. Select **Data preview** and select **Refresh** to display the data. In this small sample of data, likely the `userId` and `preferredProductId` columns will only show null values. If you want to get a sense of how many records contain values for these fields, select a column, such as `preferredProductId`, then select **Statistics** in the toolbar above. This displays a chart for the column showing the ratio of values.
+
+    ![The data preview results are shown and the statistics for the preferredProductId column is displayed as a pie chart to the right.](media/data-flow-user-profiles-join-preview.png "Data preview")
+
+27. Select the **+** to the right of the `JoinTopProductsWithPreferredProducts` step, then select the **Derived Column** schema modifier from the context menu.
+
+    ![The plus sign and Derived Column schema modifier are highlighted.](media/data-flow-user-profiles-new-derived-column3.png "New Derived Column")
+
+28. Under **Derived column's settings**, configure the following:
+
+    - **Output stream name**: Enter `DerivedColumnsForMerge`.
+    - **Incoming stream**: Select `JoinTopProductsWithPreferredProducts`.
+    - **Columns**: Provide the following information:
+
+        | Column | Expression | Description |
+        | --- | --- | --- |
+        | isTopProduct | `toBoolean(iif(isNull(productId), 'false', 'true'))` | Returns `true` if `productId` is not null. Recall that `productId` is fed by the e-commerce top user products data lineage. |
+        | isPreferredProduct | `toBoolean(iif(isNull(preferredProductId), 'false', 'true'))` | Returns `true` if `preferredProductId` is not null. Recall that `preferredProductId` is fed by the Azure Cosmos DB user profile data lineage. |
+        | productId | `iif(isNull(productId), preferredProductId, productId)` | Sets the `productId` output to either the `preferredProductId` or `productId` value, depending on whether `productId` is null.
+        | userId | `iif(isNull(userId), visitorId, userId)` | Sets the `userId` output to either the `visitorId` or `userId` value, depending on whether `userId` is null.
+
+    ![The derived column's settings are configured as described.](media/data-flow-user-profiles-derived-column3-settings.png "Derived column's settings")
 
 ## Exercise 5: Create pipeline trigger window to import remaining Parquet data
 
