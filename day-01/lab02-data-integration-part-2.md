@@ -136,7 +136,7 @@ For the remainder of this guide, the following terms will be used for various AS
 
     ```sql
     CREATE TABLE [wwi].[UserTopProductPurchases]
-    ( 
+    (
         [UserId] [int]  NOT NULL,
         [ProductId] [int]  NOT NULL,
         [ItemsPurchasedLast12Months] [int]  NULL,
