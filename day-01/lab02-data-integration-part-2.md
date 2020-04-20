@@ -503,6 +503,57 @@ Now that the pipeline run is complete, let's take a look at the SQL table to ver
 
     ![The plus sign and the Flatten schema modifier are highlighted.](media/data-flow-user-profiles-new-flatten.png "New Flatten schema modifier")
 
+11. Under **Flatten settings**, configure the following:
+
+    - **Output stream name**: Enter `UserTopProducts`.
+    - **Incoming stream**: Select `userId`.
+    - **Unroll by**: Select `[] topProductPurchases`.
+    - **Input columns**: Provide the following information:
+
+        | userId's column | Name as |
+        | --- | --- | --- |
+        | visitorId | `visitorId` |
+        | topProductPurchases.productId | `productId` |
+        | topProductPurchases.itemsPurchasedLast12Months | `itemsPurchasedLast12Months` |
+
+    ![The flatten settings are configured as described.](media/data-flow-user-profiles-flatten-settings.png "Flatten settings")
+
+12. Select **Data preview** and select **Refresh** to display the data. You should now see a flattened view of the data source with one or more rows per `visitorId`, similar to when you explored the data within the Spark notebook in lab 1.
+
+    ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-flatten-data-preview.png "Data preview")
+
+13. Select the **+** to the right of the `UserTopProducts` step, then select the **Derived Column** schema modifier from the context menu.
+
+    ![The plus sign and Derived Column schema modifier are highlighted.](media/data-flow-user-profiles-new-derived-column2.png "New Derived Column")
+
+14. Under **Derived column's settings**, configure the following:
+
+    - **Output stream name**: Enter `DeriveProductColumns`.
+    - **Incoming stream**: Select `UserTopProducts`.
+    - **Columns**: Provide the following information:
+
+        | Column | Expression | Description |
+        | --- | --- | --- |
+        | productId | `toInteger(productId)` | Converts the `productId` column from a string to an integer. |
+        | itemsPurchasedLast12Months | `toInteger(itemsPurchasedLast12Months)` | Converts the `itemsPurchasedLast12Months` column from a string to an integer. |
+
+    ![The derived column's settings are configured as described.](media/data-flow-user-profiles-derived-column2-settings.png "Derived column's settings")
+
+15. Select **Add Source** on the data flow canvas beneath the `EcommerceUserProfiles` source.
+
+    ![Select Add Source on the data flow canvas.](media/data-flow-user-profiles-add-source.png "Add Source")
+
+16. Under **Source settings**, configure the following:
+
+    - **Output stream name**: Enter `UserProfiles`.
+    - **Dataset**: Select `asal400_customerprofile_cosmosdb`.
+
+    ![The source settings are configured as described.](media/data-flow-user-profiles-source2-settings.png "Source settings")
+
+17. Select **Data preview** and select **Refresh** to display the data. Select a row under the `preferredProducts` column to see an expanded view of the array.
+
+    ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-data-preview2.png "Data preview")
+
 ## Exercise 5: Create pipeline trigger window to import remaining Parquet data
 
 **TODO**: Waiting on updated source Sale dataset.
