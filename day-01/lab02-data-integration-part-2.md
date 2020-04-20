@@ -511,7 +511,7 @@ Now that the pipeline run is complete, let's take a look at the SQL table to ver
     - **Input columns**: Provide the following information:
 
         | userId's column | Name as |
-        | --- | --- | --- |
+        | --- | --- |
         | visitorId | `visitorId` |
         | topProductPurchases.productId | `productId` |
         | topProductPurchases.itemsPurchasedLast12Months | `itemsPurchasedLast12Months` |
@@ -566,7 +566,7 @@ Now that the pipeline run is complete, let's take a look at the SQL table to ver
     - **Input columns**: Provide the following information:
 
         | UserProfiles's column | Name as |
-        | --- | --- | --- |
+        | --- | --- |
         | userId | `userId` |
         | preferredProducts | `preferredProductId` |
 
