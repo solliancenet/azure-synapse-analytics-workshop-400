@@ -651,73 +651,17 @@ It is important to identify data columns of that hold sensitive information. Typ
 
    ![In Azure Synapse Studio, the Develop item is selected from the left menu.](media/lab5_synapsestudiodevelopmenuitem.png)
 
-2. From the **Develop** menu, select the **+** button and choose **SQL Script** from the context menu.
+2. From the **Develop** menu, expand the **SQL scripts** section, and select **ASAL4 - Lab 05 - Exercise 3 - Column Level Security**.
 
-   ![In Synapse Studio the develop menu is displayed with the + button expanded, SQL script is selected from the context menu.](media/lab5_synapsestudiodevelopnewsqlscriptmenu.png)
-
-3. In the toolbar menu, connect to the database on which you want to execute the query.
+3. In the toolbar menu, connect to the database on which you want to execute the query, `SQLPool01`.
 
     ![The Synapse Studio query toolbar is shown with the Connect to dropdown list field highlighted.](media/lab5_synapsestudioquerytoolbar.png)
 
-4. In the query window, replace the script with the following script (documented inline). Run each step individually by highlighting the statement(s) in the step in the query window, and selecting the **Run** button from the toolbar.
+4. In the query window, run each step individually by highlighting the statement(s) in the step in the query window, and selecting the **Run** button from the toolbar.
 
    ![The Synapse Studio toolbar is displayed with the Run button selected.](media/lab5_synapsestudioqueryruntoolbarmenu.png)
 
-    ```sql
-        /*  Column-level security feature in Azure Synapse simplifies the design and coding of security in application.
-        It ensures column level security by restricting column access to protect sensitive data. */
-
-    --Step 1: Let us see how this feature in Azure Synapse works. Before that let us have a look at the Campaign table.
-    select  Top 100 * from wwi.CampaignAnalytics
-    where City is not null and state is not null
-
-    /*  Consider a scenario where there are two users.
-        A CEO, who is an authorized  personnel with access to all the information in the database
-        and a Data Analyst, to whom only required information should be presented.*/
-
-    -- Step:2 We look for the names “CEO” and “DataAnalystMiami” present in the Datawarehouse.
-    SELECT Name as [User1] FROM sys.sysusers WHERE name = N'CEO'
-    SELECT Name as [User2] FROM sys.sysusers WHERE name = N'DataAnalystMiami'
-
-
-    -- Step:3 Now let us enforcing column level security for the DataAnalystMiami.
-    /*  Let us see how.
-        The CampaignAnalytics table in the warehouse has information like Region, Country, ProductCategory, CampaignName, City,State,RevenueTarget , and Revenue.
-        Of all the information, Revenue generated from every campaign is a classified one and should be hidden from DataAnalystMiami.
-        To conceal this information, we execute the following query: */
-
-    GRANT SELECT ON wwi.CampaignAnalytics([Region],[Country],[ProductCategory],[CampaignName],[RevenueTarget],
-    [City],[State]) TO DataAnalystMiami;
-    -- This provides DataAnalystMiami access to all the columns of the CampaignAnalytics table but Revenue.
-
-    -- Step:4 Then, to check if the security has been enforced, we execute the following query with current User As 'DataAnalystMiami'
-    EXECUTE AS USER ='DataAnalystMiami'
-    select * from wwi.CampaignAnalytics
-    ---
-    EXECUTE AS USER ='DataAnalystMiami'
-    select [Region],[Country],[ProductCategory],[CampaignName],[RevenueTarget],
-    [City],[state] from wwi.CampaignAnalytics
-
-    /*  And look at that, when the user logged in as DataAnalystMiami tries to view all the columns from the CampaignAnalytics table,
-        he is prompted with a ‘permission denied error’ on Revenue column.*/
-
-    -- Step:5 Whereas, the CEO of the company should be authorized with all the information present in the warehouse.To do so, we execute the following query.
-    Revert;
-    GRANT SELECT ON wwi.CampaignAnalytics TO CEO;  --Full access to all columns.
-
-    -- Step:6 Let us check if our CEO user can see all the information that is present. Assign Current User As 'CEO' and the execute the query
-    EXECUTE AS USER ='CEO'
-    select * from wwi.CampaignAnalytics
-    Revert;
-    ```
-
-5. Once complete, you may choose to save this script by selecting the Properties icon located toward the right side of the toolbar menu, and assigning it a name and description.
-
-    ![The right side of the query window is displayed with the Properties icon selected from the toolbar and the Properties blade displayed. The Properties form has a Name and Description field that will be used to identify the script.](media/lab5_synapsestudioquerywindowpropertiesmenuandform.png)
-
-6. Now the script has a Name and Description, all that is left to do is to publish it to the workspace. Press the **Publish** button from the query toolbar menu.
-
-    ![The query window toolbar menu is displayed with the Publish item selected.](media/lab5_synapsestudioquerytoolbarpublishmenu.png)
+5. You may now close the script tab, when prompted choose to **Discard all changes**.
 
 ### Task 3 - Row level security
 
@@ -725,177 +669,39 @@ It is important to identify data columns of that hold sensitive information. Typ
 
    ![In Azure Synapse Studio, the Develop item is selected from the left menu.](media/lab5_synapsestudiodevelopmenuitem.png)
 
-2. From the **Develop** menu, select the **+** button and choose **SQL Script** from the context menu.
+2. From the **Develop** menu, expand the **SQL scripts** section, and select **ASAL400 - Lab05 - Exercise 3 - Row Level Security**.
 
    ![In Synapse Studio the develop menu is displayed with the + button expanded, SQL script is selected from the context menu.](media/lab5_synapsestudiodevelopnewsqlscriptmenu.png)
 
-3. In the toolbar menu, connect to the database on which you want to execute the query.
+3. In the toolbar menu, connect to the database on which you want to execute the query, `SQLPool01`.
 
     ![The Synapse Studio query toolbar is shown with the Connect to dropdown list field highlighted.](media/lab5_synapsestudioquerytoolbar.png)
 
-4. In the query window, replace the script with the following script (documented inline). Run each step individually by highlighting the statement(s) of the step in the query window, and selecting the **Run** button from the toolbar.
+4. In the query window, run each step individually by highlighting the statement(s) for the step in the query window, and selecting the **Run** button from the toolbar.
 
    ![The Synapse Studio toolbar is displayed with the Run button selected.](media/lab5_synapsestudioqueryruntoolbarmenu.png)
 
-    ```sql
-    /*	Row level Security (RLS) in Azure Synapse enables us to use group membership to control access to rows in a table.
-        Azure Synapse applies the access restriction every time the data access is attempted from any user. 
-        Let see how we can implement row level security in Azure Synapse.*/
-
-    ----------------------------------Row-Level Security (RLS), 1: Filter predicates------------------------------------------------------------------
-    -- Step:1 The Sale table has two Analyst values i.e. DataAnalystMiami and DataAnalystSanDiego
-    SELECT DISTINCT Analyst FROM wwi_security.Sale order by Analyst ;
-
-    /* Moving ahead, we Create a new schema, and an inline table-valued function. 
-    The function returns 1 when a row in the Analyst column is the same as the user executing the query (@Analyst = USER_NAME())
-    or if the user executing the query is the CEO user (USER_NAME() = 'CEO').
-    */
-
-    -- Demonstrate the existing security predicates already deployed to the database
-    SELECT * FROM sys.security_predicates
-
-    --Step:2 To set up RLS, the following query creates three login users :  CEO, DataAnalystMiami, DataAnalystSanDiego
-    GO
-    CREATE SCHEMA Security
-    GO
-    CREATE FUNCTION Security.fn_securitypredicate(@Analyst AS sysname)  
-        RETURNS TABLE  
-    WITH SCHEMABINDING  
-    AS  
-        RETURN SELECT 1 AS fn_securitypredicate_result
-        WHERE @Analyst = USER_NAME() OR USER_NAME() = 'CEO'
-    GO
-    -- Now we define security policy that allows users to filter rows based on their login name.
-    CREATE SECURITY POLICY SalesFilter  
-    ADD FILTER PREDICATE Security.fn_securitypredicate(Analyst)
-    ON wwi_security.Sale
-    WITH (STATE = ON);
-
-    ------ Allow SELECT permissions to the Sale Table.------
-    GRANT SELECT ON wwi_security.Sale TO CEO, DataAnalystMiami, DataAnalystSanDiego;
-
-    -- Step:3 Let us now test the filtering predicate, by selecting data from the Sale table as 'DataAnalystMiami' user.
-    EXECUTE AS USER = 'DataAnalystMiami'
-    SELECT * FROM wwi_security.Sale;
-    revert;
-    -- As we can see, the query has returned rows here Login name is DataAnalystMiami
-
-    -- Step:4 Let us test the same for  'DataAnalystSanDiego' user.
-    EXECUTE AS USER = 'DataAnalystSanDiego';
-    SELECT * FROM wwi_security.Sale;
-    revert;
-    -- RLS is working indeed.
-
-    -- Step:5 The CEO should be able to see all rows in the table.
-    EXECUTE AS USER = 'CEO';  
-    SELECT * FROM wwi_security.Sale;
-    revert;
-    -- And he can.
-
-    --Step:6 To disable the security policy we just created above, we execute the following.
-    ALTER SECURITY POLICY SalesFilter  
-    WITH (STATE = OFF);
-
-    DROP SECURITY POLICY SalesFilter;
-    DROP FUNCTION Security.fn_securitypredicate;
-    DROP SCHEMA Security;
-    ```
-
-5. Once complete, you may choose to save this script by selecting the Properties icon located toward the right side of the toolbar menu, and assigning it a name and description.
-
-    ![The right side of the query window is displayed with the Properties icon selected from the toolbar and the Properties blade displayed. The Properties form has a Name and Description field that will be used to identify the script.](media/lab5_synapsestudiosaverowlevelscript.png)
-
-6. Now the script has a Name and Description, all that is left to do is to publish it to the workspace. Press the **Publish** button from the query toolbar menu.
-
-    ![The query window toolbar menu is displayed with the Publish item selected.](media/lab5_synapsestudioquerytoolbarpublishmenu.png)
+5. You may now close the script tab, when prompted choose to **Discard all changes**.
 
 ### Task 4 - Dynamic data masking
 
-1. In Azure Synapse Studio, select **Develop** from the left menu.
+1. In **Azure Synapse Studio**, select **Develop** from the left menu.
 
    ![In Azure Synapse Studio, the Develop item is selected from the left menu.](media/lab5_synapsestudiodevelopmenuitem.png)
 
-2. From the **Develop** menu, select the **+** button and choose **SQL Script** from the context menu.
+2. From the **Develop** menu, expand the **SQL scripts** section, and select **ASAL400 - Lab05 - Exercise 3 - Dynamic Data Masking**.
 
    ![In Synapse Studio the develop menu is displayed with the + button expanded, SQL script is selected from the context menu.](media/lab5_synapsestudiodevelopnewsqlscriptmenu.png)
 
-3. In the toolbar menu, connect to the database on which you want to execute the query.
+3. In the toolbar menu, connect to the database on which you want to execute the query, `SQLPool01`.
 
     ![The Synapse Studio query toolbar is shown with the Connect to dropdown list field highlighted.](media/lab5_synapsestudioquerytoolbar.png)
 
-4. In the query window, replace the script with the following script (documented inline). Run each step individually by highlighting the statement(s) of the step in the query window, and selecting the **Run** button from the toolbar.
+4. In the query window, run each step individually by highlighting the statement(s) for the step in the query window, and selecting the **Run** button from the toolbar.
 
    ![The Synapse Studio toolbar is displayed with the Run button selected.](media/lab5_synapsestudioqueryruntoolbarmenu.png)
 
-    ```sql
-    -------------------------------------------------------------------------Dynamic Data Masking (DDM)----------------------------------------------------------------------------------------------------------
-    /*  Dynamic data masking helps prevent unauthorized access to sensitive data by enabling customers
-        to designate how much of the sensitive data to reveal with minimal impact on the application layer.
-        Let see how */
-
-    -- Step:1 Let us first get a view of CustomerInfo table.
-    SELECT TOP (100) * FROM CustomerInfo;
-
-    -- Step:2 Let's confirm that there are no Dynamic Data Masking (DDM) applied on columns.
-    SELECT c.name, tbl.name as table_name, c.is_masked, c.masking_function  
-    FROM sys.masked_columns AS c  
-    JOIN sys.tables AS tbl
-        ON c.[object_id] = tbl.[object_id]  
-    WHERE is_masked = 1
-        AND tbl.name = 'CustomerInfo';
-    -- No results returned verify that no data masking has been done yet.
-
-    -- Step:3 Now lets mask 'CreditCard' and 'Email' Column of 'CustomerInfo' table.
-    ALTER TABLE CustomerInfo  
-    ALTER COLUMN [CreditCard] ADD MASKED WITH (FUNCTION = 'partial(0,"XXXX-XXXX-XXXX-",4)');
-    GO
-    ALTER TABLE CustomerInfo
-    ALTER COLUMN Email ADD MASKED WITH (FUNCTION = 'email()');
-    GO
-    -- The columns are sucessfully masked.
-
-    -- Step:4 Let's see Dynamic Data Masking (DDM) applied on the two columns.
-    SELECT c.name, tbl.name as table_name, c.is_masked, c.masking_function  
-    FROM sys.masked_columns AS c  
-    JOIN sys.tables AS tbl
-        ON c.[object_id] = tbl.[object_id]  
-    WHERE is_masked = 1
-        AND tbl.name ='CustomerInfo';
-
-    -- Step:5 Now, let us grant SELECT permission to 'DataAnalystMiami' on the 'CustomerInfo' table.
-    SELECT Name as [User]
-    FROM sys.sysusers
-    WHERE name = N'DataAnalystMiami'
-    GRANT SELECT ON CustomerInfo TO DataAnalystMiami;  
-
-    -- Step:6 Logged in as  'DataAnalystMiami' let us execute the select query and view the result.
-    EXECUTE AS USER =N'DataAnalystMiami';  
-    SELECT * FROM CustomerInfo;
-
-    -- Step:7 Let us remove the data masking using UNMASK permission
-    GRANT UNMASK TO DataAnalystMiami
-    EXECUTE AS USER = 'DataAnalystMiami';  
-    SELECT *
-    FROM CustomerInfo;
-    revert;
-    REVOKE UNMASK TO DataAnalystMiami;  
-
-    ----step:8 Reverting all the changes back to as it was.
-    ALTER TABLE CustomerInfo
-    ALTER COLUMN CreditCard DROP MASKED;
-    GO
-    ALTER TABLE CustomerInfo
-    ALTER COLUMN Email DROP MASKED;
-    GO
-    ```
-
-5. Once complete, you may choose to save this script by selecting the Properties icon located toward the right side of the toolbar menu, and assigning it a name and description.
-
-    ![The right side of the query window is displayed with the Properties icon selected from the toolbar and the Properties blade displayed. The Properties form has a Name and Description field that will be used to identify the script.](media/lab5_synapsestudiosavedynamicdatamaskingscript.png)
-
-6. Now the script has a Name and Description, all that is left to do is to publish it to the workspace. Press the **Publish** button from the query toolbar menu.
-
-    ![The query window toolbar menu is displayed with the Publish item selected.](media/lab5_synapsestudioquerytoolbarpublishmenu.png)
+5. You may now close the script tab, when prompted choose to **Discard all changes**.
 
 ## Reference
 
