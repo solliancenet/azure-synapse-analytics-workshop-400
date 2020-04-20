@@ -360,7 +360,11 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
 
     ![The settings are shown.](media/data-flow-campaign-analysis-new-sink-settings-options.png "Settings")
 
-19. Select **Publish all** to save your new data flow.
+19. Your completed data flow should look similar to the following:
+
+    ![The completed data flow is displayed.](media/data-flow-campaign-analysis-complete.png "Completed data flow")
+
+20. Select **Publish all** to save your new data flow.
 
     ![Publish all is highlighted.](media/publish-all-1.png "Publish all")
 
@@ -636,6 +640,39 @@ Now that the pipeline run is complete, let's take a look at the SQL table to ver
         | userId | `iif(isNull(userId), visitorId, userId)` | Sets the `userId` output to either the `visitorId` or `userId` value, depending on whether `userId` is null.
 
     ![The derived column's settings are configured as described.](media/data-flow-user-profiles-derived-column3-settings.png "Derived column's settings")
+
+29. Select **Data preview** and select **Refresh** to display the data and verify the derived column settings.
+
+    ![The data preview is displayed.](media/data-flow-user-profiles-derived-column3-preview.png "Data preview")
+
+30. Select the **+** to the right of the `DerivedColumnsForMerge` step, then select the **Sink** destination from the context menu.
+
+    ![The new Sink destination is highlighted.](media/data-flow-user-profiles-new-sink.png "New sink")
+
+31. Under **Sink**, configure the following:
+
+    - **Output stream name**: Enter `UserTopProductPurchasesASA`.
+    - **Incoming stream**: Select `DerivedColumnsForMerge`.
+    - **Dataset**: Select `asal400_wwi_usertopproductpurchases_asa`, which is the UserTopProductPurchases SQL table.
+    - **Options**: Check `Allow schema drift` and uncheck `Validate schema`.
+
+    ![The sink settings are shown.](media/data-flow-user-profiles-new-sink-settings.png "Sink settings")
+
+32. Select **Settings**, then configure the following:
+
+    - **Update method**: Check `Allow insert` and leave the rest unchecked.
+    - **Table action**: Select `Truncate table`.
+    - **Enable staging**: `Check` this option. Since we are importing a lot of data, we want to enable staging to improve performance.
+
+    ![The settings are shown.](media/data-flow-user-profiles-new-sink-settings-options.png "Settings")
+
+33. Your completed data flow should look similar to the following:
+
+    ![The completed data flow is displayed.](media/data-flow-user-profiles-complete.png "Completed data flow")
+
+34. Select **Publish all** to save your new data flow.
+
+    ![Publish all is highlighted.](media/publish-all-1.png "Publish all")
 
 ## Exercise 5: Create pipeline trigger window to import remaining Parquet data
 
