@@ -15,6 +15,7 @@
     - [Task 1: Create user reviews data flow](#task-1-create-user-reviews-data-flow)
     - [Task 2: Create user reviews data pipeline](#task-2-create-user-reviews-data-pipeline)
   - [Exercise 4: Create data pipeline to join disparate data sources](#exercise-4-create-data-pipeline-to-join-disparate-data-sources)
+    - [Task 1: Create user profile data flow](#task-1-create-user-profile-data-flow)
   - [Exercise 5: Create pipeline trigger window to import remaining Parquet data](#exercise-5-create-pipeline-trigger-window-to-import-remaining-parquet-data)
   - [Exercise 6: Create Synapse Spark notebook to find top products](#exercise-6-create-synapse-spark-notebook-to-find-top-products)
 
@@ -401,6 +402,8 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
     ![The debug status shows as succeeded.](media/pipeline-campaign-analysis-debug-succeeded.png "Debug succeeded")
 
+> Please note, if this is the first time you have executed a pipeline after turning on debugging, it will take longer for this initial run to complete (~6 minutes). Each subsequent run will be much shorter since the cluster provisioning step only needs to happen once (~1:20).
+
 ### Task 4: View campaign analytics table contents
 
 Now that the pipeline run is complete, let's take a look at the SQL table to verify the data successfully copied.
@@ -417,13 +420,68 @@ Now that the pipeline run is complete, let's take a look at the SQL table to ver
 
     ![The CampaignAnalytics query results are displayed.](media/campaign-analytics-query-results.png "Query results")
 
+4. Update the query to the following and **Run**:
+
+    ```sql
+    SELECT ProductCategory
+    ,SUM(Revenue) AS TotalRevenue
+    ,SUM(RevenueTarget) AS TotalRevenueTarget
+    ,(SUM(RevenueTarget) - SUM(Revenue)) AS Delta
+    FROM [wwi].[CampaignAnalytics]
+    GROUP BY ProductCategory
+    ```
+
+5. In the query results, select the **Chart** view. Configure the columns as defined:
+
+    - **Chart type**: Select `Column`.
+    - **Category column**: Select `ProductCategory`.
+    - **Legend (series) columns**: Select `TotalRevenue`, `TotalRevenueTarget`, and `Delta`.
+
+    ![The new query and chart view are displayed.](media/campaign-analytics-query-results-chart.png "Chart view")
+
 ## Exercise 3: Create data pipeline to import user reviews
+
+**TODO**: Add if there's time.
 
 ### Task 1: Create user reviews data flow
 
 ### Task 2: Create user reviews data pipeline
 
 ## Exercise 4: Create data pipeline to join disparate data sources
+
+### Task 1: Create user profile data flow
+
+1. Navigate to the **Develop** hub.
+
+    ![The Develop menu item is highlighted.](media/develop-hub.png "Develop hub")
+
+2. Select + then **Data flow** to create a new data flow.
+
+    ![The new data flow link is highlighted.](media/new-data-flow-link.png "New data flow")
+
+3. In the **General** tab of the new data flow, update the **Name** to the following: `ASAL400 - Lab 2 - Write User Profile Data to ASA`.
+
+4. Select **Add Source** on the data flow canvas.
+
+    ![Select Add Source on the data flow canvas.](media/data-flow-canvas-add-source.png "Add Source")
+
+5. Under **Source settings**, configure the following:
+
+    - **Output stream name**: Enter `EcommerceUserProfiles`.
+    - **Dataset**: Select `asal400_ecommerce_userprofiles_source`.
+
+    ![The source settings are configured as described.](media/data-flow-user-profiles-source-settings.png "Source settings")
+
+6. Select the **Source options** tab, then configure the following:
+
+    - **Wildcard paths**: Enter `online-user-profiles-02/*.json`.
+    - **Single document** under JSON Settings: Check this setting. This denotes that each JSON document contains multiple rows of data.
+
+    ![The source options are configured as described.](media/data-flow-user-profiles-source-options.png "Source options")
+
+7. Select **Data preview** and select **Refresh** to display the data. Select a row under the `topProductPurchases` column to see an expanded view of the array.
+
+    ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-data-preview.png "Data preview")
 
 ## Exercise 5: Create pipeline trigger window to import remaining Parquet data
 
