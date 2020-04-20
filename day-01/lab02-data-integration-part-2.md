@@ -7,11 +7,16 @@
     - [Task 2: Create campaign analytics datasets](#task-2-create-campaign-analytics-datasets)
     - [Task 3: Create user profile datasets](#task-3-create-user-profile-datasets)
   - [Exercise 2: Create data pipeline to import poorly formatted CSV](#exercise-2-create-data-pipeline-to-import-poorly-formatted-csv)
-    - [Task 1: Create data flow](#task-1-create-data-flow)
-    - [Task 2: Create data pipeline](#task-2-create-data-pipeline)
-  - [Exercise 3: Create data pipeline to join disparate data sources](#exercise-3-create-data-pipeline-to-join-disparate-data-sources)
-  - [Exercise 4: Create pipeline trigger window to import remaining Parquet data](#exercise-4-create-pipeline-trigger-window-to-import-remaining-parquet-data)
-  - [Exercise 5: Create Synapse Spark notebook to find top products](#exercise-5-create-synapse-spark-notebook-to-find-top-products)
+    - [Task 1: Create campaign analytics data flow](#task-1-create-campaign-analytics-data-flow)
+    - [Task 2: Create campaign analytics data pipeline](#task-2-create-campaign-analytics-data-pipeline)
+    - [Task 3: Run the campaign analytics data pipeline](#task-3-run-the-campaign-analytics-data-pipeline)
+    - [Task 4: View campaign analytics table contents](#task-4-view-campaign-analytics-table-contents)
+  - [Exercise 3: Create data pipeline to import user reviews](#exercise-3-create-data-pipeline-to-import-user-reviews)
+    - [Task 1: Create user reviews data flow](#task-1-create-user-reviews-data-flow)
+    - [Task 2: Create user reviews data pipeline](#task-2-create-user-reviews-data-pipeline)
+  - [Exercise 4: Create data pipeline to join disparate data sources](#exercise-4-create-data-pipeline-to-join-disparate-data-sources)
+  - [Exercise 5: Create pipeline trigger window to import remaining Parquet data](#exercise-5-create-pipeline-trigger-window-to-import-remaining-parquet-data)
+  - [Exercise 6: Create Synapse Spark notebook to find top products](#exercise-6-create-synapse-spark-notebook-to-find-top-products)
 
 ```
 Create e2e pipeline for initial load & update
@@ -231,7 +236,7 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
 
 ## Exercise 2: Create data pipeline to import poorly formatted CSV
 
-### Task 1: Create data flow
+### Task 1: Create campaign analytics data flow
 
 1. Navigate to the **Develop** hub.
 
@@ -356,14 +361,72 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
 
 19. Select **Publish all** to save your new data flow.
 
-    ![Publish all is highlighted.](media/publish-all-1.png "Pubish all")
+    ![Publish all is highlighted.](media/publish-all-1.png "Publish all")
 
-### Task 2: Create data pipeline
+### Task 2: Create campaign analytics data pipeline
 
-## Exercise 3: Create data pipeline to join disparate data sources
+In order to run the new data flow, you need to create a new pipeline and add a data flow activity to it.
 
-## Exercise 4: Create pipeline trigger window to import remaining Parquet data
+1. Navigate to the **Orchestrate** hub.
+
+    ![The Orchestrate hub is highlighted.](media/orchestrate-hub.png "Orchestrate hub")
+
+2. Select + then **Pipeline** to create a new pipeline.
+
+    ![The new pipeline context menu item is selected.](media/new-pipeline.png "New pipeline")
+
+3. In the **General** tab for the new pipeline, enter the following **Name**: `ASAL400 - Lab 2 - Write Campaign Analytics to ASA`.
+
+4. Expand **Move & transform** within the Activities list, then drag the **Data flow** activity onto the pipeline canvas.
+
+    ![Drag the data flow activity onto the pipeline canvas.](media/pipeline-campaign-analysis-drag-data-flow.png "Pipeline canvas")
+
+5. In the `Adding data flow` blade, select **Use existing data flow**, then select the `ASAL400 - Lab 2 - Write Campaign Analytics to ASA` existing data flow you created in the previous task.
+
+    ![The adding data flow form is displayed with the described configuration.](media/pipeline-campaign-analysis-adding-data-flow.png "Adding data flow")
+
+6. Select **Finish**.
+
+7. Select the mapping data flow activity on the canvas. Select the **Settings** tab, then set the **Run on (Azure IR)** setting to the `AzureLargeComputeOptimizedIntegrationRuntime` custom IR you created in lab 1.
+
+    ![The custom IR is selected in the mapping data flow activity settings.](media/pipeline-campaign-analysis-data-flow-settings.png "Mapping data flow activity settings")
+
+### Task 3: Run the campaign analytics data pipeline
+
+1. Select **Debug** in the toolbar at the top of the pipeline canvas to start running the pipeline in debug mode.
+
+    ![The debug button is highlighted.](media/pipeline-debug.png "Debug pipeline")
+
+2. The pipeline run displays below the pipeline canvas when you execute the debug session. Wait for the **Status** to change to `Succeeded`. You may need to refresh the view a few times.
+
+    ![The debug status shows as succeeded.](media/pipeline-campaign-analysis-debug-succeeded.png "Debug succeeded")
+
+### Task 4: View campaign analytics table contents
+
+Now that the pipeline run is complete, let's take a look at the SQL table to verify the data successfully copied.
+
+1. Navigate to the **Data** hub.
+
+    ![The Data menu item is highlighted.](media/data-hub.png "Data hub")
+
+2. Expand the `SqlPool01` database underneath the **Databases** section. Right-click the `wwi.CampaignAnalytics` table, then select the **Select TOP 1000 rows** menu item under the New SQL script context menu.
+
+    ![The Select TOP 1000 rows menu item is highlighted.](media/select-top-1000-rows-campaign-analytics.png "Select TOP 1000 rows")
+
+3. The properly transformed data should appear in the query results.
+
+    ![The CampaignAnalytics query results are displayed.](media/campaign-analytics-query-results.png "Query results")
+
+## Exercise 3: Create data pipeline to import user reviews
+
+### Task 1: Create user reviews data flow
+
+### Task 2: Create user reviews data pipeline
+
+## Exercise 4: Create data pipeline to join disparate data sources
+
+## Exercise 5: Create pipeline trigger window to import remaining Parquet data
 
 **TODO**: Waiting on updated source Sale dataset.
 
-## Exercise 5: Create Synapse Spark notebook to find top products
+## Exercise 6: Create Synapse Spark notebook to find top products
