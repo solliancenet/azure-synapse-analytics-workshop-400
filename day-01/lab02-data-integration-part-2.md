@@ -326,7 +326,7 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
 
     ![The data preview is displayed.](media/data-flow-campaign-analysis-derived-column-preview.png "Data preview")
 
-14. Select the **+** to the right of the `ConvertColumnTypesAndValues` source, then select the **Select** schema modifier from the context menu.
+14. Select the **+** to the right of the `ConvertColumnTypesAndValues` step, then select the **Select** schema modifier from the context menu.
 
     ![The new Select schema modifier is highlighted.](media/data-flow-campaign-analysis-new-select2.png "New Select schema modifier")
 
@@ -339,7 +339,7 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
 
     ![The select settings are displayed as described.](media/data-flow-campaign-analysis-select-settings2.png "Select settings")
 
-16. Select the **+** to the right of the `SelectCampaignAnalyticsColumns` source, then select the **Sink** destination from the context menu.
+16. Select the **+** to the right of the `SelectCampaignAnalyticsColumns` step, then select the **Sink** destination from the context menu.
 
     ![The new Sink destination is highlighted.](media/data-flow-campaign-analysis-new-sink.png "New sink")
 
@@ -482,6 +482,26 @@ Now that the pipeline run is complete, let's take a look at the SQL table to ver
 7. Select **Data preview** and select **Refresh** to display the data. Select a row under the `topProductPurchases` column to see an expanded view of the array.
 
     ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-data-preview.png "Data preview")
+
+8. Select the **+** to the right of the `CampaignAnalytics` source, then select the **Derived Column** schema modifier from the context menu.
+
+    ![The plus sign and Derived Column schema modifier are highlighted.](media/data-flow-user-profiles-new-derived-column.png "New Derived Column")
+
+9. Under **Derived column's settings**, configure the following:
+
+    - **Output stream name**: Enter `userId`.
+    - **Incoming stream**: Select `EcommerceUserProfiles`.
+    - **Columns**: Provide the following information:
+
+        | Column | Expression | Description |
+        | --- | --- | --- |
+        | visitorId | `toInteger(visitorId)` | Converts the `visitorId` column from a string to an integer. |
+
+    ![The derived column's settings are configured as described.](media/data-flow-user-profiles-derived-column-settings.png "Derived column's settings")
+
+10. Select the **+** to the right of the `userId` step, then select the **Flatten** schema modifier from the context menu.
+
+    ![The plus sign and the Flatten schema modifier are highlighted.](media/data-flow-user-profiles-new-flatten.png "New Flatten schema modifier")
 
 ## Exercise 5: Create pipeline trigger window to import remaining Parquet data
 
