@@ -30,11 +30,16 @@ Lab Pre-requisites:
 - will need the Security group wwi-readers, Synapse_Workspace_Users, Synapse_Workspace_SparkAdmins, Synapse_Workspace_SqlAdmins, Synapse_Workspace_Admins
 
 - The AAD group inheritance should be structured as follows:
-        | Group                           | Members                                                                             |
-        |---------------------------------|-------------------------------------------------------------------------------------|
-        | Synapse_Workspace_Users       | Synapse_Workspace_Admins, Synapse_Workspace_SQLAdmins, Synapse_Workspace_SparkAdmins  |
-        | Synapse_Workspace_SparkAdmins | Synapse_Workspace_Admins                                                              |
-        | Synapse_Workspace_SQLAdmins   | Synapse_Workspace_Admins                                                              |
+  
+| Group                           | Members                                                                             |
+|---------------------------------|-------------------------------------------------------------------------------------|
+| Synapse_Workspace_Users       | Synapse_Workspace_Admins, Synapse_Workspace_SQLAdmins, Synapse_Workspace_SparkAdmins  |
+| Synapse_Workspace_SparkAdmins | Synapse_Workspace_Admins                                                              |
+| Synapse_Workspace_SQLAdmins   | Synapse_Workspace_Admins                                                              |
+
+- The Synapse_Workspace_Users group needs **Storage Blob Data Contributor** on the `DefaultFileSystem` container.
+
+- The Synapse Workspace MSI needs **Storage Blob Data Contributor** on the `DefaultFileSystem` container.
 
 - The Synapse_Workspace_SQLAdmins security group needs to be set as the SQL Active Directory Admin within the Synapse workspace.
   
@@ -43,7 +48,8 @@ Lab Pre-requisites:
 Lab Testing:
 
 - will need a workspace with a Managed VNet to test the content of this lab.
-- Question, with Managed VNet enabled, should the key vault be private endpoint be managed by Synapse? or should this still be setup manually as through step #2.
+
+- Question, with Managed VNet enabled, should the key vault be private endpoint be managed by Synapse? or should this still be setup manually as through Exercise 2 step #2. I expect even though a private endpoint is established through Synapse, that the public access to the Key Vault is still available, thus still requiring Exercise 2 step 2?
 
 ---
 
@@ -97,7 +103,7 @@ Azure Synapse Analytics (ASA) is a powerful solution that handles security for m
 
 ### Task 1 - Create and configure Azure Active Directory security groups
 
-As with many Azure resources, Azure Synapse Analytics has the ability to leverage Azure Active Directory for security. Begin the security implementation by defining appropriate security groups in Azure Active Directory. Each security group will represent a job function in Azure Synapse Analytics and will be granted the necessary permissions to fulfill its function. Individual users will then be assigned to their respective group based on their role in the organization. Structuring security such a way makes it easier to provision users and admins.
+As with many Azure resources, Azure Synapse Analytics has the ability to leverage Azure Active Directory for security. Begin the security implementation by defining appropriate security groups in Azure Active Directory. Each security group will represent a job function in Azure Synapse Analytics and will be granted the necessary permissions to fulfill its function. Individual users will then be assigned to their respective group based on their role in the organization. Structuring security in such a way makes it easier to provision users and admins.
 
 As a general guide, create an Azure Active Directory Security Group for the following Synapse-specific job functions:
 
@@ -110,7 +116,7 @@ As a general guide, create an Azure Active Directory Security Group for the foll
 
 The lab environment has already been provisioned with the above groups. In a production scenario, you would also need to define additional security groups matching job functions in your organization. When designing these groups, keep in mind the principle of least privilege. Permissions to specific Azure resources will be granted to these groups and not directly to users - users will only be assigned to security groups.
 
-The Synaspse AAD Security groups have permissions that build upon one another. Approaching security groups as an inheritance hierarchy avoids duplicating permissions for every single group. For instance, by adding the **Synapse_`Workspace`_Admins** group as a member of the **Synapse_`Workspace`_Users** group, the admin group will automatically inherit the permissions assigned to the Users group. The admin group will add *only* the permissions specific to the admin role that do not exist in the 'base' Users group it inherited. The membership of the groups are as follows:
+The Synapse AAD Security groups have permissions that build upon one another. Approaching security groups as an inheritance hierarchy avoids duplicating permissions for every single group. For instance, by adding the **Synapse_`Workspace`_Admins** group as a member of the **Synapse_`Workspace`_Users** group, the admin group will automatically inherit the permissions assigned to the Users group. The admin group will add *only* the permissions specific to the admin role that do not exist in the 'base' Users group it inherited. The membership of the groups are as follows:
 
 | Group                           | Members                                                                                |
 |---------------------------------|----------------------------------------------------------------------------------------|
@@ -126,7 +132,7 @@ One of the benefits of using Azure Storage Accounts is that all data at rest is 
 
 Role-based Access Control (RBAC) uses role assignments to apply permission sets to security principals; a principal may be a user, group, service principal, or any managed identity that exists in the Azure Active Directory. So far in this lab, we have defined and configured security groups that represent the various job functions that we need in Azure Synapse Analytics. It is recommended that individual user principals be added only to these Active Directory Security groups. These users will in turn be granted permissions based on the security group (role) that they belong to. All RBAC permissions in this lab will be assigned to security groups, and never to an individual user principal.
 
-When the Azure Synapse Workspace was created, it required the selection of an Azure Data Lake Storage Gen 2 account (`PrimaryStorage`) and the creation of a default filesystem container: `DefaultFileSystem`. The groups we've created in this lab will require access to this container.
+When the Azure Synapse Workspace was created, it required the selection of an Azure Data Lake Storage Gen 2 account (`PrimaryStorage`) and the creation of a default filesystem container: `DefaultFileSystem`. The groups we've created in this lab will require access to this container. We also need to ensure the Synapse workspace has the access it needs. Verify that the workspace **Managed Service Identity (MSI)** has the proper access to the default file system container. A managed identity is an Azure Active Directory feature that provides a built in identity for Azure Resources so that they can authenticate to one another. The Azure Synapse managed identity is used to orchestrate pipelines and needs permissions to perform the operations in those pipelines. See [managed identities for azure resources](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview) to learn more.
 
 1. In the **Azure Portal**, open the `WorkspaceResourceGroup` and from the list of resources and select the `PrimaryStorage` account that you selected when creating the Azure Synapse Analytics Workspace.
 
@@ -138,41 +144,21 @@ When the Azure Synapse Workspace was created, it required the selection of an Az
   
    ![In the container list for the storage account, the DefaultFileSystem container is highlighted.](media/lab5_filesystemcontainerfromlist.png)
 
-4. From the **Container** screen left menu, select **Access Control (IAM)**. From the top toolbar menu select **+ Add**, then choose **Add role assignment**.
+4. From the left menu, select **Access Control (IAM)**, then select **Role assignments** to verify **Synapse_`Workspace`_Users** and the Managed Service Identity of the workspace (has the same name as the workspace) is listed as a **Contributor**.
 
-    ![On the Container screen, Access Control (IAM) is selected from the left menu. In the top toolbar the + Add button is expanded with the Add role assignment item selected.](media/lab5_containeriammenu.png)
+    ![On the Container screen, Access Control (IAM) is selected from the left menu. In the right pane, the Role assignments tab is selected and a list of roles are listed in the filter results. The Contributor column is highlighted in the filtered results table.](media/lab5_storageaccountrbac.png)
 
-5. In the **Add role assignment** blade, complete it as follows then select the **Save** button at the bottom of the blade:
-
-   1. **Role**: Select **Storage Blob Data Contributor**.  
-
-   2. **Assign access to**: Select **Azure AD user, group, or service principal**.
-
-   3. **Select**: Type **Synapse**, then select **Synapse_`Workspace`_Users** from the filtered list.
-
-    ![In the Add role assignment blade, the form is populated with the preceding values and the Save button is highlighted.](media/lab5_addroleassignmenttocontainerblade.png)
-
-6. Remain on the **Container** **Access Control (IAM)** screen. The last step in ensuring the Synapse workspace has the access it needs is to verify that its **Managed Service Identity (MSI)** has the proper access to the default file system container. A managed identity is an Azure Active Directory feature that provides a built in identity for Azure Resources so that they can authenticate to one another. The Azure Synapse managed identity is used to orchestrate pipelines and needs permissions to perform the operations in those pipelines. See [managed identities for azure resources](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview) to learn more.
-
-   1. Select the **Role assignments** tab.
-
-   2. Ensure the MSI with the same name as your workspace (`Workspace`) is listed as a **Contributor**. If it isn't listed, please add it now following the instruction in Step 5.
-
- > **Note**: Additional security precautions can be taken such as enabling **Advanced Threat detection** on all Storage accounts. When this feature is enabled, the Azure Security Center will monitor all traffic to and from the storage account and is able to identify suspicious activity. When such an event occurs, an email is sent out indicating the details of the anomaly along with potential causes and remediation recommendations. These events are also available for review in the **Azure Security Center**. [See this article](https://docs.microsoft.com/en-us/azure/security-center/security-center-intro) for more about Azure Security Center.
+ > **Note**: Additional security precautions can be taken such as enabling **Advanced Threat detection** on all Storage accounts. When this feature is enabled, the Azure Security Center will monitor all traffic to and from the storage account and is able to identify suspicious activity. When such an event occurs, an email is sent out indicating the details of the anomaly along with potential causes and remediation recommendations. These events are also available for review in the **Azure Security Center**. [See this article](https://docs.microsoft.com/en-us/azure/security-center/security-center-intro) for more information about Azure Security Center.
 
 ### Task 4 - Set the SQL Active Directory admin
 
 In order to take advantage of the security group structure, we need to ensure the **Synapse_`Workspace`_SQLAdmins** group has administrative permissions to the SQL Pools contained in the workspace. In this lab
 
-1. In the **Azure Portal**, open the `WorkspaceResourceGroup` and from the list of resources open your Synapse workspace resource (do not launch Synapse Studio).
+1. In the **Azure Portal**, open the `WorkspaceResourceGroup` and from the list of resources open your Synapse `Workspace` resource (do not launch Synapse Studio).
 
-2. From the left menu, select **SQL Active Directory admin** and select the **+ Set admin** button from the toolbar menu.
+2. From the left menu, select **SQL Active Directory admin** and ensure the **Synapse_`Workspace`_SQLAdmins** is listed as a SQL Active Directory Admin.
 
-   ![On the SQL Active Directory Admin screen, SQL Active Directory admin is selected from the left menu, and the Set Admin button is highlighted from the top toolbar menu.](media/lab5_workspacesetsqlaadadminmenu.png)
-
-3. In the **Active Directory admin** blade, filter the list by typing in **Synapse**, and selecting **Synapse_`Workspace`_SQLAdmins**.
-
-4. Select the **Select** button at the bottom of the form.
+    ![On the SQL Active Directory Admin screen, SQL Active Directory admin is selected from the left menu, and the Active Directory Admin is highlighted.](media/lab5_workspacesqladadmin.png)
 
 ### Task 5 - Add IP firewall rules
 
@@ -665,73 +651,17 @@ It is important to identify data columns of that hold sensitive information. Typ
 
    ![In Azure Synapse Studio, the Develop item is selected from the left menu.](media/lab5_synapsestudiodevelopmenuitem.png)
 
-2. From the **Develop** menu, select the **+** button and choose **SQL Script** from the context menu.
+2. From the **Develop** menu, expand the **SQL scripts** section, and select **ASAL4 - Lab 05 - Exercise 3 - Column Level Security**.
 
-   ![In Synapse Studio the develop menu is displayed with the + button expanded, SQL script is selected from the context menu.](media/lab5_synapsestudiodevelopnewsqlscriptmenu.png)
-
-3. In the toolbar menu, connect to the database on which you want to execute the query.
+3. In the toolbar menu, connect to the database on which you want to execute the query, `SQLPool01`.
 
     ![The Synapse Studio query toolbar is shown with the Connect to dropdown list field highlighted.](media/lab5_synapsestudioquerytoolbar.png)
 
-4. In the query window, replace the script with the following script (documented inline). Run each step individually by highlighting the statement(s) in the step in the query window, and selecting the **Run** button from the toolbar.
+4. In the query window, run each step individually by highlighting the statement(s) in the step in the query window, and selecting the **Run** button from the toolbar.
 
    ![The Synapse Studio toolbar is displayed with the Run button selected.](media/lab5_synapsestudioqueryruntoolbarmenu.png)
 
-    ```sql
-        /*  Column-level security feature in Azure Synapse simplifies the design and coding of security in application.
-        It ensures column level security by restricting column access to protect sensitive data. */
-
-    --Step 1: Let us see how this feature in Azure Synapse works. Before that let us have a look at the Campaign table.
-    select  Top 100 * from wwi.CampaignAnalytics
-    where City is not null and state is not null
-
-    /*  Consider a scenario where there are two users.
-        A CEO, who is an authorized  personnel with access to all the information in the database
-        and a Data Analyst, to whom only required information should be presented.*/
-
-    -- Step:2 We look for the names “CEO” and “DataAnalystMiami” present in the Datawarehouse.
-    SELECT Name as [User1] FROM sys.sysusers WHERE name = N'CEO'
-    SELECT Name as [User2] FROM sys.sysusers WHERE name = N'DataAnalystMiami'
-
-
-    -- Step:3 Now let us enforcing column level security for the DataAnalystMiami.
-    /*  Let us see how.
-        The CampaignAnalytics table in the warehouse has information like Region, Country, ProductCategory, CampaignName, City,State,RevenueTarget , and Revenue.
-        Of all the information, Revenue generated from every campaign is a classified one and should be hidden from DataAnalystMiami.
-        To conceal this information, we execute the following query: */
-
-    GRANT SELECT ON wwi.CampaignAnalytics([Region],[Country],[ProductCategory],[CampaignName],[RevenueTarget],
-    [City],[State]) TO DataAnalystMiami;
-    -- This provides DataAnalystMiami access to all the columns of the CampaignAnalytics table but Revenue.
-
-    -- Step:4 Then, to check if the security has been enforced, we execute the following query with current User As 'DataAnalystMiami'
-    EXECUTE AS USER ='DataAnalystMiami'
-    select * from wwi.CampaignAnalytics
-    ---
-    EXECUTE AS USER ='DataAnalystMiami'
-    select [Region],[Country],[ProductCategory],[CampaignName],[RevenueTarget],
-    [City],[state] from wwi.CampaignAnalytics
-
-    /*  And look at that, when the user logged in as DataAnalystMiami tries to view all the columns from the CampaignAnalytics table,
-        he is prompted with a ‘permission denied error’ on Revenue column.*/
-
-    -- Step:5 Whereas, the CEO of the company should be authorized with all the information present in the warehouse.To do so, we execute the following query.
-    Revert;
-    GRANT SELECT ON wwi.CampaignAnalytics TO CEO;  --Full access to all columns.
-
-    -- Step:6 Let us check if our CEO user can see all the information that is present. Assign Current User As 'CEO' and the execute the query
-    EXECUTE AS USER ='CEO'
-    select * from wwi.CampaignAnalytics
-    Revert;
-    ```
-
-5. Once complete, you may choose to save this script by selecting the Properties icon located toward the right side of the toolbar menu, and assigning it a name and description.
-
-    ![The right side of the query window is displayed with the Properties icon selected from the toolbar and the Properties blade displayed. The Properties form has a Name and Description field that will be used to identify the script.](media/lab5_synapsestudioquerywindowpropertiesmenuandform.png)
-
-6. Now the script has a Name and Description, all that is left to do is to publish it to the workspace. Press the **Publish** button from the query toolbar menu.
-
-    ![The query window toolbar menu is displayed with the Publish item selected.](media/lab5_synapsestudioquerytoolbarpublishmenu.png)
+5. You may now close the script tab, when prompted choose to **Discard all changes**.
 
 ### Task 3 - Row level security
 
@@ -739,177 +669,39 @@ It is important to identify data columns of that hold sensitive information. Typ
 
    ![In Azure Synapse Studio, the Develop item is selected from the left menu.](media/lab5_synapsestudiodevelopmenuitem.png)
 
-2. From the **Develop** menu, select the **+** button and choose **SQL Script** from the context menu.
+2. From the **Develop** menu, expand the **SQL scripts** section, and select **ASAL400 - Lab05 - Exercise 3 - Row Level Security**.
 
    ![In Synapse Studio the develop menu is displayed with the + button expanded, SQL script is selected from the context menu.](media/lab5_synapsestudiodevelopnewsqlscriptmenu.png)
 
-3. In the toolbar menu, connect to the database on which you want to execute the query.
+3. In the toolbar menu, connect to the database on which you want to execute the query, `SQLPool01`.
 
     ![The Synapse Studio query toolbar is shown with the Connect to dropdown list field highlighted.](media/lab5_synapsestudioquerytoolbar.png)
 
-4. In the query window, replace the script with the following script (documented inline). Run each step individually by highlighting the statement(s) of the step in the query window, and selecting the **Run** button from the toolbar.
+4. In the query window, run each step individually by highlighting the statement(s) for the step in the query window, and selecting the **Run** button from the toolbar.
 
    ![The Synapse Studio toolbar is displayed with the Run button selected.](media/lab5_synapsestudioqueryruntoolbarmenu.png)
 
-    ```sql
-    /*	Row level Security (RLS) in Azure Synapse enables us to use group membership to control access to rows in a table.
-        Azure Synapse applies the access restriction every time the data access is attempted from any user. 
-        Let see how we can implement row level security in Azure Synapse.*/
-
-    ----------------------------------Row-Level Security (RLS), 1: Filter predicates------------------------------------------------------------------
-    -- Step:1 The Sale table has two Analyst values i.e. DataAnalystMiami and DataAnalystSanDiego
-    SELECT DISTINCT Analyst FROM wwi_security.Sale order by Analyst ;
-
-    /* Moving ahead, we Create a new schema, and an inline table-valued function. 
-    The function returns 1 when a row in the Analyst column is the same as the user executing the query (@Analyst = USER_NAME())
-    or if the user executing the query is the CEO user (USER_NAME() = 'CEO').
-    */
-
-    -- Demonstrate the existing security predicates already deployed to the database
-    SELECT * FROM sys.security_predicates
-
-    --Step:2 To set up RLS, the following query creates three login users :  CEO, DataAnalystMiami, DataAnalystSanDiego
-    GO
-    CREATE SCHEMA Security
-    GO
-    CREATE FUNCTION Security.fn_securitypredicate(@Analyst AS sysname)  
-        RETURNS TABLE  
-    WITH SCHEMABINDING  
-    AS  
-        RETURN SELECT 1 AS fn_securitypredicate_result
-        WHERE @Analyst = USER_NAME() OR USER_NAME() = 'CEO'
-    GO
-    -- Now we define security policy that allows users to filter rows based on their login name.
-    CREATE SECURITY POLICY SalesFilter  
-    ADD FILTER PREDICATE Security.fn_securitypredicate(Analyst)
-    ON wwi_security.Sale
-    WITH (STATE = ON);
-
-    ------ Allow SELECT permissions to the Sale Table.------
-    GRANT SELECT ON wwi_security.Sale TO CEO, DataAnalystMiami, DataAnalystSanDiego;
-
-    -- Step:3 Let us now test the filtering predicate, by selecting data from the Sale table as 'DataAnalystMiami' user.
-    EXECUTE AS USER = 'DataAnalystMiami'
-    SELECT * FROM wwi_security.Sale;
-    revert;
-    -- As we can see, the query has returned rows here Login name is DataAnalystMiami
-
-    -- Step:4 Let us test the same for  'DataAnalystSanDiego' user.
-    EXECUTE AS USER = 'DataAnalystSanDiego';
-    SELECT * FROM wwi_security.Sale;
-    revert;
-    -- RLS is working indeed.
-
-    -- Step:5 The CEO should be able to see all rows in the table.
-    EXECUTE AS USER = 'CEO';  
-    SELECT * FROM wwi_security.Sale;
-    revert;
-    -- And he can.
-
-    --Step:6 To disable the security policy we just created above, we execute the following.
-    ALTER SECURITY POLICY SalesFilter  
-    WITH (STATE = OFF);
-
-    DROP SECURITY POLICY SalesFilter;
-    DROP FUNCTION Security.fn_securitypredicate;
-    DROP SCHEMA Security;
-    ```
-
-5. Once complete, you may choose to save this script by selecting the Properties icon located toward the right side of the toolbar menu, and assigning it a name and description.
-
-    ![The right side of the query window is displayed with the Properties icon selected from the toolbar and the Properties blade displayed. The Properties form has a Name and Description field that will be used to identify the script.](media/lab5_synapsestudiosaverowlevelscript.png)
-
-6. Now the script has a Name and Description, all that is left to do is to publish it to the workspace. Press the **Publish** button from the query toolbar menu.
-
-    ![The query window toolbar menu is displayed with the Publish item selected.](media/lab5_synapsestudioquerytoolbarpublishmenu.png)
+5. You may now close the script tab, when prompted choose to **Discard all changes**.
 
 ### Task 4 - Dynamic data masking
 
-1. In Azure Synapse Studio, select **Develop** from the left menu.
+1. In **Azure Synapse Studio**, select **Develop** from the left menu.
 
    ![In Azure Synapse Studio, the Develop item is selected from the left menu.](media/lab5_synapsestudiodevelopmenuitem.png)
 
-2. From the **Develop** menu, select the **+** button and choose **SQL Script** from the context menu.
+2. From the **Develop** menu, expand the **SQL scripts** section, and select **ASAL400 - Lab05 - Exercise 3 - Dynamic Data Masking**.
 
    ![In Synapse Studio the develop menu is displayed with the + button expanded, SQL script is selected from the context menu.](media/lab5_synapsestudiodevelopnewsqlscriptmenu.png)
 
-3. In the toolbar menu, connect to the database on which you want to execute the query.
+3. In the toolbar menu, connect to the database on which you want to execute the query, `SQLPool01`.
 
     ![The Synapse Studio query toolbar is shown with the Connect to dropdown list field highlighted.](media/lab5_synapsestudioquerytoolbar.png)
 
-4. In the query window, replace the script with the following script (documented inline). Run each step individually by highlighting the statement(s) of the step in the query window, and selecting the **Run** button from the toolbar.
+4. In the query window, run each step individually by highlighting the statement(s) for the step in the query window, and selecting the **Run** button from the toolbar.
 
    ![The Synapse Studio toolbar is displayed with the Run button selected.](media/lab5_synapsestudioqueryruntoolbarmenu.png)
 
-    ```sql
-    -------------------------------------------------------------------------Dynamic Data Masking (DDM)----------------------------------------------------------------------------------------------------------
-    /*  Dynamic data masking helps prevent unauthorized access to sensitive data by enabling customers
-        to designate how much of the sensitive data to reveal with minimal impact on the application layer.
-        Let see how */
-
-    -- Step:1 Let us first get a view of CustomerInfo table.
-    SELECT TOP (100) * FROM CustomerInfo;
-
-    -- Step:2 Let's confirm that there are no Dynamic Data Masking (DDM) applied on columns.
-    SELECT c.name, tbl.name as table_name, c.is_masked, c.masking_function  
-    FROM sys.masked_columns AS c  
-    JOIN sys.tables AS tbl
-        ON c.[object_id] = tbl.[object_id]  
-    WHERE is_masked = 1
-        AND tbl.name = 'CustomerInfo';
-    -- No results returned verify that no data masking has been done yet.
-
-    -- Step:3 Now lets mask 'CreditCard' and 'Email' Column of 'CustomerInfo' table.
-    ALTER TABLE CustomerInfo  
-    ALTER COLUMN [CreditCard] ADD MASKED WITH (FUNCTION = 'partial(0,"XXXX-XXXX-XXXX-",4)');
-    GO
-    ALTER TABLE CustomerInfo
-    ALTER COLUMN Email ADD MASKED WITH (FUNCTION = 'email()');
-    GO
-    -- The columns are sucessfully masked.
-
-    -- Step:4 Let's see Dynamic Data Masking (DDM) applied on the two columns.
-    SELECT c.name, tbl.name as table_name, c.is_masked, c.masking_function  
-    FROM sys.masked_columns AS c  
-    JOIN sys.tables AS tbl
-        ON c.[object_id] = tbl.[object_id]  
-    WHERE is_masked = 1
-        AND tbl.name ='CustomerInfo';
-
-    -- Step:5 Now, let us grant SELECT permission to 'DataAnalystMiami' on the 'CustomerInfo' table.
-    SELECT Name as [User]
-    FROM sys.sysusers
-    WHERE name = N'DataAnalystMiami'
-    GRANT SELECT ON CustomerInfo TO DataAnalystMiami;  
-
-    -- Step:6 Logged in as  'DataAnalystMiami' let us execute the select query and view the result.
-    EXECUTE AS USER =N'DataAnalystMiami';  
-    SELECT * FROM CustomerInfo;
-
-    -- Step:7 Let us remove the data masking using UNMASK permission
-    GRANT UNMASK TO DataAnalystMiami
-    EXECUTE AS USER = 'DataAnalystMiami';  
-    SELECT *
-    FROM CustomerInfo;
-    revert;
-    REVOKE UNMASK TO DataAnalystMiami;  
-
-    ----step:8 Reverting all the changes back to as it was.
-    ALTER TABLE CustomerInfo
-    ALTER COLUMN CreditCard DROP MASKED;
-    GO
-    ALTER TABLE CustomerInfo
-    ALTER COLUMN Email DROP MASKED;
-    GO
-    ```
-
-5. Once complete, you may choose to save this script by selecting the Properties icon located toward the right side of the toolbar menu, and assigning it a name and description.
-
-    ![The right side of the query window is displayed with the Properties icon selected from the toolbar and the Properties blade displayed. The Properties form has a Name and Description field that will be used to identify the script.](media/lab5_synapsestudiosavedynamicdatamaskingscript.png)
-
-6. Now the script has a Name and Description, all that is left to do is to publish it to the workspace. Press the **Publish** button from the query toolbar menu.
-
-    ![The query window toolbar menu is displayed with the Publish item selected.](media/lab5_synapsestudioquerytoolbarpublishmenu.png)
+5. You may now close the script tab, when prompted choose to **Discard all changes**.
 
 ## Reference
 
