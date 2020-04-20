@@ -16,6 +16,8 @@
     - [Task 2: Create user reviews data pipeline](#task-2-create-user-reviews-data-pipeline)
   - [Exercise 4: Create data pipeline to join disparate data sources](#exercise-4-create-data-pipeline-to-join-disparate-data-sources)
     - [Task 1: Create user profile data flow](#task-1-create-user-profile-data-flow)
+    - [Task 2: Create user profile data pipeline](#task-2-create-user-profile-data-pipeline)
+    - [Task 3: Run the user profile data pipeline](#task-3-run-the-user-profile-data-pipeline)
   - [Exercise 5: Create pipeline trigger window to import remaining Parquet data](#exercise-5-create-pipeline-trigger-window-to-import-remaining-parquet-data)
   - [Exercise 6: Create Synapse Spark notebook to find top products](#exercise-6-create-synapse-spark-notebook-to-find-top-products)
 
@@ -666,13 +668,69 @@ Now that the pipeline run is complete, let's take a look at the SQL table to ver
 
     ![The settings are shown.](media/data-flow-user-profiles-new-sink-settings-options.png "Settings")
 
-33. Your completed data flow should look similar to the following:
+33. Select **Mapping**, then configure the following:
+
+    - **Auto mapping**: `Uncheck` this option.
+    - **Columns**: Provide the following information:
+
+        | Input columns | Output columns |
+        | --- | --- |
+        | userId | UserId |
+        | productId | ProductId |
+        | itemsPurchasedLast12Months | ItemsPurchasedLast12Months |
+        | isTopProduct | IsTopProduct |
+        | isPreferredProduct | IsPreferredProduct |
+
+    ![The mapping settings are configured as described.](media/data-flow-user-profiles-new-sink-settings-mapping.png "Mapping")
+
+34. Your completed data flow should look similar to the following:
 
     ![The completed data flow is displayed.](media/data-flow-user-profiles-complete.png "Completed data flow")
 
-34. Select **Publish all** to save your new data flow.
+35. Select **Publish all** to save your new data flow.
 
     ![Publish all is highlighted.](media/publish-all-1.png "Publish all")
+
+### Task 2: Create user profile data pipeline
+
+In order to run the new data flow, you need to create a new pipeline and add a data flow activity to it.
+
+1. Navigate to the **Orchestrate** hub.
+
+    ![The Orchestrate hub is highlighted.](media/orchestrate-hub.png "Orchestrate hub")
+
+2. Select + then **Pipeline** to create a new pipeline.
+
+    ![The new pipeline context menu item is selected.](media/new-pipeline.png "New pipeline")
+
+3. In the **General** tab for the new pipeline, enter the following **Name**: `ASAL400 - Lab 2 - Write User Profile Data to ASA`.
+
+4. Expand **Move & transform** within the Activities list, then drag the **Data flow** activity onto the pipeline canvas.
+
+    ![Drag the data flow activity onto the pipeline canvas.](media/pipeline-campaign-analysis-drag-data-flow.png "Pipeline canvas")
+
+5. In the `Adding data flow` blade, select **Use existing data flow**, then select the `ASAL400 - Lab 2 - Write User Profile Data to ASA` existing data flow you created in the previous task.
+
+    ![The adding data flow form is displayed with the described configuration.](media/pipeline-user-profiles-adding-data-flow.png "Adding data flow")
+
+6. Select **Finish**.
+
+7. Select the mapping data flow activity on the canvas. Select the **Settings** tab, then set the **Run on (Azure IR)** setting to the `AzureLargeComputeOptimizedIntegrationRuntime` custom IR you created in lab 1.
+
+8. Expand **PolyBase** and configure the following:
+
+    - **Staging linked service**: Select the `asadatalake01` linked service.
+    - **Staging storage folder**: Enter `staging/userprofiles`. The `userprofiles` folder will be automatically created for you during the first pipeline run.
+
+    ![The mapping data flow activity settings are configured as described.](media/pipeline-user-profiles-data-flow-settings.png "Mapping data flow activity settings")
+
+### Task 3: Run the user profile data pipeline
+
+1. Select **Debug** in the toolbar at the top of the pipeline canvas to start running the pipeline in debug mode.
+
+2. The pipeline run displays below the pipeline canvas when you execute the debug session. Wait for the **Status** to change to `Succeeded`. You may need to refresh the view a few times.
+
+    ![The debug status shows as succeeded.](media/pipeline-user-profiles-debug-succeeded.png "Debug succeeded")
 
 ## Exercise 5: Create pipeline trigger window to import remaining Parquet data
 
