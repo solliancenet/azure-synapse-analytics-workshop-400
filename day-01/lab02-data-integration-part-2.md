@@ -554,6 +554,28 @@ Now that the pipeline run is complete, let's take a look at the SQL table to ver
 
     ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-data-preview2.png "Data preview")
 
+18. Select the **+** to the right of the `UserProfiles` source, then select the **Flatten** schema modifier from the context menu.
+
+    ![The plus sign and the Flatten schema modifier are highlighted.](media/data-flow-user-profiles-new-flatten2.png "New Flatten schema modifier")
+
+19. Under **Flatten settings**, configure the following:
+
+    - **Output stream name**: Enter `UserPreferredProducts`.
+    - **Incoming stream**: Select `UserProfiles`.
+    - **Unroll by**: Select `[] preferredProducts`.
+    - **Input columns**: Provide the following information:
+
+        | UserProfiles's column | Name as |
+        | --- | --- | --- |
+        | userId | `userId` |
+        | preferredProducts | `preferredProductId` |
+
+    ![The flatten settings are configured as described.](media/data-flow-user-profiles-flatten2-settings.png "Flatten settings")
+
+20. Select **Data preview** and select **Refresh** to display the data. You should now see a flattened view of the data source with one or more rows per `userId`.
+
+    ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-flatten2-data-preview.png "Data preview")
+
 ## Exercise 5: Create pipeline trigger window to import remaining Parquet data
 
 **TODO**: Waiting on updated source Sale dataset.
