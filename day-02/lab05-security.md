@@ -143,7 +143,7 @@ In order to take advantage of the security group structure, we need to ensure th
 
 Having robust Internet security is a must for every technology system. One way to mitigate internet threat vectors is by reducing the number of public IP addresses that can access the Azure Synapse Analytics Workspace through the use of IP firewall rules. The Azure Synapse Analytics workspace will then delegate those same rules to all managed public endpoints of the workspace, including those for SQL pools and SQL Serverless endpoints.
 
-> Note: This is an alternative to Managed VNet, mentioned in the next step.
+> Note: This is an alternative to Managed VNet, mentioned in the next step. You do not need to perform these steps for this lab, instructions are added here for reference.
 
 1. Define the IP range that should have access to the workspace.
 
