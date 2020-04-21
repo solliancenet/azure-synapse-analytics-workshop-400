@@ -18,7 +18,10 @@ This lab will guide you through all the security-related steps that cover an end
 Team Recommendations:  
     - ADS on SQL Pools isn't available yet, would have included column sensitivity classification, discovery, as well as vulnerability/advanced threat protection.
     - Column Level Encryption (not available) - can't create a cert with Encryption By Password (statement fails) <-- this was demonstrated at ignite :(
-    - Would be great to be able to rename SQL Scripts
+    - Would be great to be able to rename SQL Scripts in Synapse Studio
+    - Deleted multiple scripts in Synapse Studio - they kept coming back
+    - granting UNMASK in dynamic data masking doesn't seem to work
+    - TDE BYOK isn't available
 ```
 
 ---
@@ -27,7 +30,7 @@ Lab Pre-requisites:
 
 - workspace MUST created with a managed vnet, this is the backbone/key of a secure ASA workspace
 
-- will need the Security group wwi-readers, Synapse_Workspace_Users, Synapse_Workspace_SparkAdmins, Synapse_Workspace_SqlAdmins, Synapse_Workspace_Admins
+- will need the Security group wwi-readers, wwi-current-writers, wwi-2020-writers, wwi-history-owners, Synapse_Workspace_Users, Synapse_Workspace_SparkAdmins, Synapse_Workspace_SqlAdmins, Synapse_Workspace_Admins
 
 - The AAD group inheritance should be structured as follows:
   
@@ -36,27 +39,27 @@ Lab Pre-requisites:
 | Synapse_Workspace_Users       | Synapse_Workspace_Admins, Synapse_Workspace_SQLAdmins, Synapse_Workspace_SparkAdmins  |
 | Synapse_Workspace_SparkAdmins | Synapse_Workspace_Admins                                                              |
 | Synapse_Workspace_SQLAdmins   | Synapse_Workspace_Admins                                                              |
+| wwi-2020-contributors         | wwi-current-contributors                                                              |
+| wwi-current-contributors      | wwi-readers                                                                           |
 
 - The Synapse_Workspace_Users group needs **Storage Blob Data Contributor** on the `DefaultFileSystem` container.
 
 - The Synapse Workspace MSI needs **Storage Blob Data Contributor** on the `DefaultFileSystem` container.
 
 - The Synapse_Workspace_SQLAdmins security group needs to be set as the SQL Active Directory Admin within the Synapse workspace.
+
+- The wwi-readers will need **Storage Blob Data Reader** on the wwi file system.
+
+- The wwi-history-owners need **Storage Blob Data Contributor** on the wwi file system.
   
 - will need an AAD User created (walking through adding aad user to sql)
-
-Lab Testing:
-
-- will need a workspace with a Managed VNet to test the content of this lab.
-
-- Question, with Managed VNet enabled, should the key vault be private endpoint be managed by Synapse? or should this still be setup manually as through Exercise 2 step #2. I expect even though a private endpoint is established through Synapse, that the public access to the Key Vault is still available, thus still requiring Exercise 2 step 2?
 
 ---
 
 - [End-to-end security with Azure Synapse Analytics](#end-to-end-security-with-azure-synapse-analytics)
   - [Resource naming throughout this lab](#resource-naming-throughout-this-lab)
   - [Exercise 1 - Securing Azure Synapse Analytics supporting infrastructure](#exercise-1---securing-azure-synapse-analytics-supporting-infrastructure)
-    - [Task 1 - Create and configure Azure Active Directory security groups](#task-1---create-and-configure-azure-active-directory-security-groups)
+    - [Task 1 - Configure Azure Active Directory security groups](#task-1---configure-azure-active-directory-security-groups)
     - [Task 2 - Secure the Azure Synapse Workspace storage account](#task-2---secure-the-azure-synapse-workspace-storage-account)
     - [Task 4 - Set the SQL Active Directory admin](#task-4---set-the-sql-active-directory-admin)
     - [Task 5 - Add IP firewall rules](#task-5---add-ip-firewall-rules)
@@ -101,7 +104,7 @@ For the remainder of this guide, the following terms will be used for various AS
 
 Azure Synapse Analytics (ASA) is a powerful solution that handles security for many of the resources that it creates and manages. In order to run ASA, however, some foundational security measures need to be put in place to ensure the infrastructure that it relies upon is secure. In this exercise, we will walk through securing the supporting infrastructure of ASA.
 
-### Task 1 - Create and configure Azure Active Directory security groups
+### Task 1 - Configure Azure Active Directory security groups
 
 As with many Azure resources, Azure Synapse Analytics has the ability to leverage Azure Active Directory for security. Begin the security implementation by defining appropriate security groups in Azure Active Directory. Each security group will represent a job function in Azure Synapse Analytics and will be granted the necessary permissions to fulfill its function. Individual users will then be assigned to their respective group based on their role in the organization. Structuring security in such a way makes it easier to provision users and admins.
 
@@ -125,6 +128,24 @@ The Synapse AAD Security groups have permissions that build upon one another. Ap
 | Synapse_`Workspace`_SQLAdmins   | Synapse_`Workspace`_Admins                                                               |
 
 The lab environment has already been provisioned with the above security group hierarchy.
+
+For WWI in particular, in Activity 1, it was determined that they require four additional security groups.
+
+| Group                             | Description                                                                        |
+|-----------------------------------|------------------------------------------------------------------------------------|
+| wwi-history-owners                | Users that have full access to all raw sales data                                  |
+| wwi-2020-contributors             | Security group that allows full access to the current year raw sales data. This group will only contain other security groups, it is not meant for individual user assignment.         |
+| wwi-current-contributors          | For users that need complete control over the current year raw sales data.         |
+| wwi-readers                       | Read-only access to all raw sales data.      |
+
+The inheritance hierarchy for the WWI groups is as follows:
+
+| Group                           | Members                                                                                |
+|---------------------------------|----------------------------------------------------------------------------------------|
+| wwi-2020-contributors           | wwi-current-contributors                                                               |
+| wwi-current-contributors        | wwi-readers                                                                            |
+
+> **Note**: You may review the Security Group setup by accessing Azure Active Directory from the Azure Portal, and selecting **Groups** from the AAD menu.
 
 ### Task 2 - Secure the Azure Synapse Workspace storage account
 
@@ -164,7 +185,7 @@ In order to take advantage of the security group structure, we need to ensure th
 
 Having robust Internet security is a must for every technology system. One way to mitigate internet threat vectors is by reducing the number of public IP addresses that can access the Azure Synapse Analytics Workspace through the use of IP firewall rules. The Azure Synapse Analytics workspace will then delegate those same rules to all managed public endpoints of the workspace, including those for SQL pools and SQL Serverless endpoints.
 
-> Note: This is an alternative to Managed VNet, mentioned in the next step. The lab environment is setup with Managed VNet. The steps are provided here simply as a reference only. You do not need to perform the following steps in the lab.
+> Note: This is an alternative to Managed VNet, mentioned in the next step.
 
 1. Define the IP range that should have access to the workspace.
 
@@ -537,7 +558,7 @@ When provisioning new users to the workspace, in addition to adding them to one 
 
 ### Task 6 - Secure Azure Synapse Analytics SQL Pools
 
-Transparent Data Encryption (TDE) is a feature of SQL Server that provides encryption and decryption of data at rest, this includes: databases, log files, and back ups. When using this feature with ASA SQL Pools, you have the option of using a built in symmetric Database Encryption Key (DEK) that is provided by the pool itself, or optionally by bringing in your own customer-managed asymmetric key. When using the latter approach, leverage Azure Key Vault functionality to safely store this key. With TDE, all stored data is encrypted on disk, when the data is requested, TDE will decrypt this data at the page level as it's read into memory, and vice-versa encrypting in-memory data before it gets written back to disk. As with the name, this happens transparently without affecting any application code. When creating a SQL Pool through ASA, Transparent Data Encryption is not enabled. The first part of this task will show you how to enable this feature.
+Transparent Data Encryption (TDE) is a feature of SQL Server that provides encryption and decryption of data at rest, this includes: databases, log files, and back ups. When using this feature with ASA SQL Pools, it will use a built in symmetric Database Encryption Key (DEK) that is provided by the pool itself. With TDE, all stored data is encrypted on disk, when the data is requested, TDE will decrypt this data at the page level as it's read into memory, and vice-versa encrypting in-memory data before it gets written back to disk. As with the name, this happens transparently without affecting any application code. When creating a SQL Pool through ASA, Transparent Data Encryption is not enabled. The first part of this task will show you how to enable this feature.
 
 1. In the **Azure Portal**, locate and open the `SqlPool01` resource.
 
@@ -597,7 +618,7 @@ Possible POSIX access permissions are as follows:
 | 4            | R--        | Read                   |
 | 0            | ---        | No permissions         |
 
-On the first day, in Activity 1, you were introduced to the concept of the security surrounding storage account containers and files. As part of that exercise, the **wwi-readers** Active Directory Group is to be granted read-only access to all sales data (for all years) stored in CSV files in a container in storage.
+On the first day, in Activity 1, you were introduced to the concept of the security surrounding storage account containers and files. As part of that exercise, the **wwi-2020-contributors** Active Directory Group is to be granted Read, Write and Execute privileges on the current year's data stored in CSV files located in storage.
 
 1. In **Synapse Analytics Studio**, select the **Data** item from the left menu.
 
@@ -607,7 +628,7 @@ On the first day, in Activity 1, you were introduced to the concept of the secur
 
     ![In the Data blade, the Storage accounts section is expanded as well as the default storage account item. The wwi container is selected from the list.](media/lab5_synapsestudiodatabladewwi.png)
 
-3. On the **wwi** tab, select the **factsale-csv** directory, then from the toolbar menu select the **Manage Access** item.
+3. On the **wwi** tab, navigate into the **factsale-csv** directory, then navigate into the current year directory (if the current year is not present, navigate into the folder representing the newest year).
 
     ![On the wwi tab, the Manage Access item is selected from the toolbar menu.](media/lab5_synapsestudiodatalakemanageaccess.png)
 
@@ -615,7 +636,7 @@ On the first day, in Activity 1, you were introduced to the concept of the secur
 
    ![The Manage Access blade is shown for a directory. The $superuser principal is selected from the top table, and in the permissions section it shows the access as being Read and Execute. The Default box is present (but not checked), and there is a textbox and Add button available to add additional principals to the access list.](media/lab5_synapsestudiomanageaccessdirectoryblade.png)
 
-5. In order to add a user group or permission, you would need to first enter the User Principal Name (UPN) or Object ID for the principal and select the **Add** button. As an example, we will obtain the Object ID for the **wwi-readers** security group.
+5. In order to add a user group or permission, you would need to first enter the User Principal Name (UPN) or Object ID for the principal and select the **Add** button. As an example, we will obtain the Object ID for the **wwi-2020-contributors** security group.
 
    1. In Azure Portal, expand the left menu and select **Azure Active Directory**.
 
@@ -625,33 +646,39 @@ On the first day, in Activity 1, you were introduced to the concept of the secur
 
         ![On the Azure Active Directory screen, Groups is selected from the left menu](media/lab5_aadgroupsmenu.png)
 
-   3. In the search box, type **wwi-readers**, then select the group from the search results.
+   3. In the search box, type **wwi-2020-writers**, then select the group from the search results.
 
    4. On the **Overview** screen, use the **Copy** button next to the Object Id textbox to copy the value to the clipboard.
 
-        ![On the Overview screen of the wwi-readers group, the copy button is selected next to the Object Id textbox.](media/lab5_aadgroupcopyobjectid.png)
+        ![On the Overview screen of the wwi-2020-contributors group, the copy button is selected next to the Object Id textbox.](media/lab5_aadgroupcopyobjectid.png)
 
-   5. Return to **Synapse Analytics Studio**, and paste this value into the **Add user, group, or service principal** field.
+6. In the **Manage Access** blade, paste the Object ID value of the **wwi-2020-contributors** group into the **Add user, group, or service principal** field.
 
-   6. Select the **Add** button to add **wwi-readers** to the ACL list.
+7. Select the **Add** button to add **wwi-2020-contributors** to the ACL list.
 
-   7. With **wwi-readers** selected, check the **Access** checkbox, along with the **Read** and **Execute** permissions.
+8. With **wwi-2020-contributors** selected, check the **Access** checkbox, along with the **Read**, **Write**, and **Execute** permissions, then select the **Save** button.
 
-        ![In the principals list wwi-readers is selected. In permissions, the Access checkbox is checked along with the Read checkbox and Execute checkbox.](media/lab5_posixaclwwireaders.png)
+   ![In the principals list wwi-2020-contributors is selected. In permissions, the Access checkbox is checked along with the Read, Write, and Execute checkboxes.](media/lab5_posixaclcontributors.png)
 
-6. You can also provide POSIX ACL security at the individual file level. All you would have to do is repeat steps 3-7 and observe a similar experience when selecting an individual file rather than a directory.
+9. You can also provide POSIX ACL security at the individual file level. All you would have to do is repeat steps 3-8 and observe a similar experience when selecting an individual file rather than a directory.
 
 > **Note**: When adding permissions at the directory level, there is an additional **Default** checkbox in the permissions table. By checking this box, you are able to set default permissions that will be automatically applied to any new children (directories or files) created within this directory.
 
+In future years, all WWI will need to do is remove the **wwi-current-contributors** group from the **wwi-2020-contributors** group to revoke write privileges to the 2020 year. Members of the **wwi-readers** will still be able to continue to read 2020 data because they have RBAC access to read all raw data (See Exercise #1). A new current year folder should be created to hold the new raw data csv files, along with a new security group - **wwi-2021-contributors**. This new security group should be given the same ACL privileges to the 2021 folder just as we did in this task. The **wwi-current-contributors** should also be added as a member to this new group so that they have full access to the current year data.
+
+> **Note**: **wwi-readers** do have write access to the current year data.
+
 ### Task 2 - Column Level Security
 
-It is important to identify data columns of that hold sensitive information. Types of sensitive could be social security numbers, email addresses, credit card numbers, financial totals, and more. Azure Synapse Analytics allows you define permissions that prevent specific users or roles select privileges on specific columns.
+It is important to identify data columns of that hold sensitive information. Types of sensitive could be social security numbers, email addresses, credit card numbers, financial totals, and more. Azure Synapse Analytics allows you define permissions that prevent users or roles select privileges on specific columns.
 
 1. In **Azure Synapse Studio**, select **Develop** from the left menu.
 
    ![In Azure Synapse Studio, the Develop item is selected from the left menu.](media/lab5_synapsestudiodevelopmenuitem.png)
 
-2. From the **Develop** menu, expand the **SQL scripts** section, and select **ASAL4 - Lab 05 - Exercise 3 - Column Level Security**.
+2. From the **Develop** menu, expand the **SQL scripts** section, and select **ASAL400 - Lab 05 - Exercise 3 - Column Level Security**.
+
+   ![In Synapse Studio the develop menu is displayed with SQL Scripts section expanded, ASAL400 - Lab05 - Exercise 3 - Column Level Security is selected from the context menu.](media/lab5_synapsecolumnlevel.png)
 
 3. In the toolbar menu, connect to the database on which you want to execute the query, `SQLPool01`.
 
@@ -671,7 +698,7 @@ It is important to identify data columns of that hold sensitive information. Typ
 
 2. From the **Develop** menu, expand the **SQL scripts** section, and select **ASAL400 - Lab05 - Exercise 3 - Row Level Security**.
 
-   ![In Synapse Studio the develop menu is displayed with the + button expanded, SQL script is selected from the context menu.](media/lab5_synapsestudiodevelopnewsqlscriptmenu.png)
+    ![In Synapse Studio the develop menu is displayed with SQL Scripts section expanded, ASAL400 - Lab05 - Exercise 3 - Row Level Security is selected from the context menu.](media/lab5_synapserowlevelsecurity.png)
 
 3. In the toolbar menu, connect to the database on which you want to execute the query, `SQLPool01`.
 
@@ -690,8 +717,8 @@ It is important to identify data columns of that hold sensitive information. Typ
    ![In Azure Synapse Studio, the Develop item is selected from the left menu.](media/lab5_synapsestudiodevelopmenuitem.png)
 
 2. From the **Develop** menu, expand the **SQL scripts** section, and select **ASAL400 - Lab05 - Exercise 3 - Dynamic Data Masking**.
-
-   ![In Synapse Studio the develop menu is displayed with the + button expanded, SQL script is selected from the context menu.](media/lab5_synapsestudiodevelopnewsqlscriptmenu.png)
+  
+   ![In Synapse Studio the develop menu is displayed with SQL Scripts section expanded, ASAL400 - Lab05 - Exercise 3 - Dynamic Data Masking is selected from the context menu.](media/lab5_synapsedynamicdatamasking.png)
 
 3. In the toolbar menu, connect to the database on which you want to execute the query, `SQLPool01`.
 
