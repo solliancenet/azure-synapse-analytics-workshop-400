@@ -104,7 +104,7 @@
             <td>14:15</td>
             <td rowspan=4><a href="./day-01/lab02-data-integration-part-2.md">Build Hands-on: Data Integration Part 2 (***)</a></td>
             <td rowspan=4><a href="./day-02/lab05-security.md">Build Hands-on: Security (***)</a></td>
-            <td rowspan=4><a href="./day-03/lab08-monitoring">Build Hands-on: Monitoring (***)</a></td>
+            <td rowspan=4><a href="./day-03/lab08-monitoring.md">Build Hands-on: Monitoring (***)</a></td>
             <td rowspan=2>Challenge Debrief (****)</td>
         </tr>
         <tr><td>14:30</td></tr>
