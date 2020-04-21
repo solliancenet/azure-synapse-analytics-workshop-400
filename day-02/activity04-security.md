@@ -35,7 +35,7 @@ Challenges
 
     ANSWER: 
     * Enable Transparent Data Encryption (TDE) for the SQL Pool. 
-    * Configure TDE to use the key from Azure Key Vault.
+
 
 3. WWI would like to understand how they will manage access control to the Synapse workspace with your proposed design. What four security groups should they create and what is the purpose of each group? How would you structure the group inheritance? Complete the following diagram and add your justifications.
 
