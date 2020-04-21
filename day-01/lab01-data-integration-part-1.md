@@ -1,6 +1,7 @@
 # Data Integration Part 1
 
 - [Data Integration Part 1](#data-integration-part-1)
+  - [Resource naming throughout this lab](#resource-naming-throughout-this-lab)
   - [Exercise 1: Configure linked service and create datasets](#exercise-1-configure-linked-service-and-create-datasets)
     - [Task 1: Create linked service](#task-1-create-linked-service)
     - [Task 2: Create datasets](#task-2-create-datasets)
@@ -16,6 +17,7 @@
     - [Task 5: Use COPY to load text file with non-standard row delimiters](#task-5-use-copy-to-load-text-file-with-non-standard-row-delimiters)
     - [Task 6: Use PolyBase to load text file with non-standard row delimiters](#task-6-use-polybase-to-load-text-file-with-non-standard-row-delimiters)
   - [Exercise 4: Import sales data with PolyBase and COPY using a pipeline](#exercise-4-import-sales-data-with-polybase-and-copy-using-a-pipeline)
+    - [Task 1: Configure workload management classification](#task-1-configure-workload-management-classification)
 
 <!-- Integrating Data Sources
 Using Data Hub: Preview blob & DB data, T-SQL (On-Demand) and PySpark DataFrame
@@ -52,6 +54,18 @@ PolyBase vs COPY T-SQL (DW2000) (insert 2019 small data set (339,507,246 rows))
 
 2019/Q4 path: https://asadatalake01.dfs.core.windows.net/wwi-02/sale-small%2FYear%3D2019%2FQuarter%3DQ4
 -->
+
+## Resource naming throughout this lab
+
+For the remainder of this guide, the following terms will be used for various ASA-related resources (make sure you replace them with actual names and values):
+
+| Azure Synapse Analytics Resource  | To be referred to |
+| --- | --- |
+| Workspace resource group | `WorkspaceResourceGroup` |
+| Workspace / workspace name | `Workspace` |
+| Primary Storage Account | `PrimaryStorage` |
+| Default file system container | `DefaultFileSystem` |
+| SQL Pool | `SqlPool01` |
 
 ## Exercise 1: Configure linked service and create datasets
 
@@ -803,10 +817,21 @@ This is an example of where COPY's flexibility gives it an advantage over PolyBa
 
 ## Exercise 4: Import sales data with PolyBase and COPY using a pipeline
 
+Now that WWI has gone through the process of loading data using PolyBase and COPY via T-SQL statements, it's time for them to experiment with loading sales data through a Synapse pipeline.
+
+When moving data into a data warehouse, there is oftentimes a level of orchestration involved, coordinating movement from one or more data sources and sometimes some level of transformation. The transformation step can occur during (extract-transform-load - ETL) or after (extract-load-transform - ELT) data movement. Any modern data platform must provide a seamless experience for all the typical data wrangling actions like extractions, parsing, joining, standardizing, augmenting, cleansing, consolidating, and filtering. Azure Synapse Analytics provides two significant categories of features - data flows and data orchestrations (implemented as pipelines).
+
+In this exercise, we will focus on the orchestration aspect. Lab 2 will focus more on the transformation (data flow) pipelines. You will create a new pipeline to import a large Parquet file, following best practices to improve the load performance.
+
+### Task 1: Configure workload management classification
+
 Import one large (month's worth of data) Parquet file since COPY using the Copy activity does not like wildcard files when writing to a Synapse sink.
 
 Set the concurrency on the pipeline to a higher number. Default value if unset is 4.
 
 Create a loading user through workload classification by creating a workload group and adding the user to a workload within that group. Run the pipeline with a linked service that signs in that user.
+
+asa.sql.import01 and asa.sql.import02 created
+sqlpool02_import01 and sqlpool_import02 linked services created
 
 Compare importing into a clustered table vs. a heap table, then use a select into command to move from the heap to clustered table.

@@ -3,7 +3,7 @@
 - [Data Integration Part 2](#data-integration-part-2)
   - [Resource naming throughout this lab](#resource-naming-throughout-this-lab)
   - [Exercise 1: Create datasets and SQL tables](#exercise-1-create-datasets-and-sql-tables)
-  - [Task 1: Create custom Integration Runtime (IR)](#task-1-create-custom-integration-runtime-ir)
+    - [Task 1: Create custom Integration Runtime (IR)](#task-1-create-custom-integration-runtime-ir)
     - [Task 2: Create SQL tables](#task-2-create-sql-tables)
     - [Task 3: Create campaign analytics datasets](#task-3-create-campaign-analytics-datasets)
     - [Task 4: Create user profile datasets](#task-4-create-user-profile-datasets)
@@ -52,7 +52,7 @@ For the remainder of this guide, the following terms will be used for various AS
 
 ## Exercise 1: Create datasets and SQL tables
 
-## Task 1: Create custom Integration Runtime (IR)
+### Task 1: Create custom Integration Runtime (IR)
 
 The Integration Runtime (IR) is the compute infrastructure used by Azure Synapse Analytics to provide data integration capabilities across different network environments. There are different types of IR, including Azure IR and self-hosted IR, which installs on-premises to bridge connectivity between your network on Azure. In this lab, we focus on the Azure IR.
 
