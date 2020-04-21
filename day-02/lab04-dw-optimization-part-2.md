@@ -1,13 +1,15 @@
 # DW Optimization Part 2
 
-```
-Build upon previous (with accelerator) 
-Progressively build up complex query highlighting each feature
-Have a fact table with query filtered by date time and  by customer ID
-The had partitioned this
-Telling a story of the storage system
-
-```
+- [DW Optimization Part 2](#dw-optimization-part-2)
+  - [Exercise 1 - Check for skewed data and space usage](#exercise-1---check-for-skewed-data-and-space-usage)
+    - [Task 1 - Analyze the space used by tables](#task-1---analyze-the-space-used-by-tables)
+    - [Task 2 - Use a more advanced approach to understand table space usage](#task-2---use-a-more-advanced-approach-to-understand-table-space-usage)
+  - [Exercise 2 - Understand column store storage details](#exercise-2---understand-column-store-storage-details)
+    - [Task 1 - Create view for column store row group stats](#task-1---create-view-for-column-store-row-group-stats)
+  - [Exercise 3 - Study the impact of wrong choices for column data types](#exercise-3---study-the-impact-of-wrong-choices-for-column-data-types)
+  - [Exercise 4 - Study the impact of materialized views](#exercise-4---study-the-impact-of-materialized-views)
+  - [Exercise 5 - Avoid extensive logging](#exercise-5---avoid-extensive-logging)
+  - [Exercise 6 - Correlate replication and distribution strategies across multiple tables](#exercise-6---correlate-replication-and-distribution-strategies-across-multiple-tables)
 
 `<TBA>`
 Explicit instructions on scaling up to DW1500 before the lab and scaling back after Lab 04 is completed.
