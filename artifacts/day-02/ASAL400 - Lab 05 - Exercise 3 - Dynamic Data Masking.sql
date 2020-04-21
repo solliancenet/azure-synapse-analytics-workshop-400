@@ -3,6 +3,9 @@
         to designate how much of the sensitive data to reveal with minimal impact on the application layer.
         Let see how */
 
+    /* Scenario: WWI has identified sensitive information in the CustomerInfo table. They would like us to 
+        obfuscate the CreditCard and Email columns of the CustomerInfo table to DataAnalysts */
+
     -- Step:1 Let us first get a view of CustomerInfo table.
     SELECT TOP (100) * FROM wwi_security.CustomerInfo;
 
@@ -33,17 +36,14 @@
         AND tbl.name ='CustomerInfo';
 
     -- Step:5 Now, let us grant SELECT permission to 'DataAnalystMiami' on the 'CustomerInfo' table.
-    SELECT Name as [User]
-    FROM sys.sysusers
-    WHERE name = 'DataAnalystMiami'
-    GRANT SELECT ON wwi_security.CustomerInfo TO DataAnalystMiami;  
+   GRANT SELECT ON wwi_security.CustomerInfo TO DataAnalystMiami;  
 
     -- Step:6 Logged in as  'DataAnalystMiami' let us execute the select query and view the result.
     EXECUTE AS USER = 'DataAnalystMiami';  
     SELECT * FROM wwi_security.CustomerInfo;
 
     -- Step:7 Let us remove the data masking using UNMASK permission
-    GRANT UNMASK TO DataAnalystMiami
+    GRANT UNMASK TO DataAnalystMiami;
     EXECUTE AS USER = 'DataAnalystMiami';  
     SELECT *
     FROM wwi_security.CustomerInfo;

@@ -14,48 +14,6 @@ This lab will guide you through all the security-related steps that cover an end
 
 4. Introspect the data that is contained within the SQL Pools in the context of potential sensitive/confidential data disclosure. Identify the columns representing sensitive data, then secure them by adding column-level security. Determine at the table level what data should be hidden from specific groups of users then define security predicates to apply row level security (filters) on the table. If desired, you also have the option of applying Dynamic Data Masking to mask sensitive data returned in queries on a column by column basis.
 
-```text
-Team Recommendations:  
-    - ADS on SQL Pools isn't available yet, would have included column sensitivity classification, discovery, as well as vulnerability/advanced threat protection.
-    - Column Level Encryption (not available) - can't create a cert with Encryption By Password (statement fails) <-- this was demonstrated at ignite :(
-    - Would be great to be able to rename SQL Scripts in Synapse Studio
-    - Deleted multiple scripts in Synapse Studio - they kept coming back
-    - granting UNMASK in dynamic data masking doesn't seem to work
-    - TDE BYOK isn't available
-```
-
----
-
-Lab Pre-requisites:
-
-- workspace MUST created with a managed vnet, this is the backbone/key of a secure ASA workspace
-
-- will need the Security group wwi-readers, wwi-current-writers, wwi-2020-writers, wwi-history-owners, Synapse_Workspace_Users, Synapse_Workspace_SparkAdmins, Synapse_Workspace_SqlAdmins, Synapse_Workspace_Admins
-
-- The AAD group inheritance should be structured as follows:
-  
-| Group                           | Members                                                                             |
-|---------------------------------|-------------------------------------------------------------------------------------|
-| Synapse_Workspace_Users       | Synapse_Workspace_Admins, Synapse_Workspace_SQLAdmins, Synapse_Workspace_SparkAdmins  |
-| Synapse_Workspace_SparkAdmins | Synapse_Workspace_Admins                                                              |
-| Synapse_Workspace_SQLAdmins   | Synapse_Workspace_Admins                                                              |
-| wwi-2020-contributors         | wwi-current-contributors                                                              |
-| wwi-current-contributors      | wwi-readers                                                                           |
-
-- The Synapse_Workspace_Users group needs **Storage Blob Data Contributor** on the `DefaultFileSystem` container.
-
-- The Synapse Workspace MSI needs **Storage Blob Data Contributor** on the `DefaultFileSystem` container.
-
-- The Synapse_Workspace_SQLAdmins security group needs to be set as the SQL Active Directory Admin within the Synapse workspace.
-
-- The wwi-readers will need **Storage Blob Data Reader** on the wwi file system.
-
-- The wwi-history-owners need **Storage Blob Data Contributor** on the wwi file system.
-  
-- will need an AAD User created (walking through adding aad user to sql)
-
----
-
 - [End-to-end security with Azure Synapse Analytics](#end-to-end-security-with-azure-synapse-analytics)
   - [Resource naming throughout this lab](#resource-naming-throughout-this-lab)
   - [Exercise 1 - Securing Azure Synapse Analytics supporting infrastructure](#exercise-1---securing-azure-synapse-analytics-supporting-infrastructure)
@@ -185,7 +143,7 @@ In order to take advantage of the security group structure, we need to ensure th
 
 Having robust Internet security is a must for every technology system. One way to mitigate internet threat vectors is by reducing the number of public IP addresses that can access the Azure Synapse Analytics Workspace through the use of IP firewall rules. The Azure Synapse Analytics workspace will then delegate those same rules to all managed public endpoints of the workspace, including those for SQL pools and SQL Serverless endpoints.
 
-> Note: This is an alternative to Managed VNet, mentioned in the next step.
+> Note: This is an alternative to Managed VNet, mentioned in the next step. You do not need to perform these steps for this lab, instructions are added here for reference.
 
 1. Define the IP range that should have access to the workspace.
 
@@ -340,43 +298,11 @@ Azure Key Vault supports private endpoints. By establishing a private endpoint i
 
    ![The Add access policy screen is displayed with the fields listed above highlighted and the Add button selected at the bottom of the form.](media/lab5_keyvaultaddaccesspolicy.png)
 
-8. Select the **Networking** tab.
+8. Select **Review + create**.
 
-9. For **Connectivity** method, select **Private endpoint**, then choose the **+ Add** link.
+9. Select **Create** once validation completes.
 
-    ![On the Connectivity tab of the Key vault create screen, Private endpoint is selected as the connectivity method, and the + Add link is highlighted.](media/lab5_keyvaultnetworkaddlink.png)
-
-10. On the **Create private endpoint** blade, fill out the form as follows:
-
-    1. **Subscription**: Select `WorkspaceSubscription`.
-
-    2. **Resource group**: Select `ResourceGroup`.
-
-    3. **Location**: Select `WorkspaceRegion`.
-
-    4. **Name**: Enter a name of your choice.
-
-    5. **Virtual network**: Select the workspace managed VNet.
-
-    6. **Subnet**: Select the subnet you defined when setting up the workspace.
-
-    7. **Private DNS Zone**: Keep the default, allowing for the creation of a new Private DNS Zone.
-
-    ![The Create private endpoint form is displayed populated with the previous values.](media/lab5_keyvaultprivateendpoint.png)
-
-11. Select **Review + create**.
-
-12. Select **Create** once validation completes.
-
-13. Once the `KeyVault01` is created, open the resource in the Azure Portal.
-
-14. From the left menu, select **Networking**.
-
-15. In the **Firewall IPv4 address or CIDR**, enter your corporate IP range - this will allow you to add keys from your public IP address.
-
-16. Select **Save** from the top toolbar.
-
-    ![In the Firewall settings for the key vault, the IP address field is highlighted and the Save button is selected in the top toolbar.](media/lab5_keyvaultfirewall.png)
+> **Note**: For additional security when using Azure Key Vault you can also leverage VNets as well as private endpoints. These may be added to the Key Vault at any time.
 
 ### Task 3 - Use Azure Key Vault for secrets when creating Linked Services
 
@@ -437,6 +363,8 @@ To successfully run pipelines that include datasets or activities that reference
     -- Step 2: Granting permission to the identity
     GRANT CONTROL ON DATABASE:: <SQLPool01> TO <Workspace>;
     ```
+
+    > **Note**: When using Polybase in your pipelines, it requires CONTROL permission while the COPY activity does not.
 
 5. Select **Run** from the toolbar menu to execute the SQL command.
 
