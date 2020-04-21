@@ -298,43 +298,11 @@ Azure Key Vault supports private endpoints. By establishing a private endpoint i
 
    ![The Add access policy screen is displayed with the fields listed above highlighted and the Add button selected at the bottom of the form.](media/lab5_keyvaultaddaccesspolicy.png)
 
-8. Select the **Networking** tab.
+8. Select **Review + create**.
 
-9. For **Connectivity** method, select **Private endpoint**, then choose the **+ Add** link.
+9. Select **Create** once validation completes.
 
-    ![On the Connectivity tab of the Key vault create screen, Private endpoint is selected as the connectivity method, and the + Add link is highlighted.](media/lab5_keyvaultnetworkaddlink.png)
-
-10. On the **Create private endpoint** blade, fill out the form as follows:
-
-    1. **Subscription**: Select `WorkspaceSubscription`.
-
-    2. **Resource group**: Select `ResourceGroup`.
-
-    3. **Location**: Select `WorkspaceRegion`.
-
-    4. **Name**: Enter a name of your choice.
-
-    5. **Virtual network**: Select the workspace managed VNet.
-
-    6. **Subnet**: Select the subnet you defined when setting up the workspace.
-
-    7. **Private DNS Zone**: Keep the default, allowing for the creation of a new Private DNS Zone.
-
-    ![The Create private endpoint form is displayed populated with the previous values.](media/lab5_keyvaultprivateendpoint.png)
-
-11. Select **Review + create**.
-
-12. Select **Create** once validation completes.
-
-13. Once the `KeyVault01` is created, open the resource in the Azure Portal.
-
-14. From the left menu, select **Networking**.
-
-15. In the **Firewall IPv4 address or CIDR**, enter your corporate IP range - this will allow you to add keys from your public IP address.
-
-16. Select **Save** from the top toolbar.
-
-    ![In the Firewall settings for the key vault, the IP address field is highlighted and the Save button is selected in the top toolbar.](media/lab5_keyvaultfirewall.png)
+> **Note**: For additional security when using Azure Key Vault you can also leverage VNets as well as private endpoints. These may be added to the Key Vault at any time.
 
 ### Task 3 - Use Azure Key Vault for secrets when creating Linked Services
 
@@ -395,6 +363,8 @@ To successfully run pipelines that include datasets or activities that reference
     -- Step 2: Granting permission to the identity
     GRANT CONTROL ON DATABASE:: <SQLPool01> TO <Workspace>;
     ```
+
+    > **Note**: When using Polybase in your pipelines, it requires CONTROL permission while the COPY activity does not.
 
 5. Select **Run** from the toolbar menu to execute the SQL command.
 
