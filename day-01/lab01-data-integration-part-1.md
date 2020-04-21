@@ -8,12 +8,10 @@
     - [Task 1: Query sales Parquet data with Synapse SQL Serverless](#task-1-query-sales-parquet-data-with-synapse-sql-serverless)
     - [Task 2: Query sales Parquet data with Azure Synapse Spark](#task-2-query-sales-parquet-data-with-azure-synapse-spark)
     - [Task 3: Query user profile JSON data with Azure Synapse Spark](#task-3-query-user-profile-json-data-with-azure-synapse-spark)
-  - [Exercise 3: Create data pipeline to copy a month of customer data](#exercise-3-create-data-pipeline-to-copy-a-month-of-customer-data)
-  - [Exercise 4: Create custom Integration Runtime (IR)](#exercise-4-create-custom-integration-runtime-ir)
-  - [Exercise 5: Update data pipeline with new integration runtime](#exercise-5-update-data-pipeline-with-new-integration-runtime)
+  - [Exercise 3: Import sales data with PolyBase and COPY using T-SQL](#exercise-3-import-sales-data-with-polybase-and-copy-using-t-sql)
+  - [Exercise 4: Import sales data with PolyBase and COPY using a pipeline](#exercise-4-import-sales-data-with-polybase-and-copy-using-a-pipeline)
 
-```
-Integrating Data Sources
+<!-- Integrating Data Sources
 Using Data Hub: Preview blob & DB data, T-SQL (On-Demand) and PySpark DataFrame
 Orchestrate Hub: Connectors, Copy data
 
@@ -25,7 +23,10 @@ Large IR (32 cores) speed test:
     - General: 6:45
     - Memory: 3:29
     - Compute: 3:23
-```
+
+Heap vs. Clustered Columnstore speed test (insert January data (~248 million rows))
+    - Clustered Columnstore: ~4:15 (~3:45 without staging enabled)
+    - Heap: ~3:31 (~3:05 without staging enabled (~2:50 with 32 DIUs and concurrency = 50)) -->
 
 ## Exercise 1: Configure linked service and create datasets
 
@@ -426,55 +427,14 @@ In addition to the sales data, we have customer profile data from an e-commerce 
 
     ![The query output is displayed.](media/spark-grouped-top-purchases-total-items.png "Grouped top total items output")
 
-## Exercise 3: Create data pipeline to copy a month of customer data
-
-**TODO**: Waiting on updated source Sale dataset.
-
-## Exercise 4: Create custom Integration Runtime (IR)
-
-The Integration Runtime (IR) is the compute infrastructure used by Azure Synapse Analytics to provide data integration capabilities across different network environments. There are different types of IR, including Azure IR and self-hosted IR, which installs on-premises to bridge connectivity between your network on Azure. In this lab, we focus on the Azure IR.
-
-When you create a new linked service, Azure IR provides fully managed compute resources to perform data movement and dispatch data transformation activities for the linked service. Unless otherwise specified in the linked service settings, the default Azure IR is used. However, sometimes the default IR configuration isn't enough for highly demanding data movement and transformation activities. If this is the case, you can create a custom IR.
-
-1. Navigate to the **Manage** hub.
-
-    ![The Manage menu item is highlighted.](media/manage-hub.png "Manage hub")
-
-2. Select **Integration runtimes** under the Orchestration menu section, then select **+ New** to create a new IR.
-
-    ![The New link is highlighted.](media/new-ir-link.png "Integration runtimes")
-
-3. In the `Integration runtime setup` blade, select **Azure, Self-Hosted**, then select **Continue**.
-
-4. Under `Network environment`, select **Azure**, then select **Continue**.
-
-5. In the `New integration runtime` form, configure the following:
-
-    - **Name**: Enter `AzureLargeComputeOptimizedIntegrationRuntime`.
-    - **Region**: Select `Auto Resolve`.
-    - **Compute type**: Select `Compute Optimized`.
-    - **Core count**: Select `64(+ 16 Driver cores)`.
-
-    ![The form is displayed with the described configuration settings.](media/new-ir-form.png "Integration runtime setup")
-
-6. Select **Create**.
-
-7. After creating the new IR, hover over the name on the list, then select the **Code** link.
-
-    ![The code link is highlighted on the new integration runtime.](media/ir-code-link.png "Code link")
-
-8. Change the `timeToLive` value to **60**. Every time you execute a pipeline that uses the IR, one of the first steps that happens in the background is to provision the IR cluster if it is idle or inactive. Here we set the `timeToLive` value to 60 minutes to keep the provisioned cluster up and running for longer periods of time so we don't need to wait for the provisioning step each subsequent pipeline execution. Please note that setting this value to 60 minutes likely comes with a cost increase if you have infrequent pipeline runs, since you are leaving it in an active state for longer periods of time.
-
-    ![The timeToLive setting is highlighted.](media/ir-code-view.png "Code editor")
-
-9. Select **OK**.
-
-## Exercise 5: Update data pipeline with new integration runtime
-
-**TODO**: Waiting on updated source Sale dataset.
-
-Set the concurrency on the pipeline to a higher number. Default value if unset is 4.
+## Exercise 3: Import sales data with PolyBase and COPY using T-SQL
 
 Compare importing with PolyBase to importing with COPY command
+
+## Exercise 4: Import sales data with PolyBase and COPY using a pipeline
+
+Import one large (month's worth of data) Parquet file since COPY using the Copy activity does not like wildcard files when writing to a Synapse sink.
+
+Set the concurrency on the pipeline to a higher number. Default value if unset is 4.
 
 Compare importing into a clustered table vs. a heap table, then use a select into command to move from the heap to clustered table

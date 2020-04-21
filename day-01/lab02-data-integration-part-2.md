@@ -3,9 +3,10 @@
 - [Data Integration Part 2](#data-integration-part-2)
   - [Resource naming throughout this lab](#resource-naming-throughout-this-lab)
   - [Exercise 1: Create datasets and SQL tables](#exercise-1-create-datasets-and-sql-tables)
-    - [Task 1: Create SQL tables](#task-1-create-sql-tables)
-    - [Task 2: Create campaign analytics datasets](#task-2-create-campaign-analytics-datasets)
-    - [Task 3: Create user profile datasets](#task-3-create-user-profile-datasets)
+  - [Task 1: Create custom Integration Runtime (IR)](#task-1-create-custom-integration-runtime-ir)
+    - [Task 2: Create SQL tables](#task-2-create-sql-tables)
+    - [Task 3: Create campaign analytics datasets](#task-3-create-campaign-analytics-datasets)
+    - [Task 4: Create user profile datasets](#task-4-create-user-profile-datasets)
   - [Exercise 2: Create data pipeline to import poorly formatted CSV](#exercise-2-create-data-pipeline-to-import-poorly-formatted-csv)
     - [Task 1: Create campaign analytics data flow](#task-1-create-campaign-analytics-data-flow)
     - [Task 2: Create campaign analytics data pipeline](#task-2-create-campaign-analytics-data-pipeline)
@@ -19,10 +20,8 @@
     - [Task 2: Create user profile data pipeline](#task-2-create-user-profile-data-pipeline)
     - [Task 3: Trigger, monitor, and analyze the user profile data pipeline](#task-3-trigger-monitor-and-analyze-the-user-profile-data-pipeline)
   - [Exercise 5: Create Synapse Spark notebook to find top products](#exercise-5-create-synapse-spark-notebook-to-find-top-products)
-  - [Exercise 6: Create pipeline trigger window to import remaining Parquet data](#exercise-6-create-pipeline-trigger-window-to-import-remaining-parquet-data)
 
-```
-Create e2e pipeline for initial load & update
+<!-- Create e2e pipeline for initial load & update
 Data Prep: Handle bad data, file formats, join disparate sources
 Troubleshoot: pipeline/activity failure (something beyond simply looking at the portal)
 Optimize: trigger window, exec time
@@ -37,9 +36,7 @@ Other cases: trigger via Function
 Spark notebook to connect to the wwi.UserTopProductPurchases Synapse database table.
     - Have user right-click the table, choose notebook, then new Spark notebook
     - Execute code to find the top 5 products for each user, based on which ones are both preferred and top, and have the most purchases in past 12 months
-    - Top 5 products overall
-
-```
+    - Top 5 products overall -->
 
 ## Resource naming throughout this lab
 
@@ -55,7 +52,46 @@ For the remainder of this guide, the following terms will be used for various AS
 
 ## Exercise 1: Create datasets and SQL tables
 
-### Task 1: Create SQL tables
+## Task 1: Create custom Integration Runtime (IR)
+
+The Integration Runtime (IR) is the compute infrastructure used by Azure Synapse Analytics to provide data integration capabilities across different network environments. There are different types of IR, including Azure IR and self-hosted IR, which installs on-premises to bridge connectivity between your network on Azure. In this lab, we focus on the Azure IR.
+
+When you create a new linked service, Azure IR provides fully managed compute resources to perform data movement and dispatch data transformation activities for the linked service. Unless otherwise specified in the linked service settings, the default Azure IR is used. However, sometimes the default IR configuration isn't enough for highly demanding data movement and transformation activities. If this is the case, you can create a custom IR.
+
+1. Navigate to the **Manage** hub.
+
+    ![The Manage menu item is highlighted.](media/manage-hub.png "Manage hub")
+
+2. Select **Integration runtimes** under the Orchestration menu section, then select **+ New** to create a new IR.
+
+    ![The New link is highlighted.](media/new-ir-link.png "Integration runtimes")
+
+3. In the `Integration runtime setup` blade, select **Azure, Self-Hosted**, then select **Continue**.
+
+4. Under `Network environment`, select **Azure**, then select **Continue**.
+
+5. In the `New integration runtime` form, configure the following:
+
+    - **Name**: Enter `AzureLargeComputeOptimizedIntegrationRuntime`.
+    - **Region**: Select `Auto Resolve`.
+    - **Compute type**: Select `Compute Optimized`.
+    - **Core count**: Select `64(+ 16 Driver cores)`.
+
+    ![The form is displayed with the described configuration settings.](media/new-ir-form.png "Integration runtime setup")
+
+6. Select **Create**.
+
+7. After creating the new IR, hover over the name on the list, then select the **Code** link.
+
+    ![The code link is highlighted on the new integration runtime.](media/ir-code-link.png "Code link")
+
+8. Change the `timeToLive` value to **60**. Every time you execute a pipeline that uses the IR, one of the first steps that happens in the background is to provision the IR cluster if it is idle or inactive. Here we set the `timeToLive` value to 60 minutes to keep the provisioned cluster up and running for longer periods of time so we don't need to wait for the provisioning step each subsequent pipeline execution. Please note that setting this value to 60 minutes likely comes with a cost increase if you have infrequent pipeline runs, since you are leaving it in an active state for longer periods of time.
+
+    ![The timeToLive setting is highlighted.](media/ir-code-view.png "Code editor")
+
+9. Select **OK**.
+
+### Task 2: Create SQL tables
 
 1. Open Synapse Analytics Studio, and then navigate to the **Develop** hub.
 
@@ -163,7 +199,7 @@ For the remainder of this guide, the following terms will be used for various AS
 
 11. Select **Run** from the toolbar menu to execute the SQL command.
 
-### Task 2: Create campaign analytics datasets
+### Task 3: Create campaign analytics datasets
 
 Your organization was provided a poorly formatted CSV file containing marketing campaign data. The file was uploaded to the data lake and now it must be imported into the data warehouse.
 
@@ -213,7 +249,7 @@ Issues include invalid characters in some product categories, invalid characters
 
     ![New dataset form is displayed with the described configuration.](media/new-dataset-campaign-analytics-asa.png "New dataset")
 
-### Task 3: Create user profile datasets
+### Task 4: Create user profile datasets
 
 User profile data comes from two different data sources. In lab 1, you created datasets for these sources: `asal400_ecommerce_userprofiles_source` and `asal400_customerprofile_cosmosdb`. The customer profile data from an e-commerce system that provides top product purchases for each visitor of the site (customer) over the past 12 months is stored within JSON files in the data lake. User profile data containing, among other things, product preferences and product reviews is stored as JSON documents in Cosmos DB.
 
@@ -907,7 +943,3 @@ Now that we have processed, joined, and imported the user profile data, let's an
     |     4649|21784|
     +---------+-----+
     ```
-
-## Exercise 6: Create pipeline trigger window to import remaining Parquet data
-
-**TODO**: Waiting on updated source Sale dataset.
