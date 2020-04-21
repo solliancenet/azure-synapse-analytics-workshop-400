@@ -803,10 +803,19 @@ This is an example of where COPY's flexibility gives it an advantage over PolyBa
 
 ## Exercise 4: Import sales data with PolyBase and COPY using a pipeline
 
+Now that WWI has gone through the process of loading data using PolyBase and COPY via T-SQL statements, it's time for them to experiment with loading sales data through a Synapse pipeline.
+
+When moving data into a data warehouse, there is oftentimes a level of orchestration involved, coordinating movement from one or more data sources and sometimes some level of transformation. The transformation step can occur during (extract-transform-load - ETL) or after (extract-load-transform - ELT) data movement. Any modern data platform must provide a seamless experience for all the typical data wrangling actions like extractions, parsing, joining, standardizing, augmenting, cleansing, consolidating, and filtering. Azure Synapse Analytics provides two significant categories of features - data flows and data orchestrations (implemented as pipelines).
+
+In this exercise, we will focus on the orchestration aspect. We'll create a new pipeline to import a large Parquet file. We'll configure the file to 
+
 Import one large (month's worth of data) Parquet file since COPY using the Copy activity does not like wildcard files when writing to a Synapse sink.
 
 Set the concurrency on the pipeline to a higher number. Default value if unset is 4.
 
 Create a loading user through workload classification by creating a workload group and adding the user to a workload within that group. Run the pipeline with a linked service that signs in that user.
+
+asa.sql.import01 and asa.sql.import02 created
+sqlpool02_import01 and sqlpool_import02 linked services created
 
 Compare importing into a clustered table vs. a heap table, then use a select into command to move from the heap to clustered table.
