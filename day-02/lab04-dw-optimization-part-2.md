@@ -6,10 +6,22 @@
     - [Task 2 - Use a more advanced approach to understand table space usage](#task-2---use-a-more-advanced-approach-to-understand-table-space-usage)
   - [Exercise 2 - Understand column store storage details](#exercise-2---understand-column-store-storage-details)
     - [Task 1 - Create view for column store row group stats](#task-1---create-view-for-column-store-row-group-stats)
+    - [Task 2 - Explore column store storage details](#task-2---explore-column-store-storage-details)
   - [Exercise 3 - Study the impact of wrong choices for column data types](#exercise-3---study-the-impact-of-wrong-choices-for-column-data-types)
+    - [Task 1 - Create and populate a table with optimal column data types](#task-1---create-and-populate-a-table-with-optimal-column-data-types)
+    - [Task 2 - Create and populate a table with sub-optimal column data types](#task-2---create-and-populate-a-table-with-sub-optimal-column-data-types)
+    - [Task 3 - Compare storage requirements](#task-3---compare-storage-requirements)
   - [Exercise 4 - Study the impact of materialized views](#exercise-4---study-the-impact-of-materialized-views)
+    - [Task 1 - Analyze the execution plan of a query](#task-1---analyze-the-execution-plan-of-a-query)
+    - [Task 2 - Improve the execution plan of the query with a materialized view](#task-2---improve-the-execution-plan-of-the-query-with-a-materialized-view)
   - [Exercise 5 - Avoid extensive logging](#exercise-5---avoid-extensive-logging)
+    - [Task 1 - Rules for minimally logged operations](#task-1---rules-for-minimally-logged-operations)
+    - [Task 2 - Optimizing a delete operation](#task-2---optimizing-a-delete-operation)
+    - [Task 3 - Optimizing an update operation](#task-3---optimizing-an-update-operation)
+    - [Task 4 - Optimizing operations with partition switching](#task-4---optimizing-operations-with-partition-switching)
   - [Exercise 6 - Correlate replication and distribution strategies across multiple tables](#exercise-6---correlate-replication-and-distribution-strategies-across-multiple-tables)
+    - [Task 1 - Distribute lookup tables](#task-1---distribute-lookup-tables)
+    - [Task 2 - Replicate lookup tables](#task-2---replicate-lookup-tables)
 
 `<TBA>`
 Explicit instructions on scaling up to DW1500 before the lab and scaling back after Lab 04 is completed.
@@ -213,13 +225,15 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
     from cte;
     ```
 
-2. Explore the statistics of the column store for the `Sale_Partition02` table using the following statement:
+### Task 2 - Explore column store storage details
+
+1. Explore the statistics of the column store for the `Sale_Partition02` table using the following statement:
 
     ```sql
     select * from [wwi_perf].[vColumnStoreRowGroupStats] where Logical_Table_Name = 'Sale_Partition02'
     ```
 
-3. Explore the results of the query:
+2. Explore the results of the query:
 
     ![Column store row group statistics](./media/lab4_column_store_row_groups.png)
 
@@ -231,12 +245,64 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
 
 ## Exercise 3 - Study the impact of wrong choices for column data types
 
+### Task 1 - Create and populate a table with optimal column data types
+
+### Task 2 - Create and populate a table with sub-optimal column data types
+
+### Task 3 - Compare storage requirements
+
 ## Exercise 4 - Study the impact of materialized views
 
-```
-Use of a nested subquery aligns to limits of MV
-Create the MV of the subquery, and see improved perf
-```
+### Task 1 - Analyze the execution plan of a query
+
+### Task 2 - Improve the execution plan of the query with a materialized view
+
 ## Exercise 5 - Avoid extensive logging
 
+### Task 1 - Rules for minimally logged operations
+
+The following operations are capable of being minimally logged:
+
+- CREATE TABLE AS SELECT (CTAS)
+- INSERT..SELECT
+- CREATE INDEX
+- ALTER INDEX REBUILD
+- DROP INDEX
+- TRUNCATE TABLE
+- DROP TABLE
+- ALTER TABLE SWITCH PARTITION
+
+**Minimal logging with bulk load**
+  
+CTAS and INSERT...SELECT are both bulk load operations. However, both are influenced by the target table definition and depend on the load scenario. The following table explains when bulk operations are fully or minimally logged:  
+
+| Primary Index | Load Scenario | Logging Mode |
+| --- | --- | --- |
+| Heap |Any |**Minimal** |
+| Clustered Index |Empty target table |**Minimal** |
+| Clustered Index |Loaded rows do not overlap with existing pages in target |**Minimal** |
+| Clustered Index |Loaded rows overlap with existing pages in target |Full |
+| Clustered Columnstore Index |Batch size >= 102,400 per partition aligned distribution |**Minimal** |
+| Clustered Columnstore Index |Batch size < 102,400 per partition aligned distribution |Full |
+
+It is worth noting that any writes to update secondary or non-clustered indexes will always be fully logged operations.
+
+> **IMPORTANT**
+> 
+> A Synapse Analytics SQL pool has 60 distributions. Therefore, assuming all rows are evenly distributed and landing in a single partition, your batch will need to contain 6,144,000 rows or larger to be minimally logged when writing to a Clustered Columnstore Index. If the table is partitioned and the rows being inserted span partition boundaries, then you will need 6,144,000 rows per partition boundary assuming even data distribution. Each partition in each distribution must independently exceed the 102,400 row threshold for the insert to be minimally logged into the distribution.
+> 
+> 
+
+Loading data into a non-empty table with a clustered index can often contain a mixture of fully logged and minimally logged rows. A clustered index is a balanced tree (b-tree) of pages. If the page being written to already contains rows from another transaction, then these writes will be fully logged. However, if the page is empty then the write to that page will be minimally logged.
+
+### Task 2 - Optimizing a delete operation
+
+### Task 3 - Optimizing an update operation
+
+### Task 4 - Optimizing operations with partition switching
+
 ## Exercise 6 - Correlate replication and distribution strategies across multiple tables
+
+### Task 1 - Distribute lookup tables
+
+### Task 2 - Replicate lookup tables
