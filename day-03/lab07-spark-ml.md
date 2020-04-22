@@ -1,33 +1,32 @@
 # Spark ML
 
-```
-Spark ML
-Microsoft ML for Spark
-Train a model with Spark ML/MML Spark
-Create Synapse Pipeline to re-train model on demand
-```
+- [Spark ML](#spark-ml)
+  - [Exercise 1 - Model training](#exercise-1---model-training)
+    - [Task 1 - Training models with Spark ML and MML Spark](#task-1---training-models-with-spark-ml-and-mml-spark)
+    - [Task 2 - Model registration process](#task-2---model-registration-process)
+  - [Exercise 2 - Model inference](#exercise-2---model-inference)
+    - [Task 1 - Making predictions with a registered Spark ML model](#task-1---making-predictions-with-a-registered-spark-ml-model)
+    - [Task 2 - Creating a Synapse Pipeline to re-train model on demand](#task-2---creating-a-synapse-pipeline-to-re-train-model-on-demand)
 
-In this lab, you will...
+## Exercise 1 - Model training
 
-## Task 1 - Training models with Spark ML and MML Spark
+### Task 1 - Training models with Spark ML and MML Spark
 
 In this task, you will train a model using Spark ML and MML Spark.
 
 1. Open Synapse Analytics Studio, and then navigate to the `Develop` hub.
 
-**TODO: Create MML Spark based notebook:**
-
-2. Under **Notebooks**, select the notebook called `TBD - Model Training`.
+2. Under **Notebooks**, select the notebook called `Lab 08 - Exercise 1 - Model Training`.
 
 3. This notebook handles training the model, converting the model to ONNX and uploading the ONNX model to Azure Storage.
 
 4. Read thru the notebook and execute the cells as instructed in the notebook. When you have finished in the notebook, return to the next task.
 
-## Task 2 - Model registration process
+### Task 2 - Model registration process
 
 In this task, you will register the model in Azure Synapse Analytics so that it is availble for use from T-SQL. This task picks up where you left off, with the ONNX model being made available in Azure Storage. 
 
-**TODO: Replace this step with a notebook approach:**
+
 
 1.  One step that is not shown by the notebook is an offline step that converts the ONNX model to hexadecimal. The resulting hex encoded model is also upload to Azure Storage. This conversion is currently performed with [this PowerShell script](./artifacts/00/ml/convert-to-hex.ps1), but could be automated using any scripting platform.
 
@@ -37,7 +36,7 @@ In this task, you will register the model in Azure Synapse Analytics so that it 
 
    ![Showing the context menu, selecting New SQL Script, Empty Script](media/ex05-new-sql-script.png "Create new script")
 
-3. Replace the contents of this script with following. Be sure to replace the place holder values identified by the comments with the appropriate values from your environment. You only need to add these statements if you have not completed the previous lab.
+4. Replace the contents of this script with following. Be sure to replace the place holder values identified by the comments with the appropriate values from your environment. You only need to add these statements if you have not completed the previous lab.
 
 ``` sql
 -- Use polybase to load model into the model table
@@ -100,6 +99,7 @@ GO
 ```
 
 4. Add the following to bottom of your SQL script. Be sure to replace the place holder values identified by the comments with the appropriate values from your environment. Run the script. 
+5. 
 ``` sql
 -- Register the model by inserting it into the table.
 -- Replace <Model description> with your user friendly description of the model.
@@ -111,8 +111,9 @@ FROM [wwi_ml].[MLModelExt]
 
 5. This script uses PolyBase to load the hex encoded model from Azure Storage into a table within the SQL Pool database. Once the model is inserted into the table in this way, it is available for use by the Predict statement as you will see next.
 
+## Exercise 2 - Model inference
 
-## Task 3 - Making predictions with a registered Spark ML model
+### Task 1 - Making predictions with a registered Spark ML model
 
 In this task, you will author a T-SQL query that uses the previously trained model to make predictions.
 
@@ -144,6 +145,10 @@ In this task, you will author a T-SQL query that uses the previously trained mod
    ![Viewing the prediction results in the query result pane](media/ex05-view-prediction-results.png "View prediction results")
 
 
-## Task 4 - Creating a Synapse Pipeline to re-train model on demand
+### Task 2 - Creating a Synapse Pipeline to re-train model on demand
 
-**TODO: Add steps to create pipling that executes notebook for re-training and T-SQL for registration**
+1. Create a new pipeline
+   
+2. Configure the pipeline to run the `Model Tranining` notebook and the `Model Registration` SQL script.
+
+![Model training and registration](./../day-02/media/lab7_model_training_and_registration.png)
