@@ -18,6 +18,7 @@
     - [Task 6: Use PolyBase to load text file with non-standard row delimiters](#task-6-use-polybase-to-load-text-file-with-non-standard-row-delimiters)
   - [Exercise 4: Import sales data with PolyBase and COPY using a pipeline](#exercise-4-import-sales-data-with-polybase-and-copy-using-a-pipeline)
     - [Task 1: Configure workload management classification](#task-1-configure-workload-management-classification)
+    - [Task 2: Create pipeline with copy activity](#task-2-create-pipeline-with-copy-activity)
 
 <!-- Integrating Data Sources
 Using Data Hub: Preview blob & DB data, T-SQL (On-Demand) and PySpark DataFrame
@@ -658,8 +659,7 @@ Now let's see how to perform the same load operation with the COPY statement.
     FROM 'https://<PrimaryStorage>.dfs.core.windows.net/wwi-02/sale-small%2FYear%3D2019'
     WITH (
         FILE_TYPE = 'PARQUET',
-        COMPRESSION = 'SNAPPY'--,
-        --CREDENTIAL=(IDENTITY= 'Managed Service Identity')
+        COMPRESSION = 'SNAPPY'
     )
     GO
     ```
@@ -688,8 +688,7 @@ For both of the load operations above, we inserted data into the heap table. Wha
     FROM 'https://<PrimaryStorage>.dfs.core.windows.net/wwi-02/sale-small%2FYear%3D2019'
     WITH (
         FILE_TYPE = 'PARQUET',
-        COMPRESSION = 'SNAPPY'--,
-        --CREDENTIAL=(IDENTITY= 'Managed Service Identity')
+        COMPRESSION = 'SNAPPY'
     )
     GO
     ```
@@ -825,13 +824,100 @@ In this exercise, we will focus on the orchestration aspect. Lab 2 will focus mo
 
 ### Task 1: Configure workload management classification
 
-Import one large (month's worth of data) Parquet file since COPY using the Copy activity does not like wildcard files when writing to a Synapse sink.
+When loading a large amount of data, it is best to run only one load job at a time for fasted performance. If this isn't possible, run a minimal number of loads concurrently. be sure that you allocate enough memory to the pipeline session. To do this, increase the resource class of a user which has permissions to rebuild the index on this table to the recommended minimum.
 
-Set the concurrency on the pipeline to a higher number. Default value if unset is 4.
+For fastest loading speed, run only one load job at a time. If that isn't feasible, run a minimal number of loads concurrently. If you expect a large loading job, consider scaling up your SQL pool before the load.
 
-Create a loading user through workload classification by creating a workload group and adding the user to a workload within that group. Run the pipeline with a linked service that signs in that user.
+To run loads with appropriate compute resources, create loading users designated for running loads. Assign each loading user to a specific resource class or workload group. To run a load, sign in as one of the loading users, and then run the load. The load runs with the user's resource class.
 
-asa.sql.import01 and asa.sql.import02 created
-sqlpool02_import01 and sqlpool_import02 linked services created
+1. In the query window, replace the script with the following to create a workload group, `BigDataLoad`, that uses workload isolation by reserving a minimum of 50% resources with a cap of 100%:
 
-Compare importing into a clustered table vs. a heap table, then use a select into command to move from the heap to clustered table.
+    ```sql
+    IF NOT EXISTS (SELECT * FROM sys.workload_management_workload_classifiers WHERE group_name = 'BigDataLoad')
+    BEGIN
+        CREATE WORKLOAD GROUP BigDataLoad WITH  
+        (
+            MIN_PERCENTAGE_RESOURCE = 50 -- integer value
+            ,REQUEST_MIN_RESOURCE_GRANT_PERCENT = 25 --  (guaranteed a minimum of 4 concurrency)
+            ,CAP_PERCENTAGE_RESOURCE = 100
+        );
+    END
+    ```
+
+2. Select **Run** from the toolbar menu to execute the SQL command.
+
+3. In the query window, replace the script with the following to create a new workload classifier, `HeavyLoader` that assigns the `asa.sql.import01` user we created in your environment to the `BigDataLoad` workload group. At the end, we select from `sys.workload_management_workload_classifiers` to view all classifiers, including the one we just created:
+
+    ```sql
+    IF NOT EXISTS (SELECT * FROM sys.workload_management_workload_classifiers WHERE [name] = 'HeavyLoader')
+    BEGIN
+        CREATE WORKLOAD Classifier HeavyLoader WITH
+        (
+            Workload_Group ='BigDataLoad',
+            MemberName='asa.sql.import01',
+            IMPORTANCE = HIGH
+        );
+    END
+
+    SELECT * FROM sys.workload_management_workload_classifiers
+    ```
+
+4. Select **Run** from the toolbar menu to execute the SQL command. You should see the new classifier in the query results:
+
+    ![The new workload classifier is highlighted.](media/workload-classifiers-query-results.png "Workload Classifiers query results")
+
+5. Navigate to the **Manage** hub.
+
+    ![The Manage menu item is highlighted.](media/manage-hub.png "Manage hub")
+
+6. Locate and select a linked service named `sqlpool01_import01`. Notice that the user name for the SQL Pool connection is the `asa.sql.import01` user we added to the `HeavyLoader` classifier. We will use this linked service in our new pipeline to reserve resources for the data load activity.
+
+    ![The user name is highlighted.](media/sqlpool01-import01-linked-service.png "Linked service")
+
+### Task 2: Create pipeline with copy activity
+
+1. Navigate to the **Orchestrate** hub.
+
+    ![The Orchestrate hub is highlighted.](media/orchestrate-hub.png "Orchestrate hub")
+
+2. Select + then **Pipeline** to create a new pipeline.
+
+    ![The new pipeline context menu item is selected.](media/new-pipeline.png "New pipeline")
+
+3. In the **General** tab for the new pipeline, enter the following **Name**: `ASAL400 - Copy December Sales`.
+
+4. Expand **Move & transform** within the Activities list, then drag the **Copy data** activity onto the pipeline canvas.
+
+    ![Copy data is dragged to the canvas](media/pipeline-copy-sales-drag-copy-data.png "Pipeline canvas")
+
+5. Select the **Copy data** activity on the canvas and set the **Name** to `Copy Sales`.
+
+6. Select the **Source** tab, then select **+ New** next to `Source dataset`.
+
+7. Select the **Azure Data Lake Storage Gen2** data store, then select **Continue**.
+
+8. Choose the **Parquet** format, then select **Continue**.
+
+9. In the properties, set the name to **asal400_december_sales** and select the **asadatalake01** linked service. Browse to the `wwi-02/campaign-analytics/large-sale-december2010-snappy.parquet` file location, select **From sample file** for schema import. [Download this sample file](media/sale-small-20100102-snappy.parquet) to your computer, then browse to it in the **Select file** field. Select **OK**.
+
+    ![The properties are displayed.](media/pipeline-copy-sales-source-dataset.png "Dataset properties")
+
+10. Select the **Source** tab, then select **+ New** next to `Sink dataset`.
+
+11. Select the **Azure Synapse Analytics** data store, then select **Continue**.
+
+12. In the properties, set the name to `asal400_saleheap_asa` and select the **sqlpool01_import01** linked service that connects to Synapse Analytics with the `asa.sql.import01` user. Choose the ***wwi_staging.SaleHeap** table then select **OK**.
+
+    ![The properties are displayed.](media/pipeline-copy-sales-sink-dataset.png "Dataset properties")
+
+13. In the **Sink** tab, select the **Copy command** copy method and enter the following in the pre-copy script to clear the table before import: `TRUNCATE TABLE wwi_staging.SaleHeap`.
+
+    ![The described settings are displayed.](media/pipeline-copy-sales-sink-settings.png "Sink")
+
+14. Select the **Mapping** tab and use **+ New mapping** to create mappings for each source and destination field.
+
+    ![The mapping is displayed.](media/pipeline-copy-sales-sink-mapping.png "Mapping")
+
+15. Select **Publish all** to save your new resources.
+
+    ![Publish all is highlighted.](media/publish-all-1.png "Publish all")

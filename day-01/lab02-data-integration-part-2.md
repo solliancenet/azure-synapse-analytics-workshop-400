@@ -58,7 +58,7 @@ The Integration Runtime (IR) is the compute infrastructure used by Azure Synapse
 
 When you create a new linked service, Azure IR provides fully managed compute resources to perform data movement and dispatch data transformation activities for the linked service. Unless otherwise specified in the linked service settings, the default Azure IR is used. However, sometimes the default IR configuration isn't enough for highly demanding data movement and transformation activities. If this is the case, you can create a custom IR.
 
-1. Navigate to the **Manage** hub.
+1. Open Synapse Analytics Studio, and then navigate to the **Manage** hub.
 
     ![The Manage menu item is highlighted.](media/manage-hub.png "Manage hub")
 
@@ -93,7 +93,7 @@ When you create a new linked service, Azure IR provides fully managed compute re
 
 ### Task 2: Create SQL tables
 
-1. Open Synapse Analytics Studio, and then navigate to the **Develop** hub.
+1. Navigate to the **Develop** hub.
 
     ![The Develop menu item is highlighted.](media/develop-hub.png "Develop hub")
 
