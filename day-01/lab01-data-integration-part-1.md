@@ -198,7 +198,7 @@ Optional: If you wish to keep this SQL script for future reference, select the P
 
 ![The SQL Script properties is displayed with the new script name, and the Publish all button is highlighted.](media/rename-publish-sql-script.png "SQL Script Properties")
 
-**TODO**: Update to show the total count of records once all data is available in the environment.
+<!-- **TODO**: Update to show the total count of records once all data is available in the environment. -->
 
 ### Task 2: Query sales Parquet data with Azure Synapse Spark
 
