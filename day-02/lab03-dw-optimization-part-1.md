@@ -1,15 +1,17 @@
 # DW Optimization Part 1
 
-```
-Optimizing Warehouse Performance
-Optimizing a set of slow queries
-Diagnosing with explain
-Reviewing and recommending changes to partitioning, distribution and indexing
-Improving JSON query performance
-Improving count performance
-Materialized view vs Result-set caching
-
-```
+- [DW Optimization Part 1](#dw-optimization-part-1)
+  - [Exercise 1 - Explore query performance and improve table structure](#exercise-1---explore-query-performance-and-improve-table-structure)
+    - [Task 1 - Identify performance issues related to tables](#task-1---identify-performance-issues-related-to-tables)
+    - [Task 2 - Improve table structure with hash distribution and columnstore index](#task-2---improve-table-structure-with-hash-distribution-and-columnstore-index)
+    - [Task 3 - Improve further the structure of the table with partitioning](#task-3---improve-further-the-structure-of-the-table-with-partitioning)
+  - [Exercise 2 - Improve query perofrmance](#exercise-2---improve-query-perofrmance)
+    - [Task 1 -  Improve COUNT performance](#task-1---improve-count-performance)
+    - [Task 2 - Use materialized views](#task-2---use-materialized-views)
+    - [Task 3 - Use result set caching](#task-3---use-result-set-caching)
+    - [Task 4 - Create and update statistics](#task-4---create-and-update-statistics)
+    - [Task 5 - Create and update indexes](#task-5---create-and-update-indexes)
+    - [Task 6 - Use ordered CCI](#task-6---use-ordered-cci)
 
 `<TBA>`
 Explicit instructions on scaling up to DW1500 before the lab and scaling back after Lab 04 is completed.
@@ -356,14 +358,7 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
 
 ## Exercise 2 - Improve query perofrmance
 
-### Task 1 - Improve JSON query performance
-
-`<TBA>`
-Improve JSON query performance
-`</TBA>`
-
-
-### Task 2 -  Improve COUNT performance
+### Task 1 -  Improve COUNT performance
 
 1. Count the distinct customer values in `Sale_Heap`:
 
@@ -381,7 +376,7 @@ Improve JSON query performance
 
     Query takes about half the time to execute.
 
-### Task 3 - Use materialized views
+### Task 2 - Use materialized views
 
 Comparison with standard views:
 
@@ -394,7 +389,7 @@ Comparison with standard views:
 |Extra storage                   | No                                           | Yes                             
 |Syntax                          | CREATE VIEW                                  | CREATE MATERIALIZED VIEW AS SELECT     
 
-### Task 4 - Use result set caching
+### Task 3 - Use result set caching
 
 Check if result set caching is on:
 
@@ -428,7 +423,7 @@ FROM sys.dm_pdw_exec_requests
 WHERE command like N'SELECT d1.EnglishEducation %'
 ```
 
-### Task 5 - Create and update statistics
+### Task 4 - Create and update statistics
 
 ```sql
 SELECT name, is_auto_create_stats_on
@@ -456,14 +451,14 @@ CREATE STATISTICS Sale_Hash_CustomerId on wwi_perf.Sale_Hash (CustomerId)
 ![Statistics created for CustomerId](./media/lab3_statistics_customerid.png)
 
 
-### Task 6 - Create and update indexes
+### Task 5 - Create and update indexes
 
 CCI vs Heap vs Clustered and Nonclustered
 
 Clustered indexes may outperform clustered columnstore tables when a single row needs to be quickly retrieved. For queries where a single or very few row lookup is required to perform with extreme speed, consider a cluster index or nonclustered secondary index. The disadvantage to using a clustered index is that only queries that benefit are the ones that use a highly selective filter on the clustered index column. To improve filter on other columns a nonclustered index can be added to other columns. However, each index which is added to a table adds both space and processing time to loads.
 
 
-### Task 7 - Use ordered CCI
+### Task 6 - Use ordered CCI
 
 By default, for each table created without an index option, an internal component (index builder) creates a non-ordered clustered columnstore index (CCI) on it. Data in each column is compressed into a separate CCI rowgroup segment. There's metadata on each segment's value range, so segments that are outside the bounds of the query predicate aren't read from disk during query execution. CCI offers the highest level of data compression and reduces the size of segments to read so queries can run faster. However, because the index builder doesn't sort data before compressing them into segments, segments with overlapping value ranges could occur, causing queries to read more segments from disk and take longer to finish.
 
