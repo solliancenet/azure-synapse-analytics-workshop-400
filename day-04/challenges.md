@@ -73,7 +73,7 @@ WWI has supplied the following business-critical queries that they currently use
 
 #### Query wish list
 
-Leadership wants to see some early, tangible benefit from the data modernization effort. They've been sold on the "art of the possible" and how Synapse helps unlock new insights on their data. They have described the following queries they'd like to see in the new system:
+Leadership wants to see some early, tangible benefit from the data modernization effort. They've been sold on the "art of the possible" and how Synapse helps unlock new insights on their data. These queries should have a visual component that gets decision makers excited about where the company is headed and have instant transference of complicated sales data into easy-to-understand market insights. They have described the following queries they'd like to see in the new system:
 
 **TODO:** List conceptual/pseudo queries here.
 
@@ -86,6 +86,22 @@ Leadership wants to see some early, tangible benefit from the data modernization
 
 ### Background story
 
+Wide World Importers has a commitment to their customers that they will protect their information from data leakage. They also have a commitment to higher authorities that they will maintain industry-standard compliance in handling and storing data, and to their shareholders that they will be responsible stewards of sensitive competitive data. All of these commitments have understandably given the CISO a lot of angst around ensuring absolute protection of the data and systems that access it, throughout the architecture's components. This new analytics solution is one part of a company-wide security initiative that the CISO is driving. There is an additional level of scrutiny on this project because it is a departure from their trusted on-premises sphere of influence. There is still an inherent mistrust of the cloud by some in WWI's leadership. The CISO wants to be able to assure them that the solution meets several key security requirements, including securing end-to-end data process, from the external files all the way to the serving layer.
+
+In addition, one of the current major pain points for the CIO is the limited capabilities of insights into various data processes. The CIO expects the new solution to significantly increase the visibility into all the data processes developed as part of the new analytical solution.
+
 ### Technical details
 
+As you and your team plan the security and monitoring aspects of the solution, keep in mind that best practices must be followed for all components of your data pipeline. Data must be encrypted in-transit and at rest. You must follow least privilege access guidelines and make sure that auditing and monitoring are key aspects of your delivery.
+
 ### Success criteria
+
+- Implement and demonstrate end-to-end security measures for the data warehouse rebuild process.
+  - Least-privilege access is incorporated.
+  - Secrets are encrypted and not available in clear text, anywhere in the configuration.
+    - Want to maintain exclusive control over the keys to used to encrypt the data warehouse data at rest. They do not want Microsoft or any other entity to provide or have access to these keys.
+  - RBAC is implemented at both the data source (only system-level accounts access the source data), and at the serving layer. If you do not fully implement RBAC, you must be able to explain to your coach how you plan to implement it.
+  - Network-level security.
+  - Will need the flexibility to assign users to groups who should have access to the workspace, as well those that might have elevated permissions, such as those who can administer the entire Synapse Workspace, or manage just the Spark or SQL Pools or use Pipelines.
+- Monitor all data processes and react to potential problems that might occur.
+  - Monitor for suspicious traffic against the storage account and receive alerts for any flagged incidents.
