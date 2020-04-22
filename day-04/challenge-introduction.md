@@ -52,3 +52,8 @@ Delta lake approach | The purpose is to force attendees into thinking about the 
 Gaps in the incoming stream of sales files | Every now and then, some files will simply not be available. This will have an impact on the quality of data at bronze and silver levels.<br><br>The purpose is to force attendees into dealing with presentation inconsistencies originating from delayed data.
 Security | TBD
 Monitoring | TBD
+
+## Links
+
+- [Team challenges](challenges.md)
+- [Coach guidance](coach-guidance.md)
