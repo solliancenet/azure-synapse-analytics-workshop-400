@@ -12,14 +12,13 @@
     - [Task 2: Create campaign analytics data pipeline](#task-2-create-campaign-analytics-data-pipeline)
     - [Task 3: Run the campaign analytics data pipeline](#task-3-run-the-campaign-analytics-data-pipeline)
     - [Task 4: View campaign analytics table contents](#task-4-view-campaign-analytics-table-contents)
-  - [Exercise 3: Create data pipeline to import user reviews](#exercise-3-create-data-pipeline-to-import-user-reviews)
     - [Task 1: Create user reviews data flow](#task-1-create-user-reviews-data-flow)
-    - [Task 2: Create user reviews data pipeline](#task-2-create-user-reviews-data-pipeline)
-  - [Exercise 4: Create data pipeline to join disparate data sources](#exercise-4-create-data-pipeline-to-join-disparate-data-sources)
+    - [Task 2: Create user reviews data pipeline -->](#task-2-create-user-reviews-data-pipeline)
+  - [Exercise 3: Create data pipeline to join disparate data sources](#exercise-3-create-data-pipeline-to-join-disparate-data-sources)
     - [Task 1: Create user profile data flow](#task-1-create-user-profile-data-flow)
     - [Task 2: Create user profile data pipeline](#task-2-create-user-profile-data-pipeline)
     - [Task 3: Trigger, monitor, and analyze the user profile data pipeline](#task-3-trigger-monitor-and-analyze-the-user-profile-data-pipeline)
-  - [Exercise 5: Create Synapse Spark notebook to find top products](#exercise-5-create-synapse-spark-notebook-to-find-top-products)
+  - [Exercise 4: Create Synapse Spark notebook to find top products](#exercise-4-create-synapse-spark-notebook-to-find-top-products)
 
 <!-- Create e2e pipeline for initial load & update
 Data Prep: Handle bad data, file formats, join disparate sources
@@ -58,7 +57,7 @@ The Integration Runtime (IR) is the compute infrastructure used by Azure Synapse
 
 When you create a new linked service, Azure IR provides fully managed compute resources to perform data movement and dispatch data transformation activities for the linked service. Unless otherwise specified in the linked service settings, the default Azure IR is used. However, sometimes the default IR configuration isn't enough for highly demanding data movement and transformation activities. If this is the case, you can create a custom IR.
 
-1. Navigate to the **Manage** hub.
+1. Open Synapse Analytics Studio, and then navigate to the **Manage** hub.
 
     ![The Manage menu item is highlighted.](media/manage-hub.png "Manage hub")
 
@@ -93,7 +92,7 @@ When you create a new linked service, Azure IR provides fully managed compute re
 
 ### Task 2: Create SQL tables
 
-1. Open Synapse Analytics Studio, and then navigate to the **Develop** hub.
+1. Navigate to the **Develop** hub.
 
     ![The Develop menu item is highlighted.](media/develop-hub.png "Develop hub")
 
@@ -485,15 +484,15 @@ Now that the pipeline run is complete, let's take a look at the SQL table to ver
 
     ![The new query and chart view are displayed.](media/campaign-analytics-query-results-chart.png "Chart view")
 
-## Exercise 3: Create data pipeline to import user reviews
+<!-- ## Exercise 3: Create data pipeline to import user reviews
 
 **TODO**: Add if there's time.
 
 ### Task 1: Create user reviews data flow
 
-### Task 2: Create user reviews data pipeline
+### Task 2: Create user reviews data pipeline -->
 
-## Exercise 4: Create data pipeline to join disparate data sources
+## Exercise 3: Create data pipeline to join disparate data sources
 
 ### Task 1: Create user profile data flow
 
@@ -654,7 +653,7 @@ Now that the pipeline run is complete, let's take a look at the SQL table to ver
 
     ![The join optimization settings are configured as described.](media/data-flow-user-profiles-join-optimize.png "Optimize")
 
-    **TODO**: Add optimization description.
+    <!-- **TODO**: Add optimization description. -->
 
 25. Select the **Inspect** tab to see the join mapping, including the column feed source and whether the column is used in a join.
 
@@ -800,7 +799,7 @@ Since there are more than 1,000 records that the user profile pipeline will impo
 
     ![The sink details are displayed.](media/pipeline-user-profiles-data-flow-sink-details.png "Sink details")
 
-## Exercise 5: Create Synapse Spark notebook to find top products
+## Exercise 4: Create Synapse Spark notebook to find top products
 
 Now that we have processed, joined, and imported the user profile data, let's analyze it in greater detail. In this exercise, you will execute code to find the top 5 products for each user, based on which ones are both preferred and top, and have the most purchases in past 12 months. Then, you will calculate the top 5 products overall.
 
