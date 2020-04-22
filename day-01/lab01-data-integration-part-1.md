@@ -16,7 +16,7 @@
     - [Task 4: Load data into the clustered columnstore table](#task-4-load-data-into-the-clustered-columnstore-table)
     - [Task 5: Use COPY to load text file with non-standard row delimiters](#task-5-use-copy-to-load-text-file-with-non-standard-row-delimiters)
     - [Task 6: Use PolyBase to load text file with non-standard row delimiters](#task-6-use-polybase-to-load-text-file-with-non-standard-row-delimiters)
-  - [Exercise 4: Import sales data with PolyBase and COPY using a pipeline](#exercise-4-import-sales-data-with-polybase-and-copy-using-a-pipeline)
+  - [Exercise 4: Import sales data with COPY using a pipeline](#exercise-4-import-sales-data-with-copy-using-a-pipeline)
     - [Task 1: Configure workload management classification](#task-1-configure-workload-management-classification)
     - [Task 2: Create pipeline with copy activity](#task-2-create-pipeline-with-copy-activity)
 
@@ -814,7 +814,7 @@ Why is this? According to [PolyBase documentation](https://docs.microsoft.com/sq
 
 This is an example of where COPY's flexibility gives it an advantage over PolyBase.
 
-## Exercise 4: Import sales data with PolyBase and COPY using a pipeline
+## Exercise 4: Import sales data with COPY using a pipeline
 
 Now that WWI has gone through the process of loading data using PolyBase and COPY via T-SQL statements, it's time for them to experiment with loading sales data through a Synapse pipeline.
 
