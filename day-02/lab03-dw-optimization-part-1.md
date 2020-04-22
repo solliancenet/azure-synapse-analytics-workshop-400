@@ -35,7 +35,7 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
 2. Run the following (more complex) statement:
 
     ```sql
-    SELECT TOP 100 * FROM
+    SELECT TOP 1000 * FROM
     (
         SELECT
             S.CustomerId
@@ -45,16 +45,17 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
         GROUP BY
             S.CustomerId
     ) T
-    OPTION (LABEL - 'My Query')
-
+    OPTION (LABEL = 'Lab03: Heap')
     ```
-    The script takes up to a minute to execute and returns the result. There is clearly something wrong with the `Sale_Heap` table that induces the performance hit.
+
+    The script takes up to a couple of minutes to execute and returns the result. There is clearly something wrong with the `Sale_Heap` table that induces the performance hit.
 
     > Note the OPTION clause used in the statement. This comes in handy when you're looking to identify your query in the `sys.dm_pdw_exec_requests` DMV.
+    >
     >```sql
     >SELECT  *
     >FROM    sys.dm_pdw_exec_requests
-    >WHERE   [label] = 'My Query';
+    >WHERE   [label] = 'Lab03: Heap';
     >```
     >
 
@@ -62,7 +63,7 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
 
     ```sql
     CREATE TABLE [wwi_perf].[Sale_Heap]
-    ( 
+    (
         [TransactionId] [uniqueidentifier]  NOT NULL,
         [CustomerId] [int]  NOT NULL,
         [ProductId] [smallint]  NOT NULL,
@@ -81,13 +82,14 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
         HEAP
     )
     ```
+
     You can immediately spot at least two reasons for the performance hit:
     - The `ROUND_ROBIN` distribution
     - The `HEAP` structure of the table
 
-    `<TBA>`
-    Note explaining the use of HEAP tables as targets for data import.
-    `</TBA>`
+    > **NOTE**
+    >
+    >In this case, when we are looking for fast query response times, the heap structure is not a good choice as we will see in a moment. Still, there are cases where using a heap table can help performance rather than hurting it. One such example is when we're looking to ingest large amounts of data into the SQL pool.
 
 4. Run the same script as the one you've run at step 2, but this time with the `EXPLAIN WITH_RECOMMENDATIONS` line before it:
 
@@ -104,7 +106,8 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
             S.CustomerId
     ) T
     ```
-    The `EXPLAIN WITH_RECOMMENDATIONS` clause eturns the query plan for an Azure Synapse Analytics SQL statement without running the statement. Use EXPLAIN to preview which operations will require data movement and to view the estimated costs of the query operations. Your query should return something similar to:
+
+    The `EXPLAIN WITH_RECOMMENDATIONS` clause returns the query plan for an Azure Synapse Analytics SQL statement without running the statement. Use EXPLAIN to preview which operations will require data movement and to view the estimated costs of the query operations. Your query should return something similar to:
 
     ```xml
     <?xml version=""1.0"" encoding=""utf-8""?>
@@ -162,21 +165,54 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
 
     `<dsql_query number_nodes=""4"" number_distributions=""60"" number_distributions_per_node=""15"">`
 
-    This layout is given by the current DW setting. In this particular setting, we were running at `DW2000c` which means that there are 4 physical nodes to service the 60 distributions, giving a number of 15 distributions per physical node.
+    This layout is given by the current Date Warehouse Units (DWU) setting. In the setup used for the example above, we were running at `DW2000c` which means that there are 4 physical nodes to service the 60 distributions, giving a number of 15 distributions per physical node. Depending on your own DWU settings, these numbers will vary.
 
-    The query plan indicates data movement is required. This is indicated by the `SHUFFLE_MOVE` distributed SQL operation.
-    `<TBA>`
-    Note explaining the query plan structure. 
-    `</TBA>`
+    The query plan indicates data movement is required. This is indicated by the `SHUFFLE_MOVE` distributed SQL operation. Data movement is an operation where parts of the distributed tables are moved to different nodes during query execution. This operation is required where the data is not available on the target node, most commonly when the tables do not share the distribution key. The most common data movement operation is shuffle. During shuffle, for each input row, Synapse computes a hash value using the join columns and then sends that row to the node that owns that hash value. Either one or both sides of join can participate in the shuffle. The diagram below displays shuffle to implement join between tables T1 and T2 where neither of the tables is distributed on the join column col2.
+
+    ![Shuffle move conceptual representation](./media/lab3_shuffle_move.png)
+
+    Let's dive now into the details provided by the query plan to understand some of the problems our current approach has. The following table contains the description of every operation mentioned in the query plan:
+
+    Operation | Operation Type | Description
+    ---|---|---
+    1 | RND_ID | Identifies an object that will be created. In our case, it's the `TEMP_ID_76` internal table.
+    2 | ON | Specifies the location (nodes or distributions) where the operation will occur. `AllDistributions` means here the operation will be performed on each of the 60 distributions of the SQL pool. The operation will be a SQL operation (specified via `<sql_operations>`) that will create the  `TEMP_ID_76` table.
+    3 | SHUFFLE_MOVE | The list of shuffle columns contains only one column which is `CustomerId` (specified via `<suffle_columns>`). The values will be distributed to the hash owning distributions and saved locally in the `TEMP_ID_76` tables. The operation will output an estimated number of 41265.25 rows (specified via `<operation_cost>`). According to the same section, the average resulting row size is 13 bytes.
+    4 | RETURN | Data resulting from the shuffle operation will be collected from all distributions (see `<location>`) by querying the internal temporary table `TEMP_ID_76`.
+    5 | ON | The `TEMP_ID_76` will be deleted from all distributions.
+
+    It becomes clear now what is the root cause of the performance problem: the inter-distribution data movements. This is actually one of the simplest examples given the small size of the data that needs to be shuffled. You can image how much worse things become when the shuffled row size becomes larger.
 
     You can learn more about the structure of the query plan generated by the EXPLAIN statement [here](https://docs.microsoft.com/en-us/sql/t-sql/queries/explain-transact-sql?view=azure-sqldw-latest).
 
-5. Understand the plan details using `sys.dm_pdw_request_steps`.
+5. Besides the `EXPLAIN` statement, you can also understand the plan details using the `sys.dm_pdw_request_steps` DMV.
+
+    Query the `sys.dm_pdw_exec_requests` DMW to find your query id:
 
     ```sql
-    SELECT * FROM sys.dm_pdw_request_steps
-    WHERE request_id = 'QID####'
-    ORDER BY step_index;
+    SELECT  
+        *
+    FROM    
+        sys.dm_pdw_exec_requests
+    WHERE   
+        [label] = 'Lab03: Heap'
+    ```
+
+    The result contains, among other things, the query id, the label, and the original SQL statement:
+
+    ![Retrieving the query id](./media/lab3_query_id.png)
+
+    Investigate the individual steps of the query:
+
+    ```sql
+    SELECT
+       *
+    FROM
+        sys.dm_pdw_request_steps
+    WHERE
+        request_id = 'QID472934'
+    ORDER BY
+       step_index
     ```
 
     Investigate SQL on the distributed databases:
