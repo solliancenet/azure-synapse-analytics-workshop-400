@@ -1,6 +1,6 @@
 # Challenge introduction
 
-WWI is in the process of building a new, modern analytics solution. The old analytics solution was built using an older, on-premise version of SQL Server and was based on the relational engine only. WWI's top management expects the new solution to support the strategic move towards near-real-time data analysis.
+WWI is in the process of building a new, modern analytics solution. The old analytics solution was built using an older, on-premises version of SQL Server and was based on the relational engine only. WWI's top management expects the new solution to support the strategic move towards near-real-time data analysis.
 
 The core objective of this PoC challenge is to prove that Azure Synapse Analytics is the right platform to be used by the new solution.
 
@@ -13,7 +13,7 @@ The current situation is the following:
 - WWI has several business-critical queries that are performing poorly. They need to be significantly optimized to meet the latest business needs.
 - On a more general note, top management is demanding more and more a departure from the traditional "analyze today yesterday's data". The goal is to significantly reduce the gap between the moment data is generated and the moment it ends up in dashboards.
 - The CISO of WWI is driving a company-wide security initiative that covers, among many other projects, the new analytics solution project as well. Consequently, the solution is expected to meet several key security requirements including securing the end-to-end data processes (from external files to the serving layer).
-- One of the current major pain points of WWI's CIO is the limited capabilities of insights into various data processes. The CIO expects the new solution to significantly increase the visibility into all the data processes develops as part of the new analytical solution.
+- One of the current major pain points of WWI's CIO is the limited capabilities of insights into various data processes. The CIO expects the new solution to significantly increase the visibility into all the data processes developed as part of the new analytical solution.
 
 In this challenge, you are expected to achieve the following major goals:
 
@@ -28,13 +28,12 @@ In this challenge, you are expected to achieve the following major goals:
 
 **TBD: What is the approach we want to take: one day-long challenge vs. 4 individual challenges?**
 
-Segment | Goals
----|---
-Begin PoC Challenge | 1 & 2
-Continue PoC Challenge | 3 & 4
-Continue PoC Challenge | 5 & 6
-Finish PoC Challenge | Review all 
-
+| Title | Overview | Challenges |
+| ---| --- | --- |
+| 1 - Configure the environment and raw import | Review the files that you need to import into Synapse Analytics, configure your solution accordingly, and complete the full import. | 1 |
+| 2 - Optimize data load | Create a data loading pipeline that provides a repeatable import process and meets the RTO requirements of a 60-minute full rebuild of the warehouse. | 2 |
+| 3 - Optimize performance of existing queries and create new queries | Uncover query performance issues and craft queries that help WWI unlock new insights into both historical and new data. | 3 |
+| 4 - Manage and monitor the solution | Protect WWI's data with an end-to-end security configuration for the data warehouse. Address the CIO's concerns about WWI's ability to monitor the data pipeline by providing visibility into each process and configuring alerts as needed. | 5 & 6 |
 
 ## Challenge pitfalls
 
