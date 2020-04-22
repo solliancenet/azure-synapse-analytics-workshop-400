@@ -1,12 +1,5 @@
 # Monitoring
 
-```
-Monitor Execution
-Monitor Hub: Pipelines, SQL Pools, Spark apps
-Troubleshooting 
-Workload Management
-```
-
 ## Task 1 - Workload Importance in Azure Synapse
 
 1. Open Synapse Analytics Studio, and then navigate to the `Develop` hub. Then open `Lab 08 - Exercise 1 - WorkLoad Importance` from the list of SQL Scripts. 
