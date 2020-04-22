@@ -155,7 +155,7 @@ When you query Parquet files using Synapse SQL Serverless, you can explore the d
 
 2. Expand **Storage accounts**. Expand the `asadatalake01` primary ADLS Gen2 account and select `wwi-02`.
 
-3. Navigate to the `wwi-02/sale/TransactionDate=20100102` folder. Right-click on the `sale-20100102.parquet` file, select **New SQL script**, then **Select TOP 100 rows**.
+3. Navigate to the `sale-small/Year=2010/Quarter=Q4/Month=12/Day=20101231` folder. Right-click on the `sale-small-20101231-snappy.parquet` file, select **New SQL script**, then **Select TOP 100 rows**.
 
     ![The Data hub is displayed with the options highlighted.](media/data-hub-parquet-select-rows.png "Select TOP 100 rows")
 
@@ -168,47 +168,45 @@ When you query Parquet files using Synapse SQL Serverless, you can explore the d
     ```sql
     SELECT
         TransactionDate, ProductId,
-        SUM(ProfitAmount) AS [(sum)ProfitAmount],
-        ROUND(AVG(Quantity),4) AS [(avg)Quantity],
-        SUM(Quantity) AS [(sum)Quantity]
+        CAST(SUM(ProfitAmount) AS decimal(18,2)) AS [(sum) Profit],
+        CAST(AVG(ProfitAmount) AS decimal(18,2)) AS [(avg) Profit],
+        SUM(Quantity) AS [(sum) Quantity]
     FROM
         OPENROWSET(
-            BULK 'https://asadatalake01.dfs.core.windows.net/wwi-02/sale/TransactionDate=20100102/sale-20100102.parquet',
+            BULK 'https://asadatalake01.dfs.core.windows.net/wwi-02/sale-small/Year=2010/Quarter=Q4/Month=12/Day=20101231/sale-small-20101231-snappy.parquet',
             FORMAT='PARQUET'
         ) AS [r] GROUP BY r.TransactionDate, r.ProductId;
     ```
 
     ![The T-SQL query above is displayed within the query window.](media/sql-serverless-aggregates.png "Query window")
 
-6. Now let's figure out how many records are contained within the Parquet files. This information is important for planning how we optimize for importing the data into Azure Synapse Analytics. To do this, replace your query with the following:
+6. Now let's figure out how many records are contained within the Parquet files for 2019 data. This information is important for planning how we optimize for importing the data into Azure Synapse Analytics. To do this, replace your query with the following:
 
     ```sql
     SELECT
-        COUNT(*)
+        COUNT_BIG(*)
     FROM
         OPENROWSET(
-            BULK 'https://asadatalake01.dfs.core.windows.net/wwi-02/sale/*/*',
+            BULK 'https://asadatalake01.dfs.core.windows.net/wwi-02/sale-small/Year=2019/*/*/*/*',
             FORMAT='PARQUET'
         ) AS [r];
     ```
 
-    > Notice how we updated the path to include all Parquet files in all subfolders of `sales`.
+    > Notice how we updated the path to include all Parquet files in all subfolders of `sale-small/Year=2019`.
+
+    The output should be **339507246** records.
 
 Optional: If you wish to keep this SQL script for future reference, select the Properties button, provide a descriptive name, such as `ASAL400 - Lab1 - Explore sales data`, then select **Publish all**.
 
 ![The SQL Script properties is displayed with the new script name, and the Publish all button is highlighted.](media/rename-publish-sql-script.png "SQL Script Properties")
 
-<!-- **TODO**: Update to show the total count of records once all data is available in the environment. -->
-
 ### Task 2: Query sales Parquet data with Azure Synapse Spark
 
-1. Navigate to the **Data** hub, browse to the data lake storage account folder `wwi-02/sale/TransactionDate=20100101`, then right-click the Parquet file and select New notebook.
+1. Navigate to the **Data** hub, browse to the data lake storage account folder `sale-small/Year=2010/Quarter=Q4/Month=12/Day=20101231`, then right-click the Parquet file and select New notebook.
 
     ![The Parquet file is displayed with the New notebook menu item highlighted.](media/new-spark-notebook-sales.png "New notebook")
 
 2. This will generate a notebook with PySpark code to load the data in a dataframe and display 100 rows with the header.
-
-    ![The new Spark notebook is displayed.](media/new-spark-notebook-sales-displayed.png "New notebook")
 
 3. Attach the notebook to a Spark pool.
 
