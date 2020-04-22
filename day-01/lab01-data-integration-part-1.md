@@ -918,10 +918,14 @@ To run loads with appropriate compute resources, create loading users designated
 
     ![The mapping is displayed.](media/pipeline-copy-sales-sink-mapping.png "Mapping")
 
-15. Select **Publish all** to save your new resources.
+15. Select **Settings** and set the **Data integration unit** to `32`. This is required due to the large size of the source Parquet file.
+
+    ![The data integration unit value is set to 32.](media/pipeline-copy-sales-settings.png "Settings")
+
+16. Select **Publish all** to save your new resources.
 
     ![Publish all is highlighted.](media/publish-all-1.png "Publish all")
 
-16. Select **Add trigger**, then **Trigger now**. Select **OK** in the pipeline run trigger to begin.
+17. Select **Add trigger**, then **Trigger now**. Select **OK** in the pipeline run trigger to begin.
 
     ![Trigger now.](media/copy-pipeline-trigger-now.png "Trigger now")
