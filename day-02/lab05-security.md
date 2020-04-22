@@ -260,8 +260,6 @@ We will now associate the Azure Active Directory groups that we've created with 
 
 When dealing with connectivity to external data sources and services, sensitive connection information such as passwords and access keys should be properly handled. It is recommended that this type of information be stored in an Azure Key Vault. Leveraging Azure Key Vault not only protects against secrets being compromised, it also serves as a central source of truth; meaning that if a secret value needs to be updated (such as when cycling access keys on a storage account), it can be changed in one place and all services consuming this key will start pulling the new value immediately. Azure Key Vault encrypts and decrypts information transparently using 256-bit AES encryption, which is FIPS 140-2 compliant.
 
-Azure Key Vault supports private endpoints. By establishing a private endpoint in the workspace managed VNet, all communication with the key vault from the workspace will occur on the private Azure network backbone.
-
 1. In **Azure Portal**, from the left menu select **+ Create a resource**.
 
    ![A portion of the Azure Portal left navigation menu is shown with the + Create a resource item selected.](media/lab5_portalcreatearesource.png)
