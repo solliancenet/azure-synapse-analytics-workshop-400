@@ -921,3 +921,7 @@ To run loads with appropriate compute resources, create loading users designated
 15. Select **Publish all** to save your new resources.
 
     ![Publish all is highlighted.](media/publish-all-1.png "Publish all")
+
+16. Select **Add trigger**, then **Trigger now**. Select **OK** in the pipeline run trigger to begin.
+
+    ![Trigger now.](media/copy-pipeline-trigger-now.png "Trigger now")
