@@ -12,8 +12,6 @@
     - [Task 2: Create campaign analytics data pipeline](#task-2-create-campaign-analytics-data-pipeline)
     - [Task 3: Run the campaign analytics data pipeline](#task-3-run-the-campaign-analytics-data-pipeline)
     - [Task 4: View campaign analytics table contents](#task-4-view-campaign-analytics-table-contents)
-    - [Task 1: Create user reviews data flow](#task-1-create-user-reviews-data-flow)
-    - [Task 2: Create user reviews data pipeline -->](#task-2-create-user-reviews-data-pipeline)
   - [Exercise 3: Create data pipeline to join disparate data sources](#exercise-3-create-data-pipeline-to-join-disparate-data-sources)
     - [Task 1: Create user profile data flow](#task-1-create-user-profile-data-flow)
     - [Task 2: Create user profile data pipeline](#task-2-create-user-profile-data-pipeline)
@@ -484,13 +482,9 @@ Now that the pipeline run is complete, let's take a look at the SQL table to ver
 
     ![The new query and chart view are displayed.](media/campaign-analytics-query-results-chart.png "Chart view")
 
-<!-- ## Exercise 3: Create data pipeline to import user reviews
+<!-- Exercise 3: Create data pipeline to import user reviews
 
-**TODO**: Add if there's time.
-
-### Task 1: Create user reviews data flow
-
-### Task 2: Create user reviews data pipeline -->
+**TODO**: Add if there's time. -->
 
 ## Exercise 3: Create data pipeline to join disparate data sources
 

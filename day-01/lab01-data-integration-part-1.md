@@ -155,7 +155,7 @@ When you query Parquet files using Synapse SQL Serverless, you can explore the d
 
 2. Expand **Storage accounts**. Expand the `asadatalake01` primary ADLS Gen2 account and select `wwi-02`.
 
-3. Navigate to the `wwi-02/sale/TransactionDate=20100102` folder. Right-click on the `sale-20100102.parquet` file, select **New SQL script**, then **Select TOP 100 rows**.
+3. Navigate to the `sale-small/Year=2010/Quarter=Q4/Month=12/Day=20101231` folder. Right-click on the `sale-small-20101231-snappy.parquet` file, select **New SQL script**, then **Select TOP 100 rows**.
 
     ![The Data hub is displayed with the options highlighted.](media/data-hub-parquet-select-rows.png "Select TOP 100 rows")
 
@@ -168,47 +168,45 @@ When you query Parquet files using Synapse SQL Serverless, you can explore the d
     ```sql
     SELECT
         TransactionDate, ProductId,
-        SUM(ProfitAmount) AS [(sum)ProfitAmount],
-        ROUND(AVG(Quantity),4) AS [(avg)Quantity],
-        SUM(Quantity) AS [(sum)Quantity]
+        CAST(SUM(ProfitAmount) AS decimal(18,2)) AS [(sum) Profit],
+        CAST(AVG(ProfitAmount) AS decimal(18,2)) AS [(avg) Profit],
+        SUM(Quantity) AS [(sum) Quantity]
     FROM
         OPENROWSET(
-            BULK 'https://asadatalake01.dfs.core.windows.net/wwi-02/sale/TransactionDate=20100102/sale-20100102.parquet',
+            BULK 'https://asadatalake01.dfs.core.windows.net/wwi-02/sale-small/Year=2010/Quarter=Q4/Month=12/Day=20101231/sale-small-20101231-snappy.parquet',
             FORMAT='PARQUET'
         ) AS [r] GROUP BY r.TransactionDate, r.ProductId;
     ```
 
     ![The T-SQL query above is displayed within the query window.](media/sql-serverless-aggregates.png "Query window")
 
-6. Now let's figure out how many records are contained within the Parquet files. This information is important for planning how we optimize for importing the data into Azure Synapse Analytics. To do this, replace your query with the following:
+6. Now let's figure out how many records are contained within the Parquet files for 2019 data. This information is important for planning how we optimize for importing the data into Azure Synapse Analytics. To do this, replace your query with the following:
 
     ```sql
     SELECT
-        COUNT(*)
+        COUNT_BIG(*)
     FROM
         OPENROWSET(
-            BULK 'https://asadatalake01.dfs.core.windows.net/wwi-02/sale/*/*',
+            BULK 'https://asadatalake01.dfs.core.windows.net/wwi-02/sale-small/Year=2019/*/*/*/*',
             FORMAT='PARQUET'
         ) AS [r];
     ```
 
-    > Notice how we updated the path to include all Parquet files in all subfolders of `sales`.
+    > Notice how we updated the path to include all Parquet files in all subfolders of `sale-small/Year=2019`.
+
+    The output should be **339507246** records.
 
 Optional: If you wish to keep this SQL script for future reference, select the Properties button, provide a descriptive name, such as `ASAL400 - Lab1 - Explore sales data`, then select **Publish all**.
 
 ![The SQL Script properties is displayed with the new script name, and the Publish all button is highlighted.](media/rename-publish-sql-script.png "SQL Script Properties")
 
-<!-- **TODO**: Update to show the total count of records once all data is available in the environment. -->
-
 ### Task 2: Query sales Parquet data with Azure Synapse Spark
 
-1. Navigate to the **Data** hub, browse to the data lake storage account folder `wwi-02/sale/TransactionDate=20100101`, then right-click the Parquet file and select New notebook.
+1. Navigate to the **Data** hub, browse to the data lake storage account folder `sale-small/Year=2010/Quarter=Q4/Month=12/Day=20101231`, then right-click the Parquet file and select New notebook.
 
     ![The Parquet file is displayed with the New notebook menu item highlighted.](media/new-spark-notebook-sales.png "New notebook")
 
 2. This will generate a notebook with PySpark code to load the data in a dataframe and display 100 rows with the header.
-
-    ![The new Spark notebook is displayed.](media/new-spark-notebook-sales-displayed.png "New notebook")
 
 3. Attach the notebook to a Spark pool.
 
@@ -224,7 +222,7 @@ Optional: If you wish to keep this SQL script for future reference, select the P
     display(data_path.limit(100))
     ```
 
-    ![The Sales query is shown with the Display option.](media/spark-display-sales.png "Sales - Display")
+    <!-- ![The Sales query is shown with the Display option.](media/spark-display-sales.png "Sales - Display") -->
 
     > **Note:** To run just the cell, either hover over the cell and select the _Run cell_ icon to the left of the cell, or select the cell then type **Ctrl+Enter** on your keyboard.
 
@@ -898,7 +896,7 @@ To run loads with appropriate compute resources, create loading users designated
 
 8. Choose the **Parquet** format, then select **Continue**.
 
-9. In the properties, set the name to **asal400_december_sales** and select the **asadatalake01** linked service. Browse to the `wwi-02/campaign-analytics/large-sale-december2010-snappy.parquet` file location, select **From sample file** for schema import. [Download this sample file](media/sale-small-20100102-snappy.parquet) to your computer, then browse to it in the **Select file** field. Select **OK**.
+9. In the properties, set the name to **asal400_december_sales** and select the **asadatalake01** linked service. Browse to the `wwi-02/campaign-analytics/large-sale-december2010-snappy.parquet` file location, select **From sample file** for schema import. [Download this sample file](media/sale-small-20100102-snappy.parquet?raw=true) to your computer, then browse to it in the **Select file** field. Select **OK**.
 
     ![The properties are displayed.](media/pipeline-copy-sales-source-dataset.png "Dataset properties")
 
@@ -918,10 +916,22 @@ To run loads with appropriate compute resources, create loading users designated
 
     ![The mapping is displayed.](media/pipeline-copy-sales-sink-mapping.png "Mapping")
 
-15. Select **Publish all** to save your new resources.
+15. Select **Settings** and set the **Data integration unit** to `32`. This is required due to the large size of the source Parquet file.
+
+    ![The data integration unit value is set to 32.](media/pipeline-copy-sales-settings.png "Settings")
+
+16. Select **Publish all** to save your new resources.
 
     ![Publish all is highlighted.](media/publish-all-1.png "Publish all")
 
-16. Select **Add trigger**, then **Trigger now**. Select **OK** in the pipeline run trigger to begin.
+17. Select **Add trigger**, then **Trigger now**. Select **OK** in the pipeline run trigger to begin.
 
     ![Trigger now.](media/copy-pipeline-trigger-now.png "Trigger now")
+
+18. Navigate to the **Monitor** hub.
+
+    ![The Monitor hub menu item is selected.](media/monitor-hub.png "Monitor hub")
+
+19. You can see the status of your pipeline run here. It will take some time to complete, and you may need to refresh the view. Once the pipeline run is complete, you can query the `wwi_staging.SaleHeap` table to view the imported data.
+
+    ![The completed pipeline run is displayed.](media/pipeline-copy-sales-pipeline-run.png "Pipeline runs")
