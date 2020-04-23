@@ -36,6 +36,7 @@ WWI loaded their data to the primary ADLS Gen2 account for the Synapse Analytics
 
 - **All data** is migrated to the SQL pool. This is a raw import, which means that your focus is not on repeatability of the data load process.
 - There are no time constraints on the data loading operation, but be mindful of leaving time for the remaining challenges.
+  - Consider working with a subset of both the CSV and Parquet files as you iterate through your data loading process. Test your assumptions with sample sizes before loading the entire data set.
 
 ### Resources
 
@@ -75,7 +76,13 @@ WWI has supplied the following business-critical queries that they currently use
 
 Leadership wants to see some early, tangible benefit from the data modernization effort. They've been sold on the "art of the possible" and how Synapse helps unlock new insights on their data. These queries should have a visual component that gets decision makers excited about where the company is headed and have instant transference of complicated sales data into easy-to-understand market insights. They have described the following queries they'd like to see in the new system:
 
-**TODO:** List conceptual/pseudo queries here.
+- What is the evolution rate (increase in frequency of purchases and the overall value of those purchases) month-over-month for customers overall?
+  - What is the evolution rate for individual customers?
+- We tend to see more sales during the week vs. the weekend. Can you identify the customers who make more than the average number of weekend purchases, where they shop, and what their top products are?
+- What percentage of our customers prefer to buy from the same set of stores?
+- We have seasonal products that sell very well. We want to know what percentage of our customers have a strong preference for purchasing seasonal products vs. non-seasonal products during the seasonal days? Is there a stronger preference overall for seasonal products sold during one season over the other?
+- We would like to see the top 10 products that have a combination of the highest profit and highest number of sales each month.
+  - Can you identify products that have the highest profit, but do not meet the top 10 criteria in sales so we can build a "hit list" of products we want to focus on promoting to our customers?
 
 ### Success criteria
 
