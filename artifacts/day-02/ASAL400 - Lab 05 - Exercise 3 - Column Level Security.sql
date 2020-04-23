@@ -43,5 +43,5 @@
 
     -- Step:6 Let us check if our CEO user can see all the information that is present. Assign Current User As 'CEO' and the execute the query
     EXECUTE AS USER ='CEO'
-    select * from wwi.CampaignAnalytics
+    select * from wwi_security.Sale
     Revert;
