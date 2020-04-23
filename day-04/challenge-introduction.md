@@ -39,19 +39,19 @@ In this challenge, you are expected to achieve the following major goals:
 
 The following table describes the pitfalls hidden in the challenge:
 
-Name | Description
---- | ---
-Poor initial table design | There is already some data in the SQL pool in several poorly designed fact tables. The following problems are "hidden" in the structure: <br>- Sub-optimal distribution strategy<br>- Sub-optimal partitioning strategy<br>- Incorrect indexing<br>- Incorrect data types used for several fields<br><br> The purpose is to mislead attendees in (wrongly) assuming the existing data is "good to go". When this assumption is made without corrective actions, all the subsequent tasks will be impacted.
-Missing CR-LF in several CSV files | Some of the external CSV files are "corrupted". A misbehaving export tool has removed all CR-LF characters, literally leaving the files as huge, one-row files.<br><br>The purspose is to force advanced, high-scale data exploration and preparation. Should only work in a decent amount of time is Spark is used.
-Separation issues in CSV files | The CSV files use `,` as separator. There are string columns that contain both `"` and `,` characters which makes processing the CSV files error prone.<br><br>The purspose is to force advanced, high-scale data exploration and preparation. Should only work in a decent amount of time is Spark is used.
-Some inputs come in ZIP files | Forces the use of Spark. Level 1 - can you deal with a ZIP file? Level 2 - can you deal with a massive number of ZIP files?
-The sheer volume of data | The sales data contains around 30 billion records. Any data processing will "suffer" performance-wise.<br><br>The purpose is to limit the number of trial-and-error cycles attendees can run.
-Sub-optimal structure of existing queries | The existing queries feature several T-SQL issues, most of them apparent.<br><br>The purpose is to lure attendees into a process of T-SQL code optimization and move them away from table structure optimization.
-Gotchas for data flows, pipelines | Predictable performance of pipelines, time cap on the execution time of pipelines.
-Delta lake approach | The purpose is to force attendees into thinking about the data quality/reliability vs speed of delivery compromise.
-Gaps in the incoming stream of sales files | Every now and then, some files will simply not be available. This will have an impact on the quality of data at bronze and silver levels.<br><br>The purpose is to force attendees into dealing with presentation inconsistencies originating from delayed data.
-Security | TBD
-Monitoring | TBD
+| Name | Description |
+| --- | --- |
+| Poor initial table design | There is already some data in the SQL pool in several poorly designed fact tables. The following problems are "hidden" in the structure: <br>- Sub-optimal distribution strategy<br>- Sub-optimal partitioning strategy<br>- Incorrect indexing<br>- Incorrect data types used for several fields<br><br> The purpose is to mislead attendees in (wrongly) assuming the existing data is "good to go". When this assumption is made without corrective actions, all the subsequent tasks will be impacted. |
+| Missing CR-LF in several CSV files | Some of the external CSV files are "corrupted". A misbehaving export tool has removed all CR-LF characters, literally leaving the files as huge, one-row files.<br><br>The purpose is to force advanced, high-scale data exploration and preparation. Should only work in a decent amount of time is Spark is used. |
+| Separation issues in CSV files | The CSV files use `,` as separator. There are string columns that contain both `"` and `,` characters which makes processing the CSV files error prone.<br><br>The purpose is to force advanced, high-scale data exploration and preparation. Should only work in a decent amount of time is Spark is used. |
+| Some inputs come in ZIP files | Forces the use of Spark. Level 1 - can you deal with a ZIP file? Level 2 - can you deal with a massive number of ZIP files? |
+| The sheer volume of data | The sales data contains around 30 billion records. Any data processing will "suffer" performance-wise.<br><br>The purpose is to limit the number of trial-and-error cycles attendees can run. |
+| Sub-optimal structure of existing queries | The existing queries feature several T-SQL issues, most of them apparent.<br><br>The purpose is to lure attendees into a process of T-SQL code optimization and move them away from table structure optimization. |
+| Gotchas for data flows, pipelines | Predictable performance of pipelines, time cap on the execution time of pipelines. |
+| Delta lake approach | The purpose is to force attendees into thinking about the data quality/reliability vs speed of delivery compromise. |
+| Gaps in the incoming stream of sales files | Every now and then, some files will simply not be available. This will have an impact on the quality of data at bronze and silver levels.<br><br>The purpose is to force attendees into dealing with presentation inconsistencies originating from delayed data. |
+| Security | TBD |
+| Monitoring | TBD |
 
 ## Links
 

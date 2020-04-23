@@ -1,15 +1,4 @@
 # Team challenges
-- [Team challenges](#team-challenges)
-  - [Introduction](#introduction)
-  - [Completing the challenges](#completing-the-challenges)
-  - [1 - Configure the environment and raw import](#1---configure-the-environment-and-raw-import)
-    - [Background story](#background-story)
-    - [Technical details](#technical-details)
-    - [Success criteria](#success-criteria)
-    - [Resources](#resources)
-  - [2 - Optimize data load](#2---optimize-data-load)
-  - [3 - Optimize performance of existing queries and create new queries](#3---optimize-performance-of-existing-queries-and-create-new-queries)
-  - [4 - Manage and monitor the solution](#4---manage-and-monitor-the-solution)
 
 ## Introduction
 
@@ -39,9 +28,14 @@ Sales data is currently being inserted into the SQL pool. About 30% of the data 
 
 One of WWI's large LOB systems switched how they export sales data around August 2012. This is why there is a mix of CSV and Parquet files. The CSV external files cover May - August 2012, and the Parquet external files cover September - December 2012.
 
+### WWI resources
+
+WWI loaded their data to the primary ADLS Gen2 account for the Synapse Analytics workspace. You can find the files in the following path: **`TODO: Insert path here`**
+
 ### Success criteria
 
-Bulleted list of criteria.
+- **All data** is migrated to the SQL pool. This is a raw import, which means that your focus is not on repeatability of the data load process.
+- There are no time constraints on the data loading operation, but be mindful of leaving time for the remaining challenges.
 
 ### Resources
 
@@ -49,6 +43,67 @@ Reference links
 
 ## 2 - Optimize data load
 
+### Background story
+
+Importing all of the existing data is only part of the data load story. Wide World Importers has a recovery-time objective (RTO) of 60 minutes for a full rebuild of the warehouse. If, during testing and experimentation, for example, data gets corrupted in the SQL pool, they want to be able to completely rebuild the warehouse for a new iteration of testing. The data engineers lack confidence in the warehouse and have grown accustomed to iterating over snapshots of their data throughout the process. This RTO gives them the confidence to proceed with further testing and configuration of the system.
+
+**Note: Is this only applicable if we use Delta?** In addition to the RTO requirements, top management is demanding more and more a departure from the traditional "analyze today, yesterday's data". The goal is to significantly reduce the gap between the moment data is generated and the moment it ends up in dashboards.
+
+### Success criteria
+
+- You have created a data loading pipeline that provides a repeatable import process and meets the RTO requirements of a 60-minute full rebuild of the warehouse.
+- You have proven this process by wiping out the database and conducting a full import with predictable results and processing time.
+- The data loading resource takes priority over all other resources connected to the SQL pool.
+
 ## 3 - Optimize performance of existing queries and create new queries
 
+### Background story
+
+Wide World Importers currently uses an on-premises SQL Server for their sales data mart. They come from a strictly traditional relational database background and are unfamiliar with MPP systems like Synapse Analytics. As such, they are confused as to why their T-SQL queries are not performing as expected.
+
+These business-critical queries take a long time to complete, which makes them nervous about executing the same queries against a full load of their data. As such, the current query speeds do not meet their business needs, nor do they give WWI confidence that they will be able to realistically execute new types of queries to meet emerging requirements.
+
+### Technical details
+
+WWI has supplied the following business-critical queries that they currently use and suffer significant performance issues:
+
+#### Business-critical queries
+
+**TODO:** List T-SQL queries here.
+
+#### Query wish list
+
+Leadership wants to see some early, tangible benefit from the data modernization effort. They've been sold on the "art of the possible" and how Synapse helps unlock new insights on their data. These queries should have a visual component that gets decision makers excited about where the company is headed and have instant transference of complicated sales data into easy-to-understand market insights. They have described the following queries they'd like to see in the new system:
+
+**TODO:** List conceptual/pseudo queries here.
+
+### Success criteria
+
+- Business-critical queries must run in under 5 minutes per query.
+- New queries based off the "query wish list". These queries must also execute at human-interactive speeds.
+  - Create compelling visualizations for the new queries.
+  - Implement RBAC on the new reports, showing information pertinent to the logged in user, based on the criteria outlined above.
+
 ## 4 - Manage and monitor the solution
+
+### Background story
+
+Wide World Importers has a commitment to their customers that they will protect their information from data leakage. They also have a commitment to higher authorities that they will maintain industry-standard compliance in handling and storing data, and to their shareholders that they will be responsible stewards of sensitive competitive data. All of these commitments have understandably given the CISO a lot of angst around ensuring absolute protection of the data and systems that access it, throughout the architecture's components. This new analytics solution is one part of a company-wide security initiative that the CISO is driving. There is an additional level of scrutiny on this project because it is a departure from their trusted on-premises sphere of influence. There is still an inherent mistrust of the cloud by some in WWI's leadership. The CISO wants to be able to assure them that the solution meets several key security requirements, including securing end-to-end data process, from the external files all the way to the serving layer.
+
+In addition, one of the current major pain points for the CIO is the limited capabilities of insights into various data processes. The CIO expects the new solution to significantly increase the visibility into all the data processes developed as part of the new analytical solution.
+
+### Technical details
+
+As you and your team plan the security and monitoring aspects of the solution, keep in mind that best practices must be followed for all components of your data pipeline. Data must be encrypted in-transit and at rest. You must follow least privilege access guidelines and make sure that auditing and monitoring are key aspects of your delivery.
+
+### Success criteria
+
+- Implement and demonstrate end-to-end security measures for the data warehouse rebuild process.
+  - Least-privilege access is incorporated.
+  - Secrets are encrypted and not available in clear text, anywhere in the configuration.
+    - Want to maintain exclusive control over the keys to used to encrypt the data warehouse data at rest. They do not want Microsoft or any other entity to provide or have access to these keys.
+  - RBAC is implemented at both the data source (only system-level accounts access the source data), and at the serving layer. If you do not fully implement RBAC, you must be able to explain to your coach how you plan to implement it.
+  - Network-level security.
+  - Will need the flexibility to assign users to groups who should have access to the workspace, as well those that might have elevated permissions, such as those who can administer the entire Synapse Workspace, or manage just the Spark or SQL Pools or use Pipelines.
+- Monitor all data processes and react to potential problems that might occur.
+  - Monitor for suspicious traffic against the storage account and receive alerts for any flagged incidents.
