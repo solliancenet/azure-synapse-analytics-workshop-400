@@ -1,1 +1,2 @@
-# azure-synapse-analytics-workshop-400
+# Day 1 artifacts
+

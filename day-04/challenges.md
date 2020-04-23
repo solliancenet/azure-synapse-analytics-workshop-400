@@ -57,10 +57,13 @@ Importing all of the existing data is only part of the data load story. Wide Wor
 
 **Note: Is this only applicable if we use Delta?** In addition to the RTO requirements, top management is demanding more and more a departure from the traditional "analyze today, yesterday's data". The goal is to significantly reduce the gap between the moment data is generated and the moment it ends up in dashboards.
 
+Data post-2012 is now coming in as a continuous stream of Parquet files. Propose and implement a delta lake architecture where top management can get data with various compromises between speed of delivery and accuracy/completeness. Provide a bronze level where freshly collected sales data is analyzed using Synapse SQL Serverless and exposed into dashboards. Provide a silver level where data quality has been increased via data engineering. Finally, provide the gold level where top-quality data has been persisted in a Synapse SQL Pool.
+
 ### Success criteria
 
 - You have created a data loading pipeline that provides a repeatable import process and meets the RTO requirements of a 60-minute full rebuild of the warehouse.
-- You have proven this process by wiping out the database and conducting a full import with predictable results and processing time.
+- You have proven this process by wiping out the database (excluding pre-existing data) and conducting a full import with predictable results and processing time.
+- You store all raw data in a bronze folder, cleaned up data in a silver folder, and all fully-transformed data stores in the SQL pool.
 - The data loading resource takes priority over all other resources connected to the SQL pool.
 
 ## 3 - Optimize performance of existing queries and create new queries
