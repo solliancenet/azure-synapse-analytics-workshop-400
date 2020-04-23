@@ -5,7 +5,7 @@
     - [Task 1 - Identify performance issues related to tables](#task-1---identify-performance-issues-related-to-tables)
     - [Task 2 - Improve table structure with hash distribution and columnstore index](#task-2---improve-table-structure-with-hash-distribution-and-columnstore-index)
     - [Task 3 - Improve further the structure of the table with partitioning](#task-3---improve-further-the-structure-of-the-table-with-partitioning)
-  - [Exercise 2 - Improve query perofrmance](#exercise-2---improve-query-perofrmance)
+  - [Exercise 2 - Improve query performance](#exercise-2---improve-query-performance)
     - [Task 1 -  Improve COUNT performance](#task-1---improve-count-performance)
     - [Task 2 - Use materialized views](#task-2---use-materialized-views)
     - [Task 3 - Use result set caching](#task-3---use-result-set-caching)
@@ -255,7 +255,7 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
 
 ### Task 2 - Improve table structure with hash distribution and columnstore index
 
-1. Create an improved version of the table using CTAS:
+1. Create an improved version of the table using CTAS (Create Table As Select):
 
     ```sql
     CREATE TABLE [wwi_perf].[Sale_Hash]
@@ -270,6 +270,7 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
     FROM	
         [wwi_perf].[Sale_Heap]
     ```
+
     The query will take about 10 minutes to complete.
 
     >Note:
@@ -281,7 +282,7 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
 2. Run the query again to see the performance improvements:
 
     ```sql
-    SELECT TOP 100 * FROM
+    SELECT TOP 1000 * FROM
     (
         SELECT
             S.CustomerId
@@ -295,10 +296,26 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
 
 3. Run the EXPLAIN statement again to get the query plan:
 
+    ```sql
+    EXPLAIN
+    SELECT TOP 1000 * FROM
+    (
+        SELECT
+            S.CustomerId
+            ,SUM(S.TotalAmount) as TotalAmount
+        FROM
+            [wwi_perf].[Sale_Hash] S
+        GROUP BY
+            S.CustomerId
+    ) T
+    ```
+
+    The resulting query plan is clearly much better than the previous one, as there is no more inter-distribution data movement involved.
+
     ```xml
-    <?xml version=""1.0"" encoding=""utf-8""?>
-    <dsql_query number_nodes=""4"" number_distributions=""60"" number_distributions_per_node=""15"">
-    <sql>SELECT TOP 100 * FROM
+    <?xml version="1.0" encoding="utf-8"?>
+    <dsql_query number_nodes="5" number_distributions="60" number_distributions_per_node="12">
+    <sql>SELECT TOP 1000 * FROM
     (
         SELECT
             S.CustomerId
@@ -308,32 +325,37 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
         GROUP BY
             S.CustomerId
     ) T</sql>
-    <dsql_operations total_cost=""0"" total_number_operations=""1"">
-        <dsql_operation operation_type=""RETURN"">
-        <location distribution=""AllDistributions"" />
-        <select>SELECT [T1_1].[CustomerId] AS [CustomerId], [T1_1].[col] AS [col] FROM (SELECT TOP (CAST ((100) AS BIGINT)) SUM([T2_1].[TotalAmount]) AS [col], [T2_1].[CustomerId] AS [CustomerId] FROM [SQLPool02].[wwi_perf].[Sale_Hash] AS T2_1 GROUP BY [T2_1].[CustomerId]) AS T1_1
-    OPTION (MAXDOP 4)</select>
+    <dsql_operations total_cost="0" total_number_operations="1">
+        <dsql_operation operation_type="RETURN">
+        <location distribution="AllDistributions" />
+        <select>SELECT [T1_1].[CustomerId] AS [CustomerId], [T1_1].[col] AS [col] FROM (SELECT TOP (CAST ((1000) AS BIGINT)) SUM([T2_1].[TotalAmount]) AS [col], [T2_1].[CustomerId] AS [CustomerId] FROM [SQLPool02].[wwi_perf].[Sale_Hash] AS T2_1 GROUP BY [T2_1].[CustomerId]) AS T1_1
+    OPTION (MAXDOP 6)</select>
         </dsql_operation>
     </dsql_operations>
     </dsql_query>
     ```
 
-    Notice the significant difference from the previous run.
-
-4. Increase the complexity of the query and run it again:
+4. Try running a more complex query and investigate the execution plan and execution steps. Here is an example of a more complex query you can use:
 
     ```sql
-    SELECT TOP 100 * FROM
+    SELECT 
+        AVG(TotalProfit) as AvgMonthlyCustomerProfit
+    FROM
     (
         SELECT
             S.CustomerId
             ,D.Year
             ,D.Month
             ,SUM(S.TotalAmount) as TotalAmount
+            ,AVG(S.TotalAmount) as AvgAmount
+            ,SUM(S.ProfitAmount) as TotalProfit
+            ,AVG(S.ProfitAmount) as AvgProfit
         FROM
-            [wwi_perf].[Sale_Hash] S
+            [wwi_perf].[Sale_Partition01] S
             join [wwi].[Date] D on 
                 D.DateId = S.TransactionDateId
+        WHERE
+            D.Year in (2010, 2011, 2012, 2013, 2014)
         GROUP BY
             S.CustomerId
             ,D.Year
@@ -343,90 +365,83 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
 
 ### Task 3 - Improve further the structure of the table with partitioning
 
-1. Use CTAS to create an improved copy of the table:
+Date columns are usually good candidates for partitioning tables at the distributions level. In the case of your sales data, partitioning based on the `TransactionDateId` column seems to be a good choice.
 
-    ```sql
-    CREATE TABLE [wwi_perf].[Sale_Hash]
-    WITH
+Your SQL pool already contains two versions of the `Sale` table that have been partitioned using `TransactionDateId`. These tables are `[wwi_perf].[Sale_Partition01]` annd `[wwi_perf].[Sale_Partition02]`. Below are the CTAS queries that have been used to create these tables.
+
+>**Note**
+>
+>These queries have already been run on the SQL pool. If you want to test the CTAS queries yourself, make sure you replace the table names with new ones.
+
+```sql
+CREATE TABLE [wwi_perf].[Sale_Partition01]
+WITH
+(
+    DISTRIBUTION = HASH ( [CustomerId] ),
+    CLUSTERED COLUMNSTORE INDEX,
+    PARTITION
     (
-        DISTRIBUTION = HASH ( [CustomerId] ),
-        CLUSTERED COLUMNSTORE INDEX
+        [TransactionDateId] RANGE RIGHT FOR VALUES (
+            20100101, 20100201, 20100301, 20100401, 20100501, 20100601, 20100701, 20100801, 20100901, 20101001, 20101101, 20101201,
+            20110101, 20110201, 20110301, 20110401, 20110501, 20110601, 20110701, 20110801, 20110901, 20111001, 20111101, 20111201,
+            20120101, 20120201, 20120301, 20120401, 20120501, 20120601, 20120701, 20120801, 20120901, 20121001, 20121101, 20121201,
+            20130101, 20130201, 20130301, 20130401, 20130501, 20130601, 20130701, 20130801, 20130901, 20131001, 20131101, 20131201,
+            20140101, 20140201, 20140301, 20140401, 20140501, 20140601, 20140701, 20140801, 20140901, 20141001, 20141101, 20141201,
+            20150101, 20150201, 20150301, 20150401, 20150501, 20150601, 20150701, 20150801, 20150901, 20151001, 20151101, 20151201,
+            20160101, 20160201, 20160301, 20160401, 20160501, 20160601, 20160701, 20160801, 20160901, 20161001, 20161101, 20161201,
+            20170101, 20170201, 20170301, 20170401, 20170501, 20170601, 20170701, 20170801, 20170901, 20171001, 20171101, 20171201,
+            20180101, 20180201, 20180301, 20180401, 20180501, 20180601, 20180701, 20180801, 20180901, 20181001, 20181101, 20181201,
+            20190101, 20190201, 20190301, 20190401, 20190501, 20190601, 20190701, 20190801, 20190901, 20191001, 20191101, 20191201)
     )
-    AS
-    SELECT
-        *
-    FROM	
-        [wwi_perf].[Sale_Heap]
-    OPTION  (LABEL  = 'CTAS : Sale_Hash')
+)
+AS
+SELECT
+    *
+FROM	
+    [wwi_perf].[Sale_Heap]
+OPTION  (LABEL  = 'CTAS : Sale_Partition01')
 
-    CREATE TABLE [wwi_perf].[Sale_Partition01]
-    WITH
+CREATE TABLE [wwi_perf].[Sale_Partition02]
+WITH
+(
+    DISTRIBUTION = HASH ( [CustomerId] ),
+    CLUSTERED COLUMNSTORE INDEX,
+    PARTITION
     (
-        DISTRIBUTION = HASH ( [CustomerId] ),
-        CLUSTERED COLUMNSTORE INDEX,
-        PARTITION
-        (
-            [TransactionDateId] RANGE RIGHT FOR VALUES (
-                20100101, 20100201, 20100301, 20100401, 20100501, 20100601, 20100701, 20100801, 20100901, 20101001, 20101101, 20101201, 
-                20110101, 20110201, 20110301, 20110401, 20110501, 20110601, 20110701, 20110801, 20110901, 20111001, 20111101, 20111201, 
-                20120101, 20120201, 20120301, 20120401, 20120501, 20120601, 20120701, 20120801, 20120901, 20121001, 20121101, 20121201, 
-                20130101, 20130201, 20130301, 20130401, 20130501, 20130601, 20130701, 20130801, 20130901, 20131001, 20131101, 20131201, 
-                20140101, 20140201, 20140301, 20140401, 20140501, 20140601, 20140701, 20140801, 20140901, 20141001, 20141101, 20141201, 
-                20150101, 20150201, 20150301, 20150401, 20150501, 20150601, 20150701, 20150801, 20150901, 20151001, 20151101, 20151201, 
-                20160101, 20160201, 20160301, 20160401, 20160501, 20160601, 20160701, 20160801, 20160901, 20161001, 20161101, 20161201, 
-                20170101, 20170201, 20170301, 20170401, 20170501, 20170601, 20170701, 20170801, 20170901, 20171001, 20171101, 20171201, 
-                20180101, 20180201, 20180301, 20180401, 20180501, 20180601, 20180701, 20180801, 20180901, 20181001, 20181101, 20181201, 
-                20190101, 20190201, 20190301, 20190401, 20190501, 20190601, 20190701, 20190801, 20190901, 20191001, 20191101, 20191201)
-        )
+        [TransactionDateId] RANGE RIGHT FOR VALUES (
+            20100101, 20100401, 20100701, 20101001,
+            20110101, 20110401, 20110701, 20111001,
+            20120101, 20120401, 20120701, 20121001,
+            20130101, 20130401, 20130701, 20131001,
+            20140101, 20140401, 20140701, 20141001,
+            20150101, 20150401, 20150701, 20151001,
+            20160101, 20160401, 20160701, 20161001,
+            20170101, 20170401, 20170701, 20171001,
+            20180101, 20180401, 20180701, 20181001,
+            20190101, 20190401, 20190701, 20191001)
     )
-    AS
-    SELECT
-        *
-    FROM	
-        [wwi_perf].[Sale_Heap]
-    OPTION  (LABEL  = 'CTAS : Sale_Partition01')
+)
+AS
+SELECT
+    *
+FROM	
+    [wwi_perf].[Sale_Heap]
+OPTION  (LABEL  = 'CTAS : Sale_Partition02')
+```
 
-    CREATE TABLE [wwi_perf].[Sale_Partition02]
-    WITH
-    (
-        DISTRIBUTION = HASH ( [CustomerId] ),
-        CLUSTERED COLUMNSTORE INDEX,
-        PARTITION
-        (
-            [TransactionDateId] RANGE RIGHT FOR VALUES (
-                20100101, 20100401, 20100701, 20101001, 
-                20110101, 20110401, 20110701, 20111001, 
-                20120101, 20120401, 20120701, 20121001, 
-                20130101, 20130401, 20130701, 20131001, 
-                20140101, 20140401, 20140701, 20141001, 
-                20150101, 20150401, 20150701, 20151001, 
-                20160101, 20160401, 20160701, 20161001, 
-                20170101, 20170401, 20170701, 20171001, 
-                20180101, 20180401, 20180701, 20181001, 
-                20190101, 20190401, 20190701, 20191001)
-        )
-    )
-    AS
-    SELECT
-        *
-    FROM	
-        [wwi_perf].[Sale_Heap]
-    OPTION  (LABEL  = 'CTAS : Sale_Partition02')
-    ```
+Notice the two partitioning strategies we've used here. The first partitioning scheme is month-based and the second is quarter-based. You will explore in Lab 04 the subtle differences between these and understand the potential performance implications resulting from these choices.
 
-2. Notice the two partitioning strategies we've used here. You will explore in Lab 04 the subtle differences between these and understand why one of them helps performance and the other one actually hurts it.
-
-## Exercise 2 - Improve query perofrmance
+## Exercise 2 - Improve query performance
 
 ### Task 1 -  Improve COUNT performance
 
-1. Count the distinct customer values in `Sale_Heap`:
+1. The following query attempts to find the TOP 100 of customers that have the most sale transactions:
 
     ```sql
     SELECT COUNT( DISTINCT CustomerId) from wwi_perf.Sale_Heap
     ```
 
-    Query takes about 20 seconds to execute.
+    Query takes up to 20 seconds to execute. That is expected, since distinct counts are one of the most difficult to optimize types of queries.
 
 2. Run the HyperLogLog approach:
 
