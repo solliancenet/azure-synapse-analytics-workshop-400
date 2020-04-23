@@ -81,6 +81,8 @@ Leadership wants to see some early, tangible benefit from the data modernization
 
 - Business-critical queries must run in under 5 minutes per query.
 - New queries based off the "query wish list". These queries must also execute at human-interactive speeds.
+  - Create compelling visualizations for the new queries.
+  - Implement RBAC on the new reports, showing information pertinent to the logged in user, based on the criteria outlined above.
 
 ## 4 - Manage and monitor the solution
 
