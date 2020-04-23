@@ -70,6 +70,10 @@ If the team does not take the time to evaluate the data before immediately impor
 
 ### Things to watch out for
 
+| Name | Description |
+| --- | --- |
+| Gotchas for data flows, pipelines | Predictable performance of pipelines, time cap on the execution time of pipelines. |
+
 ## 3 - Optimize performance of existing queries and create new queries
 
 ### Happy path
@@ -77,6 +81,12 @@ If the team does not take the time to evaluate the data before immediately impor
 ### Coach's notes
 
 ### Things to watch out for
+
+| Name | Description |
+| --- | --- |
+| Sub-optimal structure of existing queries | The existing queries feature several T-SQL issues, most of them apparent.<br><br>The purpose is to lure attendees into a process of T-SQL code optimization and move them away from table structure optimization. |
+| Delta lake approach | The purpose is to force attendees into thinking about the data quality/reliability vs speed of delivery compromise. |
+| Gaps in the incoming stream of sales files | Every now and then, some files will simply not be available. This will have an impact on the quality of data at bronze and silver levels.<br><br>The purpose is to force attendees into dealing with presentation inconsistencies originating from delayed data. |
 
 ## 4 - Manage and monitor the solution
 
