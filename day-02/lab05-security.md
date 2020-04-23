@@ -92,16 +92,16 @@ For WWI in particular, in Activity 1, it was determined that they require four a
 | Group                             | Description                                                                        |
 |-----------------------------------|------------------------------------------------------------------------------------|
 | wwi-history-owners                | Users that have full access to all raw sales data                                  |
-| wwi-2020-contributors             | Security group that allows full access to the current year raw sales data. This group will only contain other security groups, it is not meant for individual user assignment.         |
-| wwi-current-contributors          | For users that need complete control over the current year raw sales data.         |
+| wwi-2020-writers             | Security group that allows full access to the current year raw sales data. This group will only contain other security groups, it is not meant for individual user assignment.         |
+| wwi-current-writers          | For users that need complete control over the current year raw sales data.         |
 | wwi-readers                       | Read-only access to all raw sales data.      |
 
 The inheritance hierarchy for the WWI groups is as follows:
 
 | Group                           | Members                                                                                |
 |---------------------------------|----------------------------------------------------------------------------------------|
-| wwi-2020-contributors           | wwi-current-contributors                                                               |
-| wwi-current-contributors        | wwi-readers                                                                            |
+| wwi-2020-writers           | wwi-current-writers                                                               |
+| wwi-current-writers        | wwi-readers                                                                            |
 
 > **Note**: You may review the Security Group setup by accessing Azure Active Directory from the Azure Portal, and selecting **Groups** from the AAD menu.
 
@@ -544,7 +544,7 @@ Possible POSIX access permissions are as follows:
 | 4            | R--        | Read                   |
 | 0            | ---        | No permissions         |
 
-On the first day, in Activity 1, you were introduced to the concept of the security surrounding storage account containers and files. As part of that exercise, the **wwi-2020-contributors** Active Directory Group is to be granted Read, Write and Execute privileges on the current year's data stored in CSV files located in storage.
+On the first day, in Activity 1, you were introduced to the concept of the security surrounding storage account containers and files. As part of that exercise, the **wwi-2020-writers** Active Directory Group is to be granted Read, Write and Execute privileges on the current year's data stored in CSV files located in storage.
 
 1. In **Synapse Analytics Studio**, select the **Data** item from the left menu.
 
@@ -562,7 +562,7 @@ On the first day, in Activity 1, you were introduced to the concept of the secur
 
    ![The Manage Access blade is shown for a directory. The $superuser principal is selected from the top table, and in the permissions section it shows the access as being Read and Execute. The Default box is present (but not checked), and there is a textbox and Add button available to add additional principals to the access list.](media/lab5_synapsestudiomanageaccessdirectoryblade.png)
 
-5. In order to add a user group or permission, you would need to first enter the User Principal Name (UPN) or Object ID for the principal and select the **Add** button. As an example, we will obtain the Object ID for the **wwi-2020-contributors** security group.
+5. In order to add a user group or permission, you would need to first enter the User Principal Name (UPN) or Object ID for the principal and select the **Add** button. As an example, we will obtain the Object ID for the **wwi-2020-writers** security group.
 
    1. In Azure Portal, expand the left menu and select **Azure Active Directory**.
 
@@ -576,21 +576,21 @@ On the first day, in Activity 1, you were introduced to the concept of the secur
 
    4. On the **Overview** screen, use the **Copy** button next to the Object Id textbox to copy the value to the clipboard.
 
-        ![On the Overview screen of the wwi-2020-contributors group, the copy button is selected next to the Object Id textbox.](media/lab5_aadgroupcopyobjectid.png)
+        ![On the Overview screen of the wwi-2020-writers group, the copy button is selected next to the Object Id textbox.](media/lab5_aadgroupcopyobjectid.png)
 
-6. In the **Manage Access** blade, paste the Object ID value of the **wwi-2020-contributors** group into the **Add user, group, or service principal** field.
+6. In the **Manage Access** blade, paste the Object ID value of the **wwi-2020-writers** group into the **Add user, group, or service principal** field.
 
-7. Select the **Add** button to add **wwi-2020-contributors** to the ACL list.
+7. Select the **Add** button to add **wwi-2020-writers** to the ACL list.
 
-8. With **wwi-2020-contributors** selected, check the **Access** checkbox, along with the **Read**, **Write**, and **Execute** permissions, then select the **Save** button.
+8. With **wwi-2020-writers** selected, check the **Access** checkbox, along with the **Read**, **Write**, and **Execute** permissions, then select the **Save** button.
 
-   ![In the principals list wwi-2020-contributors is selected. In permissions, the Access checkbox is checked along with the Read, Write, and Execute checkboxes.](media/lab5_posixaclcontributors.png)
+   ![In the principals list wwi-2020-writers is selected. In permissions, the Access checkbox is checked along with the Read, Write, and Execute checkboxes.](media/lab5_posixaclcontributors.png)
 
 9. You can also provide POSIX ACL security at the individual file level. All you would have to do is repeat steps 3-8 and observe a similar experience when selecting an individual file rather than a directory.
 
 > **Note**: When adding permissions at the directory level, there is an additional **Default** checkbox in the permissions table. By checking this box, you are able to set default permissions that will be automatically applied to any new children (directories or files) created within this directory.
 
-In future years, all WWI will need to do is remove the **wwi-current-contributors** group from the **wwi-2020-contributors** group to revoke write privileges to the 2020 year. Members of the **wwi-readers** will still be able to continue to read 2020 data because they have RBAC access to read all raw data (See Exercise #1). A new current year folder should be created to hold the new raw data csv files, along with a new security group - **wwi-2021-contributors**. This new security group should be given the same ACL privileges to the 2021 folder just as we did in this task. The **wwi-current-contributors** should also be added as a member to this new group so that they have full access to the current year data.
+In future years, all WWI will need to do is remove the **wwi-current-writers** group from the **wwi-2020-writers** group to revoke write privileges to the 2020 year. Members of the **wwi-readers** will still be able to continue to read 2020 data because they have RBAC access to read all raw data (See Exercise #1). A new current year folder should be created to hold the new raw data csv files, along with a new security group - **wwi-2021-contributors**. This new security group should be given the same ACL privileges to the 2021 folder just as we did in this task. The **wwi-current-writers** should also be added as a member to this new group so that they have full access to the current year data.
 
 > **Note**: **wwi-readers** do have write access to the current year data.
 
