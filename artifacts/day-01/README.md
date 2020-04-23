@@ -1,1 +1,36 @@
-# azure-synapse-analytics-workshop-400
+# Day 1 artifacts
+
+## User accounts
+
+* Username `asa.sql.import01` with `db_owner`
+
+## Linked services
+
+* Linked service to existing primary ADLS Gen2 storage account (`asadatalake01`)
+* Linked service to the SQL pool (`sqlpool01`)
+* Linked service to the SQL pool that logs in with the `asa.sql.import01` user (`sqlpool01_import01`)
+
+## External resources
+
+* Azure Cosmos DB account (`asacosmosdb01` or similar)
+  * SQL API
+  * Database named `CustomerProfile`
+  * Container:
+    * Name: `OnlineUserProfile01`
+    * Scale: `5000` RUs
+    * Partition key: `/userId`
+
+## Files
+
+All files are located in the Primary Storage ADLS Gen2 account.
+
+* Container `wwi-02`
+  * Folder: `campaign-analytics`
+    * `campaignanalytics.csv`
+    * `dailycounts.txt`
+    * `large-sale-20191201-snappy.parquet`
+    * `large-sale-december2010-snappy.parquet`
+  * Folder: `online-user-profiles-02`
+    * All files
+  * Folder: `sale-small`
+    * All files
