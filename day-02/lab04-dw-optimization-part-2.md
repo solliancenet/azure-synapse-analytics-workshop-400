@@ -39,7 +39,67 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
 
     ![Show table space usage](./media/lab3_table_space_usage.png)
 
-2. Analyze the number of rows in each distribution. Those numbers should be as even as possible. You can see from the results that rows are equally distributed across
+2. Analyze the number of rows in each distribution. Those numbers should be as even as possible. You can see from the results that rows are equally distributed across distributions. Let's dive a bit more into this analysis. Use the following query to get customers with the most sale transaction items:
+
+    ```sql
+    SELECT TOP 1000 
+        CustomerId,
+        count(*) as TransactionItemsCount
+    FROM
+        [wwi_perf].[Sale_Hash]
+    GROUP BY
+        CustomerId
+    ORDER BY
+        count(*) DESC
+    ```
+
+    ![Customers with most sale transaction items](./media/lab4_data_skew_1.png)
+
+    Now find the customers with the least sale transaction items:
+
+    ```sql
+    SELECT TOP 1000 
+        CustomerId,
+        count(*) as TransactionItemsCount
+    FROM
+        [wwi_perf].[Sale_Hash]
+    GROUP BY
+        CustomerId
+    ORDER BY
+        count(*) ASC
+    ```
+
+    ![Customers with most sale transaction items](./media/lab4_data_skew_2.png)
+
+    Notice the largest number of transaction items is 9465 and the smallest is 184.
+
+    Let's find now the distribution of per-customer transaction item counts. Run the following query:
+
+    ```sql
+    SELECT
+        T.TransactionItemsCountBucket
+        ,count(*) as CustomersCount
+    FROM
+        (
+            SELECT
+                CustomerId,
+                (count(*) - 184) / 100 as TransactionItemsCountBucket
+            FROM
+                [wwi_perf].[Sale_Hash]
+            GROUP BY
+                CustomerId
+        ) T
+    GROUP BY
+        T.TransactionItemsCountBucket
+    ORDER BY
+        T.TransactionItemsCountBucket
+    ```
+
+    In the `Results` pane, switch to the `Chart` view and configure it as follows (see the options set on the right side):
+
+    ![Distribution of per-customer transaction item counts](./media/lab4_transaction_items_count_distribution.png)
+
+    Without diving too much into the mathematical and statistical aspects of it, this histogram displays the reason why there is virtually no skew in the data distribution of the `Sale_Has` table. If you haven't figured it out yet, the reason we are talking about is the cvasi-normal distribution of the per-customer transaction items counts.
 
 ### Task 2 - Use a more advanced approach to understand table space usage
 
@@ -52,35 +112,35 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
     AS
     (
     SELECT
-    GETDATE()                                                             AS  [execution_time]
-    , DB_NAME()                                                            AS  [database_name]
-    , s.name                                                               AS  [schema_name]
-    , t.name                                                               AS  [table_name]
-    , QUOTENAME(s.name)+'.'+QUOTENAME(t.name)                              AS  [two_part_name]
-    , nt.[name]                                                            AS  [node_table_name]
-    , ROW_NUMBER() OVER(PARTITION BY nt.[name] ORDER BY (SELECT NULL))     AS  [node_table_name_seq]
-    , tp.[distribution_policy_desc]                                        AS  [distribution_policy_name]
-    , c.[name]                                                             AS  [distribution_column]
-    , nt.[distribution_id]                                                 AS  [distribution_id]
-    , i.[type]                                                             AS  [index_type]
-    , i.[type_desc]                                                        AS  [index_type_desc]
-    , nt.[pdw_node_id]                                                     AS  [pdw_node_id]
-    , pn.[type]                                                            AS  [pdw_node_type]
-    , pn.[name]                                                            AS  [pdw_node_name]
-    , di.name                                                              AS  [dist_name]
-    , di.position                                                          AS  [dist_position]
-    , nps.[partition_number]                                               AS  [partition_nmbr]
-    , nps.[reserved_page_count]                                            AS  [reserved_space_page_count]
-    , nps.[reserved_page_count] - nps.[used_page_count]                    AS  [unused_space_page_count]
-    , nps.[in_row_data_page_count]
-        + nps.[row_overflow_used_page_count]
-        + nps.[lob_used_page_count]                                        AS  [data_space_page_count]
-    , nps.[reserved_page_count]
-    - (nps.[reserved_page_count] - nps.[used_page_count])
-    - ([in_row_data_page_count]
-            + [row_overflow_used_page_count]+[lob_used_page_count])       AS  [index_space_page_count]
-    , nps.[row_count]                                                      AS  [row_count]
-    from
+        GETDATE()                                                              AS  [execution_time]
+        , DB_NAME()                                                            AS  [database_name]
+        , s.name                                                               AS  [schema_name]
+        , t.name                                                               AS  [table_name]
+        , QUOTENAME(s.name)+'.'+QUOTENAME(t.name)                              AS  [two_part_name]
+        , nt.[name]                                                            AS  [node_table_name]
+        , ROW_NUMBER() OVER(PARTITION BY nt.[name] ORDER BY (SELECT NULL))     AS  [node_table_name_seq]
+        , tp.[distribution_policy_desc]                                        AS  [distribution_policy_name]
+        , c.[name]                                                             AS  [distribution_column]
+        , nt.[distribution_id]                                                 AS  [distribution_id]
+        , i.[type]                                                             AS  [index_type]
+        , i.[type_desc]                                                        AS  [index_type_desc]
+        , nt.[pdw_node_id]                                                     AS  [pdw_node_id]
+        , pn.[type]                                                            AS  [pdw_node_type]
+        , pn.[name]                                                            AS  [pdw_node_name]
+        , di.name                                                              AS  [dist_name]
+        , di.position                                                          AS  [dist_position]
+        , nps.[partition_number]                                               AS  [partition_nmbr]
+        , nps.[reserved_page_count]                                            AS  [reserved_space_page_count]
+        , nps.[reserved_page_count] - nps.[used_page_count]                    AS  [unused_space_page_count]
+        , nps.[in_row_data_page_count]
+            + nps.[row_overflow_used_page_count]
+            + nps.[lob_used_page_count]                                        AS  [data_space_page_count]
+        , nps.[reserved_page_count]
+        - (nps.[reserved_page_count] - nps.[used_page_count])
+        - ([in_row_data_page_count]
+                + [row_overflow_used_page_count]+[lob_used_page_count])        AS  [index_space_page_count]
+        , nps.[row_count]                                                      AS  [row_count]
+    FROM
         sys.schemas s
     INNER JOIN sys.tables t
         ON s.[schema_id] = t.[schema_id]
