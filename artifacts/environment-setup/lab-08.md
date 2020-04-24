@@ -11,6 +11,7 @@ A SQL Pool named `SQLPool01` with a database name `SQLPool01`
 
 ## Pipelines
 * ASAL400 - Lab 8 - ExecuteDataAnalystAndCEOQueries
+* ASAL400 - Lab 8 - ExecuteBusinessAnalystQueries
 
 ## Linked Services
 * sqlpool02_workload01
