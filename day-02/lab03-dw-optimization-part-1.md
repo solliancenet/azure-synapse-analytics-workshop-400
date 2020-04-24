@@ -991,7 +991,7 @@ Clustered indexes may outperform clustered columnstore indexes when a single row
     SELECT
         *
     FROM
-        [wwi_perf].[Sale_Hash]
+        [wwi_perf].[Sale_Index]
     WHERE
         CustomerId between 400000 and 400020
         and StoreId between 2000 and 4000
@@ -1002,10 +1002,14 @@ Clustered indexes may outperform clustered columnstore indexes when a single row
 5. Create a non-clustered index on the `StoreId` column:
 
     ```sql
-    CREATE INDEX Store_Index on wwi_perf.Sale_Hash (StoreId)
+    CREATE INDEX Store_Index on wwi_perf.Sale_Index (StoreId)
     ```
 
     The creation of the index should complete in a few minutes. Once the index is created, run the previous query again. Notice the improvement in execution time resulting from the newly created non-clustered index.
+
+    >**Note**
+    >
+    >Creating a non-clustered index on the `wwi_perf.Sale_Index` is based on the already existing clustered index. As a bonus exercise, try to create the same type of index on the `wwi_perf.Sale_Hash` table. Can you explain the difference in index creation time?
 
 ### Task 6 - Ordered Clustered Columnstore Indexes
 
@@ -1019,43 +1023,124 @@ Queries with the following patterns typically run faster with ordered CCI:
 - The predicate columns and the ordered CCI columns are the same.
 - The predicate columns are used in the same order as the column ordinal of ordered CCI columns.
 
-Run the following query to show the segment overlaps for the `Sale_Hash` table:
+1. Run the following query to show the segment overlaps for the `Sale_Hash` table:
 
-```sql
-SELECT
-    o.name
-    ,pnp.index_id
-    ,cls.row_count
-    ,pnp.data_compression_desc
-    ,pnp.pdw_node_id
-    ,pnp.distribution_id
-    ,cls.segment_id
-    ,cls.column_id
-    ,cls.min_data_id
-    ,cls.max_data_id
-    ,cls.max_data_id-cls.min_data_id as difference
-FROM
-    sys.pdw_nodes_partitions AS pnp
-    JOIN sys.pdw_nodes_tables AS Ntables 
-        ON pnp.object_id = NTables.object_id AND pnp.pdw_node_id = NTables.pdw_node_id
-    JOIN sys.pdw_table_mappings AS Tmap
-        ON NTables.name = TMap.physical_name AND substring(TMap.physical_name,40, 10) = pnp.distribution_id
-    JOIN sys.objects AS o
-        ON TMap.object_id = o.object_id
-    JOIN sys.pdw_nodes_column_store_segments AS cls 
-        ON pnp.partition_id = cls.partition_id AND pnp.distribution_id  = cls.distribution_id
-    JOIN sys.columns as cols
-        ON o.object_id = cols.object_id AND cls.column_id = cols.column_id
-WHERE
-    o.name = 'wwi_perf.Sale_Hash'
-    and cols.name = 'CustomerId'
-    and TMap.physical_name  not like '%HdTable%'
-ORDER BY
-    o.name
-    ,pnp.distribution_id
-    ,cls.min_data_id
-```
+    ```sql
+    select 
+        OBJ.name as table_name
+        ,COL.name as column_name
+        ,NT.distribution_id
+        ,NP.partition_id
+        ,NP.rows as partition_rows
+        ,NP.data_compression_desc
+        ,NCSS.segment_id
+        ,NCSS.version
+        ,NCSS.min_data_id
+        ,NCSS.max_data_id
+        ,NCSS.row_count
+    from 
+        sys.objects OBJ
+        JOIN sys.columns as COL ON
+            OBJ.object_id = COL.object_id
+        JOIN sys.pdw_table_mappings TM ON
+            OBJ.object_id = TM.object_id
+        JOIN sys.pdw_nodes_tables as NT on
+            TM.physical_name = NT.name
+        JOIN sys.pdw_nodes_partitions NP on
+            NT.object_id = NP.object_id
+            and NT.pdw_node_id = NP.pdw_node_id
+            and substring(TM.physical_name, 40, 10) = NP.distribution_id
+        JOIN sys.pdw_nodes_column_store_segments NCSS on
+            NP.partition_id = NCSS.partition_id
+            and NP.distribution_id = NCSS.distribution_id
+            and COL.column_id = NCSS.column_id
+    where
+        OBJ.name = 'Sale_Hash'
+        and COL.name = 'CustomerId'
+        and TM.physical_name  not like '%HdTable%'
+    order by
+        NT.distribution_id
+    ```
+
+    Here is a short description of the tables involved in the query:
+
+    Table Name | Description
+    ---|---
+    sys.objects | All objects in the database. Filtered to match only the `Sale_Hash` table.
+    sys.columns | All columns in the database. Filtered to match only the `CustomerId` column of the `Sale_Hash` table.
+    sys.pdw_table_mappings | Maps each table to local tables on physical nodes and distributions.
+    sys.pdw_nodes_tables | Contains information on each local table in each distribution.
+    sys.pdw_nodes_partitions | Contains information on each local partition of each local table in each distribution.
+    sys.pdw_nodes_column_store_segments | Contains information on each CCI segment for each partition and distribution column of each local table in each distribution. Filtered to match only the `CustomerId` column of the `Sale_Hash` table.
+
+    With this information on hand, take a look at the result:
+
+    ![CCI segment structure on each distribution](./media/lab3_ordered_cci.png)
+
+    Browse through the result set and notice the significant overlap between segments. There is literally overlap in customer ids between every single pair of segments (`CustomerId` values in the data range from 1 to 1,000,000). The segment structure of this CCI is clearly inefficient and will result in a lot of unnecessary reads from storage.
+
+2. Run the following query to show the segment overlaps for the `Sale_Hash_Ordered` table:
+
+    ```sql
+    select 
+        OBJ.name as table_name
+        ,COL.name as column_name
+        ,NT.distribution_id
+        ,NP.partition_id
+        ,NP.rows as partition_rows
+        ,NP.data_compression_desc
+        ,NCSS.segment_id
+        ,NCSS.version
+        ,NCSS.min_data_id
+        ,NCSS.max_data_id
+        ,NCSS.row_count
+    from 
+        sys.objects OBJ
+        JOIN sys.columns as COL ON
+            OBJ.object_id = COL.object_id
+        JOIN sys.pdw_table_mappings TM ON
+            OBJ.object_id = TM.object_id
+        JOIN sys.pdw_nodes_tables as NT on
+            TM.physical_name = NT.name
+        JOIN sys.pdw_nodes_partitions NP on
+            NT.object_id = NP.object_id
+            and NT.pdw_node_id = NP.pdw_node_id
+            and substring(TM.physical_name, 40, 10) = NP.distribution_id
+        JOIN sys.pdw_nodes_column_store_segments NCSS on
+            NP.partition_id = NCSS.partition_id
+            and NP.distribution_id = NCSS.distribution_id
+            and COL.column_id = NCSS.column_id
+    where
+        OBJ.name = 'Sale_Hash_Ordered'
+        and COL.name = 'CustomerId'
+        and TM.physical_name  not like '%HdTable%'
+    order by
+        NT.distribution_id
+    ```
+
+    The CTAS used to create the `wwi_perf.Sale_Hash_Ordered` table was the following:
+
+    ```sql
+    CREATE TABLE [wwi_perf].[Sale_Hash_Ordered]
+    WITH
+    (
+        DISTRIBUTION = HASH ( [CustomerId] ),
+        CLUSTERED COLUMNSTORE INDEX ORDER( [CustomerId] )
+    )
+    AS
+    SELECT
+        *
+    FROM	
+        [wwi_perf].[Sale_Heap]
+    OPTION  (LABEL  = 'CTAS : Sale_Hash', MAXDOP 1)
+    ```
+
+    Notice the creation of the ordered CCI with MAXDOP = 1. Each thread used for ordered CCI creation works on a subset of data and sorts it locally. There's no global sorting across data sorted by different threads. Using parallel threads can reduce the time to create an ordered CCI but will generate more overlapping segments than using a single thread. Currently, the MAXDOP option is only supported in creating an ordered CCI table using CREATE TABLE AS SELECT command. Creating an ordered CCI via CREATE INDEX or CREATE TABLE commands does not support the MAXDOP option.
+
+    The results show significantly less overlap between segments:
+
+    ![CCI segment structure on each distribution with ordered CCI](./media/lab3_ordered_cci_2.png)
 
 >**Note**
 >
->You will learn a lot more about the internal organization of the clustered columnstore indexes in the following lab.
+>You will learn more about the internal organization of the clustered columnstore indexes in the following lab.

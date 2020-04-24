@@ -39,7 +39,7 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
 
     ![Show table space usage](./media/lab3_table_space_usage.png)
 
-2. Analyze the number of rows in each distribution. Those numbers should be as even as possible.
+2. Analyze the number of rows in each distribution. Those numbers should be as even as possible. You can see from the results that rows are equally distributed across
 
 ### Task 2 - Use a more advanced approach to understand table space usage
 
