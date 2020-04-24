@@ -26,23 +26,23 @@ Setting importance in Synapse SQL for Azure Synapse allows you to influence the 
 
 1. Open Synapse Analytics Studio, and then navigate to the `Develop` hub. Then open `Lab 08 - Exercise 1 - WorkLoad Importance` from the list of SQL Scripts. 
 
-2. Select `AzureSynapseDW` under `Connect To` and highlight the first SQL Command shown below. Select `Run` to confirm that there are no queries currently being run by users logged in as `CEONYC` or `AnalystNYC`.
+2. Select `SQLPool01` under `Connect To` and highlight the first SQL Command shown below. Select `Run` to confirm that there are no queries currently being run by users logged in as `asa.sql.workload01` represeting the CEO of the organization or `asa.sql.workload02` representing the data analyst working on the project.
 
 ![](media/ex05-confirm-no-queries.png)
 
-3. You will flood the system with queries and see what happens for `CEONYC` and `AnalystNYC`. To do this, we'll run a Azure Synapse Pipeline which triggers queries. Select the `Orchestrate` Tab. **Run** `ExecuteDataAnalystAndCEOQueries` Pipeline, which will run / trigger the `AnalystNYC` and > `CEONYC` queries.
+3. You will flood the system with queries and see what happens for `asa.sql.workload01` and `asa.sql.workload02`. To do this, we'll run a Azure Synapse Pipeline which triggers queries. Select the `Orchestrate` Tab. **Run** `ExecuteDataAnalystAndCEOQueries` Pipeline, which will run / trigger the `asa.sql.workload01` and `asa.sql.workload02` queries.
 
-4. Let's see what happened to all the queries we just triggered as they flood the system. **Select** the SQL Command between lines #20-23 and run the query.
+4. Let's see what happened to all the queries we just triggered as they flood the system. **Select** the SQL Command between lines #18-21 and run the query.
 
 ![](media/ex05-observe-flood.png)
 
-5. We will give our `CEONYC` queries priority by implementing the **Workload Importance** feature. In order to do that, **select** the SQL Command between lines #26-29 and run the query.
+5. We will give our `asa.sql.workload01` user queries priority by implementing the **Workload Importance** feature. In order to do that, **select** the SQL Command between lines #24-27 and run the query.
 
 ![](media/ex05-workload-importance.png)
 
-6. Let's flood the system again with queries and see what happens this time for `CEONYC` and `AnalystNYC` queries. To do this, we'll run a Azure Synapse Pipeline which triggers queries. **Select** the `Orchestrate` Tab, **run** `ExecuteDataAnalystAndCEOQueries` Pipeline, which will run / trigger the `AnalystNYC` and `CEONYC` queries. 
+6. Let's flood the system again with queries and see what happens this time for `asa.sql.workload01` and `asa.sql.workload02` queries. To do this, we'll run a Azure Synapse Pipeline which triggers queries. **Select** the `Orchestrate` Tab, **run** `ExecuteDataAnalystAndCEOQueries` Pipeline, which will run / trigger the `asa.sql.workload01` and `asa.sql.workload02` queries. 
 
-7. Run the SQL Command between lines #39-42 to see what happens to the `CEONYC` queries this time.
+7. Run the SQL Command between lines #37-40 to see what happens to the `asa.sql.workload01` queries this time.
 
 ![](media/ex05-workload-importance-2.png)
 
@@ -58,7 +58,7 @@ Users should avoid a workload management solution that configures 100% workload 
 
 1. Open Synapse Analytics Studio, and then navigate to the `Develop` hub. Then open `Lab 08 - Exercise 2 - Workload Isolation` from the list of SQL Scripts. 
 
-2. Select `AzureSynapseDW` under `Connect To` and highlight the first SQL Command shown below. 
+2. Select `SQLPool01` under `Connect To` and highlight the first SQL Command shown below. 
 
 ![](media/ex05-workload-isolation.png)
 
