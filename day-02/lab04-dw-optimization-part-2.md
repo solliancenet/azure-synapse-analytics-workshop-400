@@ -896,11 +896,49 @@ Loading data into a non-empty table with a clustered index can often contain a m
 
 ### Task 2 - Optimizing a delete operation
 
-1. Check the number of transaction items from November and December 2019 with the following query:
+1. Check the number of transaction items for customers with ids lower than 900000 using the following query:
 
     ```sql
-
+    SELECT
+        COUNT(*) as TransactionItemsCount
+    FROM
+        [wwi_perf].[Sale_Heap]
+    WHERE
+        CustomerId < 900000
     ```
+
+2. Implement a minimal logging approach to delete transaction items for customers with ids lower than 900000. Use the following CTAS query to isolate the transaction items that should be kept:
+
+    ```sql
+    CREATE TABLE [wwi_perf].[Sale_Heap_v2]
+    WITH
+    (
+        DISTRIBUTION = ROUND_ROBIN,
+        HEAP
+    )
+    AS 
+    SELECT
+        *
+    FROM
+        [wwi_perf].[Sale_Heap]
+    WHERE
+        CustomerId >= 900000
+    ```
+
+    The query should execute within a few minutes. All that would remain to complete the process would be to delete the `Sale_Heap` table and rename `Sale_Heap_v2` to `Sale_Heap`.
+
+3. Compare the previous operation with a classical delete:
+
+    ```sql
+    DELETE
+        [wwi_perf].[Sale_Heap]
+    WHERE
+        CustomerId < 900000
+    ```
+
+    >**Note**
+    >
+    >The query will run for a potentially long time. Once the time exceeds significantly the time to run the previous CTAS query, you can cancel it (as you can already see the benefit of the CTAS-based approach).
 
 ### Task 3 - Optimizing an update operation
 
