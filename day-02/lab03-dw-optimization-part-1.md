@@ -5,13 +5,13 @@
     - [Task 1 - Identify performance issues related to tables](#task-1---identify-performance-issues-related-to-tables)
     - [Task 2 - Improve table structure with hash distribution and columnstore index](#task-2---improve-table-structure-with-hash-distribution-and-columnstore-index)
     - [Task 3 - Improve further the structure of the table with partitioning](#task-3---improve-further-the-structure-of-the-table-with-partitioning)
-  - [Exercise 2 - Improve query perofrmance](#exercise-2---improve-query-perofrmance)
+  - [Exercise 2 - Improve query performance](#exercise-2---improve-query-performance)
     - [Task 1 -  Improve COUNT performance](#task-1---improve-count-performance)
     - [Task 2 - Use materialized views](#task-2---use-materialized-views)
     - [Task 3 - Use result set caching](#task-3---use-result-set-caching)
     - [Task 4 - Create and update statistics](#task-4---create-and-update-statistics)
     - [Task 5 - Create and update indexes](#task-5---create-and-update-indexes)
-    - [Task 6 - Use ordered CCI](#task-6---use-ordered-cci)
+    - [Task 6 - Ordered Clustered Columnstore Indexes](#task-6---ordered-clustered-columnstore-indexes)
 
 `<TBA>`
 Explicit instructions on scaling up to DW1500 before the lab and scaling back after Lab 04 is completed.
@@ -255,7 +255,7 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
 
 ### Task 2 - Improve table structure with hash distribution and columnstore index
 
-1. Create an improved version of the table using CTAS:
+1. Create an improved version of the table using CTAS (Create Table As Select):
 
     ```sql
     CREATE TABLE [wwi_perf].[Sale_Hash]
@@ -270,6 +270,7 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
     FROM	
         [wwi_perf].[Sale_Heap]
     ```
+
     The query will take about 10 minutes to complete.
 
     >Note:
@@ -281,7 +282,7 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
 2. Run the query again to see the performance improvements:
 
     ```sql
-    SELECT TOP 100 * FROM
+    SELECT TOP 1000 * FROM
     (
         SELECT
             S.CustomerId
@@ -295,10 +296,26 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
 
 3. Run the EXPLAIN statement again to get the query plan:
 
+    ```sql
+    EXPLAIN
+    SELECT TOP 1000 * FROM
+    (
+        SELECT
+            S.CustomerId
+            ,SUM(S.TotalAmount) as TotalAmount
+        FROM
+            [wwi_perf].[Sale_Hash] S
+        GROUP BY
+            S.CustomerId
+    ) T
+    ```
+
+    The resulting query plan is clearly much better than the previous one, as there is no more inter-distribution data movement involved.
+
     ```xml
-    <?xml version=""1.0"" encoding=""utf-8""?>
-    <dsql_query number_nodes=""4"" number_distributions=""60"" number_distributions_per_node=""15"">
-    <sql>SELECT TOP 100 * FROM
+    <?xml version="1.0" encoding="utf-8"?>
+    <dsql_query number_nodes="5" number_distributions="60" number_distributions_per_node="12">
+    <sql>SELECT TOP 1000 * FROM
     (
         SELECT
             S.CustomerId
@@ -308,32 +325,37 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
         GROUP BY
             S.CustomerId
     ) T</sql>
-    <dsql_operations total_cost=""0"" total_number_operations=""1"">
-        <dsql_operation operation_type=""RETURN"">
-        <location distribution=""AllDistributions"" />
-        <select>SELECT [T1_1].[CustomerId] AS [CustomerId], [T1_1].[col] AS [col] FROM (SELECT TOP (CAST ((100) AS BIGINT)) SUM([T2_1].[TotalAmount]) AS [col], [T2_1].[CustomerId] AS [CustomerId] FROM [SQLPool02].[wwi_perf].[Sale_Hash] AS T2_1 GROUP BY [T2_1].[CustomerId]) AS T1_1
-    OPTION (MAXDOP 4)</select>
+    <dsql_operations total_cost="0" total_number_operations="1">
+        <dsql_operation operation_type="RETURN">
+        <location distribution="AllDistributions" />
+        <select>SELECT [T1_1].[CustomerId] AS [CustomerId], [T1_1].[col] AS [col] FROM (SELECT TOP (CAST ((1000) AS BIGINT)) SUM([T2_1].[TotalAmount]) AS [col], [T2_1].[CustomerId] AS [CustomerId] FROM [SQLPool02].[wwi_perf].[Sale_Hash] AS T2_1 GROUP BY [T2_1].[CustomerId]) AS T1_1
+    OPTION (MAXDOP 6)</select>
         </dsql_operation>
     </dsql_operations>
     </dsql_query>
     ```
 
-    Notice the significant difference from the previous run.
-
-4. Increase the complexity of the query and run it again:
+4. Try running a more complex query and investigate the execution plan and execution steps. Here is an example of a more complex query you can use:
 
     ```sql
-    SELECT TOP 100 * FROM
+    SELECT 
+        AVG(TotalProfit) as AvgMonthlyCustomerProfit
+    FROM
     (
         SELECT
             S.CustomerId
             ,D.Year
             ,D.Month
             ,SUM(S.TotalAmount) as TotalAmount
+            ,AVG(S.TotalAmount) as AvgAmount
+            ,SUM(S.ProfitAmount) as TotalProfit
+            ,AVG(S.ProfitAmount) as AvgProfit
         FROM
-            [wwi_perf].[Sale_Hash] S
+            [wwi_perf].[Sale_Partition01] S
             join [wwi].[Date] D on 
                 D.DateId = S.TransactionDateId
+        WHERE
+            D.Year in (2010, 2011, 2012, 2013, 2014)
         GROUP BY
             S.CustomerId
             ,D.Year
@@ -343,90 +365,87 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
 
 ### Task 3 - Improve further the structure of the table with partitioning
 
-1. Use CTAS to create an improved copy of the table:
+Date columns are usually good candidates for partitioning tables at the distributions level. In the case of your sales data, partitioning based on the `TransactionDateId` column seems to be a good choice.
 
-    ```sql
-    CREATE TABLE [wwi_perf].[Sale_Hash]
-    WITH
+Your SQL pool already contains two versions of the `Sale` table that have been partitioned using `TransactionDateId`. These tables are `[wwi_perf].[Sale_Partition01]` annd `[wwi_perf].[Sale_Partition02]`. Below are the CTAS queries that have been used to create these tables.
+
+>**Note**
+>
+>These queries have already been run on the SQL pool. If you want to test the CTAS queries yourself, make sure you replace the table names with new ones.
+
+```sql
+CREATE TABLE [wwi_perf].[Sale_Partition01]
+WITH
+(
+    DISTRIBUTION = HASH ( [CustomerId] ),
+    CLUSTERED COLUMNSTORE INDEX,
+    PARTITION
     (
-        DISTRIBUTION = HASH ( [CustomerId] ),
-        CLUSTERED COLUMNSTORE INDEX
+        [TransactionDateId] RANGE RIGHT FOR VALUES (
+            20100101, 20100201, 20100301, 20100401, 20100501, 20100601, 20100701, 20100801, 20100901, 20101001, 20101101, 20101201,
+            20110101, 20110201, 20110301, 20110401, 20110501, 20110601, 20110701, 20110801, 20110901, 20111001, 20111101, 20111201,
+            20120101, 20120201, 20120301, 20120401, 20120501, 20120601, 20120701, 20120801, 20120901, 20121001, 20121101, 20121201,
+            20130101, 20130201, 20130301, 20130401, 20130501, 20130601, 20130701, 20130801, 20130901, 20131001, 20131101, 20131201,
+            20140101, 20140201, 20140301, 20140401, 20140501, 20140601, 20140701, 20140801, 20140901, 20141001, 20141101, 20141201,
+            20150101, 20150201, 20150301, 20150401, 20150501, 20150601, 20150701, 20150801, 20150901, 20151001, 20151101, 20151201,
+            20160101, 20160201, 20160301, 20160401, 20160501, 20160601, 20160701, 20160801, 20160901, 20161001, 20161101, 20161201,
+            20170101, 20170201, 20170301, 20170401, 20170501, 20170601, 20170701, 20170801, 20170901, 20171001, 20171101, 20171201,
+            20180101, 20180201, 20180301, 20180401, 20180501, 20180601, 20180701, 20180801, 20180901, 20181001, 20181101, 20181201,
+            20190101, 20190201, 20190301, 20190401, 20190501, 20190601, 20190701, 20190801, 20190901, 20191001, 20191101, 20191201)
     )
-    AS
-    SELECT
-        *
-    FROM	
-        [wwi_perf].[Sale_Heap]
-    OPTION  (LABEL  = 'CTAS : Sale_Hash')
+)
+AS
+SELECT
+    *
+FROM	
+    [wwi_perf].[Sale_Heap]
+OPTION  (LABEL  = 'CTAS : Sale_Partition01')
 
-    CREATE TABLE [wwi_perf].[Sale_Partition01]
-    WITH
+CREATE TABLE [wwi_perf].[Sale_Partition02]
+WITH
+(
+    DISTRIBUTION = HASH ( [CustomerId] ),
+    CLUSTERED COLUMNSTORE INDEX,
+    PARTITION
     (
-        DISTRIBUTION = HASH ( [CustomerId] ),
-        CLUSTERED COLUMNSTORE INDEX,
-        PARTITION
-        (
-            [TransactionDateId] RANGE RIGHT FOR VALUES (
-                20100101, 20100201, 20100301, 20100401, 20100501, 20100601, 20100701, 20100801, 20100901, 20101001, 20101101, 20101201, 
-                20110101, 20110201, 20110301, 20110401, 20110501, 20110601, 20110701, 20110801, 20110901, 20111001, 20111101, 20111201, 
-                20120101, 20120201, 20120301, 20120401, 20120501, 20120601, 20120701, 20120801, 20120901, 20121001, 20121101, 20121201, 
-                20130101, 20130201, 20130301, 20130401, 20130501, 20130601, 20130701, 20130801, 20130901, 20131001, 20131101, 20131201, 
-                20140101, 20140201, 20140301, 20140401, 20140501, 20140601, 20140701, 20140801, 20140901, 20141001, 20141101, 20141201, 
-                20150101, 20150201, 20150301, 20150401, 20150501, 20150601, 20150701, 20150801, 20150901, 20151001, 20151101, 20151201, 
-                20160101, 20160201, 20160301, 20160401, 20160501, 20160601, 20160701, 20160801, 20160901, 20161001, 20161101, 20161201, 
-                20170101, 20170201, 20170301, 20170401, 20170501, 20170601, 20170701, 20170801, 20170901, 20171001, 20171101, 20171201, 
-                20180101, 20180201, 20180301, 20180401, 20180501, 20180601, 20180701, 20180801, 20180901, 20181001, 20181101, 20181201, 
-                20190101, 20190201, 20190301, 20190401, 20190501, 20190601, 20190701, 20190801, 20190901, 20191001, 20191101, 20191201)
-        )
+        [TransactionDateId] RANGE RIGHT FOR VALUES (
+            20100101, 20100401, 20100701, 20101001,
+            20110101, 20110401, 20110701, 20111001,
+            20120101, 20120401, 20120701, 20121001,
+            20130101, 20130401, 20130701, 20131001,
+            20140101, 20140401, 20140701, 20141001,
+            20150101, 20150401, 20150701, 20151001,
+            20160101, 20160401, 20160701, 20161001,
+            20170101, 20170401, 20170701, 20171001,
+            20180101, 20180401, 20180701, 20181001,
+            20190101, 20190401, 20190701, 20191001)
     )
-    AS
-    SELECT
-        *
-    FROM	
-        [wwi_perf].[Sale_Heap]
-    OPTION  (LABEL  = 'CTAS : Sale_Partition01')
+)
+AS
+SELECT
+    *
+FROM	
+    [wwi_perf].[Sale_Heap]
+OPTION  (LABEL  = 'CTAS : Sale_Partition02')
+```
 
-    CREATE TABLE [wwi_perf].[Sale_Partition02]
-    WITH
-    (
-        DISTRIBUTION = HASH ( [CustomerId] ),
-        CLUSTERED COLUMNSTORE INDEX,
-        PARTITION
-        (
-            [TransactionDateId] RANGE RIGHT FOR VALUES (
-                20100101, 20100401, 20100701, 20101001, 
-                20110101, 20110401, 20110701, 20111001, 
-                20120101, 20120401, 20120701, 20121001, 
-                20130101, 20130401, 20130701, 20131001, 
-                20140101, 20140401, 20140701, 20141001, 
-                20150101, 20150401, 20150701, 20151001, 
-                20160101, 20160401, 20160701, 20161001, 
-                20170101, 20170401, 20170701, 20171001, 
-                20180101, 20180401, 20180701, 20181001, 
-                20190101, 20190401, 20190701, 20191001)
-        )
-    )
-    AS
-    SELECT
-        *
-    FROM	
-        [wwi_perf].[Sale_Heap]
-    OPTION  (LABEL  = 'CTAS : Sale_Partition02')
-    ```
+Notice the two partitioning strategies we've used here. The first partitioning scheme is month-based and the second is quarter-based. You will explore in Lab 04 the subtle differences between these and understand the potential performance implications resulting from these choices.
 
-2. Notice the two partitioning strategies we've used here. You will explore in Lab 04 the subtle differences between these and understand why one of them helps performance and the other one actually hurts it.
-
-## Exercise 2 - Improve query perofrmance
+## Exercise 2 - Improve query performance
 
 ### Task 1 -  Improve COUNT performance
 
-1. Count the distinct customer values in `Sale_Heap`:
+*Editor note:*
+
+*Not happy yet with the show of HyperLogLog's performance gain. Needs a bit more work.*
+
+1. The following query attempts to find the TOP 100 of customers that have the most sale transactions:
 
     ```sql
     SELECT COUNT( DISTINCT CustomerId) from wwi_perf.Sale_Heap
     ```
 
-    Query takes about 20 seconds to execute.
+    Query takes up to 20 seconds to execute. That is expected, since distinct counts are one of the most difficult to optimize types of queries.
 
 2. Run the HyperLogLog approach:
 
@@ -438,7 +457,7 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
 
 ### Task 2 - Use materialized views
 
-Comparison with standard views:
+As opposed to a standard view, a materialized view pre-computes, stores, and maintains its data in a Synapse SQL pool just like a table. Here is a basic comparison between standard and materialized views:
 
 | Comparison                     | View                                         | Materialized View             
 |:-------------------------------|:---------------------------------------------|:--------------------------------------------------------------| 
@@ -449,105 +468,682 @@ Comparison with standard views:
 |Extra storage                   | No                                           | Yes                             
 |Syntax                          | CREATE VIEW                                  | CREATE MATERIALIZED VIEW AS SELECT     
 
+1. Execute the following query to get an approximation of its execution time:
+
+    ```sql
+    SELECT TOP 1000 * FROM
+    (
+        SELECT
+            S.CustomerId
+            ,D.Year
+            ,D.Quarter
+            ,SUM(S.TotalAmount) as TotalAmount
+        FROM
+            [wwi_perf].[Sale_Partition02] S
+            join [wwi].[Date] D on
+                S.TransactionDateId = D.DateId
+        GROUP BY
+            S.CustomerId
+            ,D.Year
+            ,D.Quarter
+    ) T
+    ```
+
+2. Execute this query as well (notice the slight difference):
+
+    ```sql
+    SELECT TOP 1000 * FROM
+    (
+        SELECT
+            S.CustomerId
+            ,D.Year
+            ,D.Month
+            ,SUM(S.ProfitAmount) as TotalProfit
+        FROM
+            [wwi_perf].[Sale_Partition02] S
+            join [wwi].[Date] D on
+                S.TransactionDateId = D.DateId
+        GROUP BY
+            S.CustomerId
+            ,D.Year
+            ,D.Month
+    ) T
+    ```
+
+3. Create a materialized view that can support both queries above:
+
+    ```sql
+    CREATE MATERIALIZED VIEW
+        mvCustomerSales
+    WITH
+    (
+        DISTRIBUTION = HASH( CustomerId )
+    )
+    AS
+    SELECT
+        S.CustomerId
+        ,D.Year
+        ,D.Quarter
+        ,D.Month
+        ,SUM(S.TotalAmount) as TotalAmount
+        ,SUM(S.ProfitAmount) as TotalProfit
+    FROM
+        [wwi_perf].[Sale_Partition02] S
+        join [wwi].[Date] D on
+            S.TransactionDateId = D.DateId
+    GROUP BY
+        S.CustomerId
+        ,D.Year
+        ,D.Quarter
+        ,D.Month
+    ```
+
+4. Get the execution plan of the first query:
+
+    ```sql
+    EXPLAIN
+    SELECT TOP 1000 * FROM
+    (
+        SELECT
+            S.CustomerId
+            ,D.Year
+            ,D.Quarter
+            ,SUM(S.TotalAmount) as TotalAmount
+        FROM
+            [wwi_perf].[Sale_Partition02] S
+            join [wwi].[Date] D on
+                S.TransactionDateId = D.DateId
+        GROUP BY
+            S.CustomerId
+            ,D.Year
+            ,D.Quarter
+    ) T
+    ```
+
+    The resulting execution plan shows how the newly created materialized view is used to optimize the execution.
+
+    ```xml
+    <?xml version="1.0" encoding="utf-8"?>
+    <dsql_query number_nodes="5" number_distributions="60" number_distributions_per_node="12">
+    <sql>SELECT TOP 1000 * FROM
+    (
+        SELECT
+            S.CustomerId
+            ,D.Year
+            ,D.Quarter
+            ,SUM(S.TotalAmount) as TotalAmount
+        FROM
+            [wwi_perf].[Sale_Partition02] S
+            join [wwi].[Date] D on
+                S.TransactionDateId = D.DateId
+        GROUP BY
+            S.CustomerId
+            ,D.Year
+            ,D.Quarter
+    ) T</sql>
+    <dsql_operations total_cost="0" total_number_operations="1">
+        <dsql_operation operation_type="RETURN">
+        <location distribution="AllDistributions" />
+        <select>SELECT [T1_1].[CustomerId] AS [CustomerId], [T1_1].[Year] AS [Year], [T1_1].[Quarter] AS [Quarter], [T1_1].[col] AS [col] FROM (SELECT TOP (CAST ((1000) AS BIGINT)) [T2_1].[CustomerId] AS [CustomerId], [T2_1].[Year] AS [Year], [T2_1].[Quarter] AS [Quarter], [T2_1].[col1] AS [col] FROM (SELECT ISNULL([T3_1].[col1], CONVERT (BIGINT, 0, 0)) AS [col], [T3_1].[CustomerId] AS [CustomerId], [T3_1].[Year] AS [Year], [T3_1].[Quarter] AS [Quarter], [T3_1].[col] AS [col1] FROM (SELECT SUM([T4_1].[TotalAmount]) AS [col], SUM([T4_1].[cb]) AS [col1], [T4_1].[CustomerId] AS [CustomerId], [T4_1].[Year] AS [Year], [T4_1].[Quarter] AS [Quarter] FROM (SELECT [T5_1].[CustomerId] AS [CustomerId], [T5_1].[TotalAmount] AS [TotalAmount], [T5_1].[cb] AS [cb], [T5_1].[Quarter] AS [Quarter], [T5_1].[Year] AS [Year] FROM [SQLPool02].[wwi_perf].[mvCustomerSales] AS T5_1) AS T4_1 GROUP BY [T4_1].[CustomerId], [T4_1].[Year], [T4_1].[Quarter]) AS T3_1) AS T2_1 WHERE ([T2_1].[col] != CAST ((0) AS BIGINT))) AS T1_1
+    OPTION (MAXDOP 6)</select>
+        </dsql_operation>
+    </dsql_operations>
+    </dsql_query>
+    ```
+
+5. The same materialized view is also used to optimize the second query. Get its execution plan:
+
+    ```sql
+    EXPLAIN
+    SELECT TOP 1000 * FROM
+    (
+        SELECT
+            S.CustomerId
+            ,D.Year
+            ,D.Month
+            ,SUM(S.ProfitAmount) as TotalProfit
+        FROM
+            [wwi_perf].[Sale_Partition02] S
+            join [wwi].[Date] D on
+                S.TransactionDateId = D.DateId
+        GROUP BY
+            S.CustomerId
+            ,D.Year
+            ,D.Month
+    ) T
+    ```
+
+    The resulting execution plan shows the use of the same materialized view to optimize execution:
+
+    ```xml
+    <?xml version="1.0" encoding="utf-8"?>
+    <dsql_query number_nodes="5" number_distributions="60" number_distributions_per_node="12">
+    <sql>SELECT TOP 1000 * FROM
+    (
+        SELECT
+            S.CustomerId
+            ,D.Year
+            ,D.Month
+            ,SUM(S.ProfitAmount) as TotalProfit
+        FROM
+            [wwi_perf].[Sale_Partition02] S
+            join [wwi].[Date] D on
+                S.TransactionDateId = D.DateId
+        GROUP BY
+            S.CustomerId
+            ,D.Year
+            ,D.Month
+    ) T</sql>
+    <dsql_operations total_cost="0" total_number_operations="1">
+        <dsql_operation operation_type="RETURN">
+        <location distribution="AllDistributions" />
+        <select>SELECT [T1_1].[CustomerId] AS [CustomerId], [T1_1].[Year] AS [Year], [T1_1].[Month] AS [Month], [T1_1].[col] AS [col] FROM (SELECT TOP (CAST ((1000) AS BIGINT)) [T2_1].[CustomerId] AS [CustomerId], [T2_1].[Year] AS [Year], [T2_1].[Month] AS [Month], [T2_1].[col1] AS [col] FROM (SELECT ISNULL([T3_1].[col1], CONVERT (BIGINT, 0, 0)) AS [col], [T3_1].[CustomerId] AS [CustomerId], [T3_1].[Year] AS [Year], [T3_1].[Month] AS [Month], [T3_1].[col] AS [col1] FROM (SELECT SUM([T4_1].[TotalProfit]) AS [col], SUM([T4_1].[cb]) AS [col1], [T4_1].[CustomerId] AS [CustomerId], [T4_1].[Year] AS [Year], [T4_1].[Month] AS [Month] FROM (SELECT [T5_1].[CustomerId] AS [CustomerId], [T5_1].[TotalProfit] AS [TotalProfit], [T5_1].[cb] AS [cb], [T5_1].[Month] AS [Month], [T5_1].[Year] AS [Year] FROM [SQLPool02].[wwi_perf].[mvCustomerSales] AS T5_1) AS T4_1 GROUP BY [T4_1].[CustomerId], [T4_1].[Year], [T4_1].[Month]) AS T3_1) AS T2_1 WHERE ([T2_1].[col] != CAST ((0) AS BIGINT))) AS T1_1
+    OPTION (MAXDOP 6)</select>
+        </dsql_operation>
+    </dsql_operations>
+    </dsql_query>
+    ```
+
+    >**Note**
+    >
+    >Even if the two queries have different aggregation levels, the query optimizer is able to infer the use of the materialized view. This happens because the materialized view covers both aggregation levels (`Quarter` and `Month`) as well as both aggregation measures (`TotalAmount` and `ProfitAmount`).
+
+6. Check the materialized view overhead:
+
+    ```sql
+    DBCC PDW_SHOWMATERIALIZEDVIEWOVERHEAD ( 'wwi_perf.mvCustomerSales' )
+    ```
+
+    The results show that `BASE_VIEW_ROWS` are equal to `TOTAL_ROWS` (and hence `OVERHEAD_RATIO` is 1). The materialized view is perfectly aligned with the base view. This situation is expected to change once the underlying data starts to change.
+
+7. Update the original data the materialized view was built on:
+
+    ```sql
+    UPDATE
+        [wwi_perf].[Sale_Partition02]
+    SET
+        TotalAmount = TotalAmount * 1.01
+        ,ProfitAmount = ProfitAmount * 1.01
+    WHERE
+        CustomerId BETWEEN 100 and 200
+    ```
+
+8. Check the materialized view overhead again:
+
+    ```sql
+    DBCC PDW_SHOWMATERIALIZEDVIEWOVERHEAD ( 'wwi_perf.mvCustomerSales' )
+    ```
+
+    ![Materialized view overhead after update](./media/lab3_materialized_view_updated.png)
+
+    There is now a delta stored by the materialized view which results in `TOTAL_ROWS` being greater than `BASE_VIEW_ROWS` and `OVERHEAD_RATIO` being greater than 1.
+
+9. Rebuild the materialized view and check that the overhead ration went back to 1:
+
+    ```sql
+    ALTER MATERIALIZED VIEW [wwi_perf].[mvCustomerSales] REBUILD
+
+    DBCC PDW_SHOWMATERIALIZEDVIEWOVERHEAD ( 'wwi_perf.mvCustomerSales' )
+    ```
+
+    ![Materialized view overhead after rebuild](./media/lab3_materialized_view_rebuilt.png)
+
 ### Task 3 - Use result set caching
 
-Check if result set caching is on:
+1. Check if result set caching is on in the current SQL pool:
 
-```sql
-SELECT is_result_set_caching_on, *
-    FROM sys.databases
-    WHERE name = 'resultsetcaching';
-```
+    ```sql
+    SELECT
+        name
+        ,is_result_set_caching_on
+    FROM 
+        sys.databases
+    ```
 
-Use result set caching:
+    ![Check result set caching settings at the database level](./media/lab3_result_set_caching_db.png)
 
-```sql
-SET RESULT_SET_CACHING ON
+    If `False` is returned for your SQL pool, runt the following query to activate it (you need to run it on the `master` database and replace `<sql_pool> with the name of your SQL pool):
 
-SELECT ...
+    ```sql
+    ALTER DATABASE [<sql_pool>]
+    SET RESULT_SET_CACHING ON
+    ```
 
-SET RESULT_SET_CACHING OFF
+    >**Important**
+    >
+    >The operations to create result set cache and retrieve data from the cache happen on the control node of a Synapse SQL pool instance. When result set caching is turned ON, running queries that return large result set (for example, >1GB) can cause high throttling on the control node and slow down the overall query response on the instance. Those queries are commonly used during data exploration or ETL operations. To avoid stressing the control node and cause performance issue, users should turn OFF result set caching on the database before running those types of queries.
 
-SELECT ...
-```
+2. After activating result set caching, run a query and immediately check if it hit the cache:
 
-Monitor the results cache:
+    ```sql
+    SELECT
+        D.Year
+        ,D.Quarter
+        ,D.Month
+        ,SUM(S.TotalAmount) as TotalAmount
+        ,SUM(S.ProfitAmount) as TotalProfit
+    FROM
+        [wwi_perf].[Sale_Partition02] S
+        join [wwi].[Date] D on
+            S.TransactionDateId = D.DateId
+    GROUP BY
+        D.Year
+        ,D.Quarter
+        ,D.Month
+    OPTION (LABEL = 'Lab03: Result set caching')
 
-```sql
-DBCC SHOWRESULTCACHESPACEUSED;
-```
+    SELECT 
+        result_cache_hit
+    FROM 
+        sys.dm_pdw_exec_requests
+    WHERE 
+        request_id = 
+        (
+            SELECT TOP 1 
+                request_id 
+            FROM 
+                sys.dm_pdw_exec_requests
+            WHERE   
+                [label] = 'Lab03: Result set caching'
+            ORDER BY
+                start_time desc
+        )
+    ```
 
-```sql
-SELECT result_cache_hit, command, [status], request_id, session_id, total_elapsed_time, [label], error_id, database_id
-FROM sys.dm_pdw_exec_requests
-WHERE command like N'SELECT d1.EnglishEducation %'
-```
+    As expected, the result is `False`. Still, you can identify that, while running the query, Synapse has also cached the result set. Run the following query to get the execution steps:
+
+    ```sql
+    SELECT 
+        step_index
+        ,operation_type
+        ,location_type
+        ,status
+        ,total_elapsed_time
+        ,command
+    FROM 
+        sys.dm_pdw_request_steps
+    WHERE 
+        request_id =
+        (
+            SELECT TOP 1 
+                request_id 
+            FROM 
+                sys.dm_pdw_exec_requests
+            WHERE   
+                [label] = 'Lab03: Result set caching'
+            ORDER BY
+                start_time desc
+        )
+    ```
+
+    The execution plan reveals the building of the result set cache:
+
+    ![The building of the result set cache](./media/lab3_result_set_cache_build.png)
+
+3. You can control at the user session level the use of the result set cache. The following query shows how to deactivate and activate the result cache:
+
+    ```sql  
+    SET RESULT_SET_CACHING OFF
+
+    SELECT
+        D.Year
+        ,D.Quarter
+        ,D.Month
+        ,SUM(S.TotalAmount) as TotalAmount
+        ,SUM(S.ProfitAmount) as TotalProfit
+    FROM
+        [wwi_perf].[Sale_Partition02] S
+        join [wwi].[Date] D on
+            S.TransactionDateId = D.DateId
+    GROUP BY
+        D.Year
+        ,D.Quarter
+        ,D.Month
+    OPTION (LABEL = 'Lab03: Result set caching off')
+
+    SET RESULT_SET_CACHING ON
+
+    SELECT
+        D.Year
+        ,D.Quarter
+        ,D.Month
+        ,SUM(S.TotalAmount) as TotalAmount
+        ,SUM(S.ProfitAmount) as TotalProfit
+    FROM
+        [wwi_perf].[Sale_Partition02] S
+        join [wwi].[Date] D on
+            S.TransactionDateId = D.DateId
+    GROUP BY
+        D.Year
+        ,D.Quarter
+        ,D.Month
+    OPTION (LABEL = 'Lab03: Result set caching on')
+
+    SELECT TOP 2
+        request_id
+        ,[label]
+        ,result_cache_hit
+    FROM 
+        sys.dm_pdw_exec_requests
+    WHERE   
+        [label] in ('Lab03: Result set caching off', 'Lab03: Result set caching on')
+    ORDER BY
+        start_time desc
+    ```
+
+    The result of `SET RESULT_SET_CACHING OFF` is visible in the cache hit test results (`RESULT_CACHE_HIT` contains a `NULL` value):
+
+    ![Result cache on and off](./media/lab3_result_set_cache_off.png)
+
+4. At any moment, you can check the space used bythe results cache:
+
+    ```sql
+    DBCC SHOWRESULTCACHESPACEUSED
+    ```
+
+    ![Check the size of the result set cache](./media/lab3_result_set_cache_size.png)
+
+5. Clear the result set cache using:
+
+    ```sql
+    DBCC DROPRESULTSETCACHE
+    ```
+
+6. Finally, disable result set caching on the database using the following query (you need to run it on the `master` database and replace `<sql_pool> with the name of your SQL pool):
+
+    ```sql
+    ALTER DATABASE [<sql_pool>]
+    SET RESULT_SET_CACHING OFF
+    ```
+
+    >**Important**
+    >
+    >Make sure you disable result set caching on the SQL pool. Failing to do so will have a negative imact on the remainder of this lab, as it will skew execution times and defeat the purpose of several upcoming exercises.
+
+    >**Note**
+    >
+    >The maximum size of result set cache is 1 TB per database. The cached results are automatically invalidated when the underlying query data change.
+    >
+    >The cache eviction is managed by SQL Analytics automatically following this schedule:
+    >- Every 48 hours if the result set hasn't been used or has been invalidated.
+    >- When the result set cache approaches the maximum size.
+    >
+    >Users can manually empty the entire result set cache by using one of these options:
+    >- Turn OFF the result set cache feature for the database
+    >- Run DBCC DROPRESULTSETCACHE while connected to the database
+    >
+    >Pausing a database won't empty cached result set.
 
 ### Task 4 - Create and update statistics
 
-```sql
-SELECT name, is_auto_create_stats_on
-FROM sys.databases
-```
+1. Check if statistics are set to be automatically created in the database:
 
-See statistics that have been automatically created:
+    ```sql
+    SELECT name, is_auto_create_stats_on
+    FROM sys.databases
+    ```
 
-```sql
-select * from sys.dm_pdw_exec_requests where Command like '%WA_%'
-```
+2. See statistics that have been automatically created:
 
-Check if statistics exist over `CustomerId`:
+    ```sql
+    SELECT
+        *
+    FROM 
+        sys.dm_pdw_exec_requests
+    WHERE 
+        Command like 'CREATE STATISTICS%'
+    ```
 
-```sql
-DBCC SHOW_STATISTICS ('wwi_perf.Sale_Hash', CustomerId) WITH HISTOGRAM
-```
+    Notice the special name pattern used for automatically created statistics:
 
-Create statistics for `CustomerId`:
+    ![View automatically created statistics](./media/lab3_statistics_automated.png)
 
-```sql
-CREATE STATISTICS Sale_Hash_CustomerId on wwi_perf.Sale_Hash (CustomerId)
-```
+3. Check if there are any statistics created for `CustomerId` from the `wwi_perf.Sale_Has` table:
 
-![Statistics created for CustomerId](./media/lab3_statistics_customerid.png)
+    ```sql
+    DBCC SHOW_STATISTICS ('wwi_perf.Sale_Hash', CustomerId) WITH HISTOGRAM
+    ```
 
+    You should get an error stating that statistics for `CustomerId` does not exist.
+
+4. Create statistics for `CustomerId`:
+
+    ```sql
+    CREATE STATISTICS Sale_Hash_CustomerId ON wwi_perf.Sale_Hash (CustomerId)
+    ```
+
+    Display the newly created statistics:
+
+    ```sql
+    DBCC SHOW_STATISTICS([wwi_perf.Sale_Hash], 'Sale_Hash_CustomerId')
+    ```
+
+    In the results pane, swhitch to `Chart` display and set the category column and the legend columns as presented below:
+
+    ![Statistics created for CustomerId](./media/lab3_statistics_customerid.png)
+
+    You now have a visual on the statistics created for the `CustomerId` column.
+
+    >**Important**
+    >
+    >The more SQL pool knows about your data, the faster it can execute queries against it. After loading data into SQL pool, collecting statistics on your data is one of the most important things you can do to optimize your queries.
+    >
+    >The SQL pool query optimizer is a cost-based optimizer. It compares the cost of various query plans, and then chooses the plan with the lowest cost. In most cases, it chooses the plan that will execute the fastest.
+    >
+    >For example, if the optimizer estimates that the date your query is filtering on will return one row it will choose one plan. If it estimates that the selected date will return 1 million rows, it will return a different plan.
 
 ### Task 5 - Create and update indexes
 
-CCI vs Heap vs Clustered and Nonclustered
+Clustered Columnstore Index vs. Heap vs. Clustered and Nonclustered
 
-Clustered indexes may outperform clustered columnstore tables when a single row needs to be quickly retrieved. For queries where a single or very few row lookup is required to perform with extreme speed, consider a cluster index or nonclustered secondary index. The disadvantage to using a clustered index is that only queries that benefit are the ones that use a highly selective filter on the clustered index column. To improve filter on other columns a nonclustered index can be added to other columns. However, each index which is added to a table adds both space and processing time to loads.
+Clustered indexes may outperform clustered columnstore indexes when a single row needs to be quickly retrieved. For queries where a single or very few row lookup is required to perform with extreme speed, consider a cluster index or nonclustered secondary index. The disadvantage to using a clustered index is that only queries that benefit are the ones that use a highly selective filter on the clustered index column. To improve filter on other columns a nonclustered index can be added to other columns. However, each index which is added to a table adds both space and processing time to loads.
 
+1. Retrieve information about a single customer from the table with CCI:
 
-### Task 6 - Use ordered CCI
+    ```sql
+    SELECT
+        *
+    FROM
+        [wwi_perf].[Sale_Hash]
+    WHERE
+        CustomerId = 500000
+    ```
+
+    Take a note of the execution time.
+
+2. Retrieve information about a single customer from the table with a clustered index:
+
+    ```sql
+    SELECT
+        *
+    FROM
+        [wwi_perf].[Sale_Index]
+    WHERE
+        CustomerId = 500000
+    ```
+
+    The execution time is similar to the one for the query above. Clustered columnstore indexes have no significant advantage over clustered indexes in the specific scenario of highly selective queries.
+
+3. Retrieve information about multiple customers from the table with CCI:
+
+    ```sql
+    SELECT
+        *
+    FROM
+        [wwi_perf].[Sale_Hash]
+    WHERE
+        CustomerId between 400000 and 400100
+    ```
+
+    and then retrive the same information from the table with a clustered index:
+
+    ```sql
+    SELECT
+        *
+    FROM
+        [wwi_perf].[Sale_Index]
+    WHERE
+        CustomerId between 400000 and 400020
+    ```
+
+    Run both queries several times to get a stable execution time. Under normal conditions, you should see that even with a relatively small number of customers, the CCI table starts yielding better results than the clustered index table.
+
+4. Now add an extra condition on the query, one that refers to the `StoreId` column:
+
+    ```sql
+    SELECT
+        *
+    FROM
+        [wwi_perf].[Sale_Index]
+    WHERE
+        CustomerId between 400000 and 400020
+        and StoreId between 2000 and 4000
+    ```
+
+    Take a note of the execution time.
+
+5. Create a non-clustered index on the `StoreId` column:
+
+    ```sql
+    CREATE INDEX Store_Index on wwi_perf.Sale_Index (StoreId)
+    ```
+
+    The creation of the index should complete in a few minutes. Once the index is created, run the previous query again. Notice the improvement in execution time resulting from the newly created non-clustered index.
+
+    >**Note**
+    >
+    >Creating a non-clustered index on the `wwi_perf.Sale_Index` is based on the already existing clustered index. As a bonus exercise, try to create the same type of index on the `wwi_perf.Sale_Hash` table. Can you explain the difference in index creation time?
+
+### Task 6 - Ordered Clustered Columnstore Indexes
 
 By default, for each table created without an index option, an internal component (index builder) creates a non-ordered clustered columnstore index (CCI) on it. Data in each column is compressed into a separate CCI rowgroup segment. There's metadata on each segment's value range, so segments that are outside the bounds of the query predicate aren't read from disk during query execution. CCI offers the highest level of data compression and reduces the size of segments to read so queries can run faster. However, because the index builder doesn't sort data before compressing them into segments, segments with overlapping value ranges could occur, causing queries to read more segments from disk and take longer to finish.
 
 When creating an ordered CCI, the Synapse SQL engine sorts the existing data in memory by the order key(s) before the index builder compresses them into index segments. With sorted data, segment overlapping is reduced allowing queries to have a more efficient segment elimination and thus faster performance because the number of segments to read from disk is smaller. If all data can be sorted in memory at once, then segment overlapping can be avoided. Due to large tables in data warehouses, this scenario doesn't happen often.
 
-Check segment ranges for a column:
-
-```sql
-SELECT o.name, pnp.index_id, 
-cls.row_count, pnp.data_compression_desc, 
-pnp.pdw_node_id, pnp.distribution_id, cls.segment_id, 
-cls.column_id, 
-cls.min_data_id, cls.max_data_id, 
-cls.max_data_id-cls.min_data_id as difference
-FROM sys.pdw_nodes_partitions AS pnp
-   JOIN sys.pdw_nodes_tables AS Ntables ON pnp.object_id = NTables.object_id AND pnp.pdw_node_id = NTables.pdw_node_id
-   JOIN sys.pdw_table_mappings AS Tmap  ON NTables.name = TMap.physical_name AND substring(TMap.physical_name,40, 10) = pnp.distribution_id
-   JOIN sys.objects AS o ON TMap.object_id = o.object_id
-   JOIN sys.pdw_nodes_column_store_segments AS cls ON pnp.partition_id = cls.partition_id AND pnp.distribution_id  = cls.distribution_id
-JOIN sys.columns as cols ON o.object_id = cols.object_id AND cls.column_id = cols.column_id
-WHERE o.name = '<Table Name>' and cols.name = '<Column Name>'  and TMap.physical_name  not like '%HdTable%'
-ORDER BY o.name, pnp.distribution_id, cls.min_data_id
-```
-
-Queries with all these patterns typically run faster with ordered CCI.
+Queries with the following patterns typically run faster with ordered CCI:
 
 - The queries have equality, inequality, or range predicates
 - The predicate columns and the ordered CCI columns are the same.
 - The predicate columns are used in the same order as the column ordinal of ordered CCI columns.
 
+1. Run the following query to show the segment overlaps for the `Sale_Hash` table:
 
-Show the overlaps for the Sale_Hash table created from the heap table.
+    ```sql
+    select 
+        OBJ.name as table_name
+        ,COL.name as column_name
+        ,NT.distribution_id
+        ,NP.partition_id
+        ,NP.rows as partition_rows
+        ,NP.data_compression_desc
+        ,NCSS.segment_id
+        ,NCSS.version
+        ,NCSS.min_data_id
+        ,NCSS.max_data_id
+        ,NCSS.row_count
+    from 
+        sys.objects OBJ
+        JOIN sys.columns as COL ON
+            OBJ.object_id = COL.object_id
+        JOIN sys.pdw_table_mappings TM ON
+            OBJ.object_id = TM.object_id
+        JOIN sys.pdw_nodes_tables as NT on
+            TM.physical_name = NT.name
+        JOIN sys.pdw_nodes_partitions NP on
+            NT.object_id = NP.object_id
+            and NT.pdw_node_id = NP.pdw_node_id
+            and substring(TM.physical_name, 40, 10) = NP.distribution_id
+        JOIN sys.pdw_nodes_column_store_segments NCSS on
+            NP.partition_id = NCSS.partition_id
+            and NP.distribution_id = NCSS.distribution_id
+            and COL.column_id = NCSS.column_id
+    where
+        OBJ.name = 'Sale_Hash'
+        and COL.name = 'CustomerId'
+        and TM.physical_name  not like '%HdTable%'
+    order by
+        NT.distribution_id
+    ```
+
+    Here is a short description of the tables involved in the query:
+
+    Table Name | Description
+    ---|---
+    sys.objects | All objects in the database. Filtered to match only the `Sale_Hash` table.
+    sys.columns | All columns in the database. Filtered to match only the `CustomerId` column of the `Sale_Hash` table.
+    sys.pdw_table_mappings | Maps each table to local tables on physical nodes and distributions.
+    sys.pdw_nodes_tables | Contains information on each local table in each distribution.
+    sys.pdw_nodes_partitions | Contains information on each local partition of each local table in each distribution.
+    sys.pdw_nodes_column_store_segments | Contains information on each CCI segment for each partition and distribution column of each local table in each distribution. Filtered to match only the `CustomerId` column of the `Sale_Hash` table.
+
+    With this information on hand, take a look at the result:
+
+    ![CCI segment structure on each distribution](./media/lab3_ordered_cci.png)
+
+    Browse through the result set and notice the significant overlap between segments. There is literally overlap in customer ids between every single pair of segments (`CustomerId` values in the data range from 1 to 1,000,000). The segment structure of this CCI is clearly inefficient and will result in a lot of unnecessary reads from storage.
+
+2. Run the following query to show the segment overlaps for the `Sale_Hash_Ordered` table:
+
+    ```sql
+    select 
+        OBJ.name as table_name
+        ,COL.name as column_name
+        ,NT.distribution_id
+        ,NP.partition_id
+        ,NP.rows as partition_rows
+        ,NP.data_compression_desc
+        ,NCSS.segment_id
+        ,NCSS.version
+        ,NCSS.min_data_id
+        ,NCSS.max_data_id
+        ,NCSS.row_count
+    from 
+        sys.objects OBJ
+        JOIN sys.columns as COL ON
+            OBJ.object_id = COL.object_id
+        JOIN sys.pdw_table_mappings TM ON
+            OBJ.object_id = TM.object_id
+        JOIN sys.pdw_nodes_tables as NT on
+            TM.physical_name = NT.name
+        JOIN sys.pdw_nodes_partitions NP on
+            NT.object_id = NP.object_id
+            and NT.pdw_node_id = NP.pdw_node_id
+            and substring(TM.physical_name, 40, 10) = NP.distribution_id
+        JOIN sys.pdw_nodes_column_store_segments NCSS on
+            NP.partition_id = NCSS.partition_id
+            and NP.distribution_id = NCSS.distribution_id
+            and COL.column_id = NCSS.column_id
+    where
+        OBJ.name = 'Sale_Hash_Ordered'
+        and COL.name = 'CustomerId'
+        and TM.physical_name  not like '%HdTable%'
+    order by
+        NT.distribution_id
+    ```
+
+    The CTAS used to create the `wwi_perf.Sale_Hash_Ordered` table was the following:
+
+    ```sql
+    CREATE TABLE [wwi_perf].[Sale_Hash_Ordered]
+    WITH
+    (
+        DISTRIBUTION = HASH ( [CustomerId] ),
+        CLUSTERED COLUMNSTORE INDEX ORDER( [CustomerId] )
+    )
+    AS
+    SELECT
+        *
+    FROM	
+        [wwi_perf].[Sale_Heap]
+    OPTION  (LABEL  = 'CTAS : Sale_Hash', MAXDOP 1)
+    ```
+
+    Notice the creation of the ordered CCI with MAXDOP = 1. Each thread used for ordered CCI creation works on a subset of data and sorts it locally. There's no global sorting across data sorted by different threads. Using parallel threads can reduce the time to create an ordered CCI but will generate more overlapping segments than using a single thread. Currently, the MAXDOP option is only supported in creating an ordered CCI table using CREATE TABLE AS SELECT command. Creating an ordered CCI via CREATE INDEX or CREATE TABLE commands does not support the MAXDOP option.
+
+    The results show significantly less overlap between segments:
+
+    ![CCI segment structure on each distribution with ordered CCI](./media/lab3_ordered_cci_2.png)
+
+>**Note**
+>
+>You will learn more about the internal organization of the clustered columnstore indexes in the following lab.
