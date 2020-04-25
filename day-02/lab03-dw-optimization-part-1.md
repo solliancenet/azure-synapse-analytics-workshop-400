@@ -693,12 +693,11 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
 1. Check if result set caching is on in the current SQL pool:
 
     ```sql
-    SELECT 
-        is_result_set_caching_on
+    SELECT
+        name
+        ,is_result_set_caching_on
     FROM 
         sys.databases
-    WHERE 
-        name = 'resultsetcaching'
     ```
 
     ![Check result set caching settings at the database level](./media/lab3_result_set_caching_db.png)
@@ -856,6 +855,10 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
     ALTER DATABASE [<sql_pool>]
     SET RESULT_SET_CACHING OFF
     ```
+
+    >**Important**
+    >
+    >Make sure you disable result set caching on the SQL pool. Failing to do so will have a negative imact on the remainder of this lab, as it will skew execution times and defeat the purpose of several upcoming exercises.
 
     >**Note**
     >
