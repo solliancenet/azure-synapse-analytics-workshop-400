@@ -8,8 +8,8 @@
     - [Task 1 - Create view for column store row group stats](#task-1---create-view-for-column-store-row-group-stats)
     - [Task 2 - Explore column store storage details](#task-2---explore-column-store-storage-details)
   - [Exercise 3 - Study the impact of wrong choices for column data types](#exercise-3---study-the-impact-of-wrong-choices-for-column-data-types)
-    - [Task 1 - Create and populate a table with optimal column data types](#task-1---create-and-populate-a-table-with-optimal-column-data-types)
-    - [Task 2 - Create and populate a table with sub-optimal column data types](#task-2---create-and-populate-a-table-with-sub-optimal-column-data-types)
+    - [Task 1 - Create and populate tables with optimal column data types](#task-1---create-and-populate-tables-with-optimal-column-data-types)
+    - [Task 2 - Create and populate tables with sub-optimal column data types](#task-2---create-and-populate-tables-with-sub-optimal-column-data-types)
     - [Task 3 - Compare storage requirements](#task-3---compare-storage-requirements)
   - [Exercise 4 - Study the impact of materialized views](#exercise-4---study-the-impact-of-materialized-views)
     - [Task 1 - Analyze the execution plan of a query](#task-1---analyze-the-execution-plan-of-a-query)
@@ -217,6 +217,22 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
     FROM size
     ```
 
+    Take a moment to analyze the script above. You have encountered already some of the tables in the previous lab. Here is a short description of the tables and DMVs involved in the query:
+
+    Table Name | Description
+    ---|---
+    sys.schemas | All schemas in the database.
+    sys.tables | All tables in the database.
+    sys.indexes | All indexes in the database.
+    sys.columns | All columns in the database.
+    sys.pdw_table_mappings | Maps each table to local tables on physical nodes and distributions.
+    sys.pdw_nodes_tables | Contains information on each local table in each distribution.
+    sys.pdw_table_distribution_properties | Holds distribution information for tables (the type of distribution tables have).
+    sys.pdw_column_distribution_properties | Holds distribution information for columns. Filtered to include only columns used to distribute their parent tables (`distribution_ordinal` = 1).
+    sys.pdw_distributions |  Holds information about the distributions from the SQL pool.
+    sys.dm_pdw_nodes | Holds information about the nodes from the SQL pool. Filtered to include only compute nodes (`type` = `COMPUTE`).
+    sys.dm_pdw_nodes_db_partition_stats | Returns page and row-count information for every partition in the current database.
+
 2. Run the following script to view the details about the structure of the tables in the `wwi_perf` schema:
 
     ```sql
@@ -248,11 +264,13 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
         table_reserved_space_GB desc
     ```
 
-3. Notice the results:
+    Analyze the results:
 
-    ![Detailed table space usage](./media/lab3_table_space_usage_2.png)
+    ![Detailed table space usage](./media/lab4_table_space.png)
 
-    Notice the significant difference between the space used by `ROUND_ROBIN` and `HASH` tables.
+    Notice the significant difference between the space used by `CLUSTERED COLUMNSTORE` and `HEAP` or `CLUSTERED` tables. This provides a clear indication on the significant advantages columnstore indexes have.
+
+    Also notice the slight increase of storage space for ordered CCI table (`Sale_Hash_Ordered`).
 
 ## Exercise 2 - Understand column store storage details
 
@@ -285,31 +303,198 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
     from cte;
     ```
 
+    In this query we are using the `sys.dm_pdw_nodes_db_column_store_row_group_physical_stats` DMV which provides current rowgroup-level information about all of the columnstore indexes in the current database.
+
+    The `state_desc` column provides useful information on the state of a row group:
+
+    Name | Description
+    ---|---
+    `INVISIBLE` | A rowgroup which is being compressed.
+    `OPEN` | A deltastore rowgroup that is accepting new rows. It is important to remember that an open rowgroup is still in rowstore format and has not been compressed to columnstore format.
+    `CLOSED` | A deltastore rowgroup that contains the maximum number of rows, and is waiting for the tuple mover process to compress it to the columnstore.
+    `COMPRESSED` | A row group that is compressed with columnstore compression and stored in the columnstore.
+    `TOMBSTONE` | A row group that was formerly in the deltastore and is no longer used.
+
+    The `trim_reason_desc` column describes the reason that triggered the `COMPRESSED` rowgroup to have less than the maximum number of rows:
+
+    Name | Description
+    ---|---
+    `UNKNOWN_UPGRADED_FROM_PREVIOUS_VERSION` | Occurred when upgrading from the previous version of SQL Server.
+    `NO_TRIM` | The row group was not trimmed. The row group was compressed with the maximum of 1,048,476 rows. The number of rows could be less if a subset of rows was deleted after delta rowgroup was closed.
+    `BULKLOAD` | The bulk-load batch size limited the number of rows. This is what you should be looking for when optimizing data loading, as it is an indicator of resource starvation during the loading process.
+    `REORG` | Forced compression as part of REORG command.
+    `DICTIONARY_SIZE` | Dictionary size grew too large to compress all of the rows together.
+    `MEMORY_LIMITATION` | Not enough available memory to compress all the rows together.
+    `RESIDUAL_ROW_GROUP` | Closed as part of last row group with rows < 1 million during index build operation.
+
 ### Task 2 - Explore column store storage details
 
-1. Explore the statistics of the column store for the `Sale_Partition02` table using the following statement:
+1. Explore the statistics of the columnstore for the `Sale_Partition02` table using the following query:
 
     ```sql
-    select * from [wwi_perf].[vColumnStoreRowGroupStats] where Logical_Table_Name = 'Sale_Partition02'
+    SELECT
+        *
+    FROM
+        [wwi_perf].[vColumnStoreRowGroupStats]
+    WHERE
+        Logical_Table_Name = 'Sale_Partition02'
     ```
 
 2. Explore the results of the query:
 
-    ![Column store row group statistics](./media/lab4_column_store_row_groups.png)
+    ![Column store row group statistics for Sale_Partition02](./media/lab4_column_store_row_groups.png)
 
-    Notice the `COMPRESSED` and `OPEN` states of some of the row groups.
+    Browse through the results and get an overview of the rowgroup states. Notice the `COMPRESSED` and `OPEN` states of some of the row groups.
 
-    `<TBA>`
-    Detailed explanation about how did the row groups end up like shown above.
-    `</TBA>`
+3. Explore the statistics of the columnstore for the `Sale_Hash_Ordered` table using the same query:
+
+    ```sql
+    SELECT
+        *
+    FROM
+        [wwi_perf].[vColumnStoreRowGroupStats]
+    WHERE
+        Logical_Table_Name = 'Sale_Hash_Ordered'
+    ```
+
+4. Explore the results of the query:
+
+    ![Column store row group statistics for Sale_Hash_Ordered](./media/lab4_column_store_row_groups_2.png)
+
+    There is a significant difference in the rowgroup states from the previous one. This highlight one of the potential advantages of ordered CCIs.
 
 ## Exercise 3 - Study the impact of wrong choices for column data types
 
-### Task 1 - Create and populate a table with optimal column data types
+### Task 1 - Create and populate tables with optimal column data types
 
-### Task 2 - Create and populate a table with sub-optimal column data types
+Use the following query to create two tables (`Sale_Hash_Projection` and `Sale_Hash_Projection2`) which contain a subset of the columns from `Sale_Heap`:
+
+```sql
+CREATE TABLE [wwi_perf].[Sale_Hash_Projection]
+WITH
+(
+	DISTRIBUTION = HASH ( [CustomerId] ),
+	HEAP
+)
+AS
+SELECT TOP 500000000
+	[CustomerId]
+	,[ProductId]
+	,[Quantity]
+FROM
+	[wwi_perf].[Sale_Heap]
+
+CREATE TABLE [wwi_perf].[Sale_Hash_Projection2]
+WITH
+(
+	DISTRIBUTION = HASH ( [CustomerId] ),
+	CLUSTERED COLUMNSTORE INDEX
+)
+AS
+SELECT TOP 500000000
+	[CustomerId]
+	,[ProductId]
+	,[Quantity]
+FROM
+	[wwi_perf].[Sale_Heap]
+```
+
+The query should finish execution in a few minutes.
+
+### Task 2 - Create and populate tables with sub-optimal column data types
+
+Use the following query to create two additional tables (`Sale_Hash_Projection_Big` and `Sale_Hash_Projection_Big2`) that have the same columns, but with different (sub_optimal) data types:
+
+```sql
+CREATE TABLE [wwi_perf].[Sale_Hash_Projection_Big]
+WITH
+(
+	DISTRIBUTION = HASH ( [CustomerId] ),
+	HEAP
+)
+AS
+SELECT TOP 500000000
+	[CustomerId]
+	,CAST([ProductId] as bigint) as [ProductId]
+	,CAST([Quantity] as bigint) as [Quantity]
+FROM
+	[wwi_perf].[Sale_Heap]
+
+CREATE TABLE [wwi_perf].[Sale_Hash_Projection_Big2]
+WITH
+(
+	DISTRIBUTION = HASH ( [CustomerId] ),
+	CLUSTERED COLUMNSTORE INDEX
+)
+AS
+SELECT TOP 500000000
+	[CustomerId]
+	,CAST([ProductId] as bigint) as [ProductId]
+	,CAST([Quantity] as bigint) as [Quantity]
+FROM
+	[wwi_perf].[Sale_Heap]
+```
 
 ### Task 3 - Compare storage requirements
+
+1. Verify that the four tables have the same number of rows:
+
+    ```sql
+    SELECT 'Sale_Hash_Projection', COUNT_BIG(*) FROM [wwi_perf].[Sale_Hash_Projection]
+    UNION
+    SELECT 'Sale_Hash_Projection2', COUNT_BIG(*) FROM [wwi_perf].[Sale_Hash_Projection]
+    UNION
+    SELECT 'Sale_Hash_Projection_Big', COUNT_BIG(*) FROM [wwi_perf].[Sale_Hash_Projection_Big]
+    UNION
+    SELECT 'Sale_Hash_Projection_Big2', COUNT_BIG(*) FROM [wwi_perf].[Sale_Hash_Projection_Big2]
+    ```
+
+2. Run the following query to compare the storage requirements for the three tables:
+
+    ```sql
+    SELECT
+        database_name
+    ,    schema_name
+    ,    table_name
+    ,    distribution_policy_name
+    ,      distribution_column
+    ,    index_type_desc
+    ,    COUNT(distinct partition_nmbr) as nbr_partitions
+    ,    SUM(row_count)                 as table_row_count
+    ,    SUM(reserved_space_GB)         as table_reserved_space_GB
+    ,    SUM(data_space_GB)             as table_data_space_GB
+    ,    SUM(index_space_GB)            as table_index_space_GB
+    ,    SUM(unused_space_GB)           as table_unused_space_GB
+    FROM
+        [wwi_perf].[vTableSizes]
+    WHERE
+        schema_name = 'wwi_perf'
+        and table_name in ('Sale_Hash_Projection', 'Sale_Hash_Projection2',
+            'Sale_Hash_Projection_Big', 'Sale_Hash_Projection_Big2')
+    GROUP BY
+        database_name
+    ,    schema_name
+    ,    table_name
+    ,    distribution_policy_name
+    ,      distribution_column
+    ,    index_type_desc
+    ORDER BY
+        table_reserved_space_GB desc
+    ```
+
+3. Analyze the results:
+
+    ![Data type selection impact on table storage](./media/lab4_data_type_selection.png)
+
+    There are two important conclusions to draw here:
+    - First, despite the fact the `Sale_Projection_Big` uses misplaced
+
+Minimizing the size of data types shortens the row length, which leads to better query performance. Use the smallest data type that works for your data.
+
+Avoid defining character columns with a large default length. For example, if the longest value is 25 characters, then define your column as VARCHAR(25).
+Avoid using [NVARCHAR][NVARCHAR] when you only need VARCHAR.
+When possible, use NVARCHAR(4000) or VARCHAR(8000) instead of NVARCHAR(MAX) or VARCHAR(MAX).
+[!NOTE] If you are using PolyBase external tables to load your SQL pool tables, the defined length of the table row cannot exceed 1 MB. When a row with variable-length data exceeds 1 MB, you can load the row with BCP, but not with PolyBase.
 
 ## Exercise 4 - Study the impact of materialized views
 
