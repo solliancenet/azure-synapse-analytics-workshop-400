@@ -15,7 +15,7 @@
     - [Task 1 - Analyze the execution plan of a query](#task-1---analyze-the-execution-plan-of-a-query)
     - [Task 2 - Improve the execution plan of the query with a materialized view](#task-2---improve-the-execution-plan-of-the-query-with-a-materialized-view)
   - [Exercise 5 - Avoid extensive logging](#exercise-5---avoid-extensive-logging)
-    - [Task 1 - Rules for minimally logged operations](#task-1---rules-for-minimally-logged-operations)
+    - [Task 1 - Explore rules for minimally logged operations](#task-1---explore-rules-for-minimally-logged-operations)
     - [Task 2 - Optimizing a delete operation](#task-2---optimizing-a-delete-operation)
     - [Task 3 - Optimizing an update operation](#task-3---optimizing-an-update-operation)
     - [Task 4 - Optimizing operations with partition switching](#task-4---optimizing-operations-with-partition-switching)
@@ -377,7 +377,7 @@ WITH
 	HEAP
 )
 AS
-SELECT TOP 500000000
+SELECT
 	[CustomerId]
 	,[ProductId]
 	,[Quantity]
@@ -391,7 +391,7 @@ WITH
 	CLUSTERED COLUMNSTORE INDEX
 )
 AS
-SELECT TOP 500000000
+SELECT
 	[CustomerId]
 	,[ProductId]
 	,[Quantity]
@@ -413,7 +413,7 @@ WITH
 	HEAP
 )
 AS
-SELECT TOP 500000000
+SELECT
 	[CustomerId]
 	,CAST([ProductId] as bigint) as [ProductId]
 	,CAST([Quantity] as bigint) as [Quantity]
@@ -427,7 +427,7 @@ WITH
 	CLUSTERED COLUMNSTORE INDEX
 )
 AS
-SELECT TOP 500000000
+SELECT
 	[CustomerId]
 	,CAST([ProductId] as bigint) as [ProductId]
 	,CAST([Quantity] as bigint) as [Quantity]
@@ -487,7 +487,8 @@ FROM
     ![Data type selection impact on table storage](./media/lab4_data_type_selection.png)
 
     There are two important conclusions to draw here:
-    - First, despite the fact the `Sale_Projection_Big` uses misplaced
+    - In the case of `HEAP` tables, the storage impact of using `BIGINT` instead of `SMALLINT`(for `ProductId`) and `TINYINT` (for `QUANTITY`) is almost 1 GB (0.8941 GB). We're talking here about only two columns and a moderate number of rows (2.9 billion).
+    - Even in the case of `CLUSTERED COLUMNSTORE` tables, where compression will offset some of the differences, there is still a difference of 12.7 MB.
 
 Minimizing the size of data types shortens the row length, which leads to better query performance. Use the smallest data type that works for your data:
 
@@ -859,7 +860,7 @@ Minimizing the size of data types shortens the row length, which leads to better
 
 ## Exercise 5 - Avoid extensive logging
 
-### Task 1 - Rules for minimally logged operations
+### Task 1 - Explore rules for minimally logged operations
 
 The following operations are capable of being minimally logged:
 
@@ -895,7 +896,11 @@ Loading data into a non-empty table with a clustered index can often contain a m
 
 ### Task 2 - Optimizing a delete operation
 
+1. Check the number of transaction items from November and December 2019 with the following query:
 
+    ```sql
+
+    ```
 
 ### Task 3 - Optimizing an update operation
 
