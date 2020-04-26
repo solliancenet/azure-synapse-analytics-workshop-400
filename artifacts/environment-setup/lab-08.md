@@ -20,6 +20,7 @@ A SQL Pool named `SQLPool01` with a database name `SQLPool01`
 ## SQL Scripts
 * ASAL400 - Lab 08 - Exercise 1 - WorkLoad Importance
 * ASAL400 - Lab 08 - Exercise 2 - Workload Isolatation
+* ASAL400 - Lab 08 - Exercise 3 - Monitor Workload
 
 ## Datasets
 * asal400_wwi_salesmall_workload1_asa
