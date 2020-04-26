@@ -916,7 +916,7 @@ Loading data into a non-empty table with a clustered index can often contain a m
         DISTRIBUTION = ROUND_ROBIN,
         HEAP
     )
-    AS 
+    AS
     SELECT
         *
     FROM
@@ -941,6 +941,8 @@ Loading data into a non-empty table with a clustered index can often contain a m
     >The query will run for a potentially long time. Once the time exceeds significantly the time to run the previous CTAS query, you can cancel it (as you can already see the benefit of the CTAS-based approach).
 
 ### Task 3 - Optimizing an update operation
+
+
 
 ### Task 4 - Optimizing operations with partition switching
 
