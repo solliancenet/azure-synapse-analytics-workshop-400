@@ -112,7 +112,7 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
 
     - **Name**: Enter `asal400_sales_adlsgen2`.
     - **Linked service**: Select the `asadatalake01` linked service.
-    - **File path**: Browse to the `wwi-02/sale` path.
+    - **File path**: Browse to the `wwi-02/sale-small` path.
     - **Import schema**: Select `From connection/store`.
 
     ![The create ADLS Gen2 dataset form is displayed.](media/create-adls-dataset.png "Create ADLS Gen2 dataset")
