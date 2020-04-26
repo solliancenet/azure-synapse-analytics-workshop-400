@@ -70,7 +70,7 @@
         <tr>
             <td>11:30</td>
             <td rowspan=3><a href="./day-01/lab01-data-integration-part-1.md">Build Hands-on: Data Integration Part 1 (***)</a></td>
-            <td rowspan=3><a href="./day-02/lab04-dw-optimization-part-2.md">Build Hands-on: DW Optimization Part 1 (***)</a></td>
+            <td rowspan=3><a href="./day-02/lab04-dw-optimization-part-2.md">Build Hands-on: DW Optimization Part 2 (***)</a></td>
             <td rowspan=3><a href="./day-03/lab07-spark-ml.md">Build Hands-on: Spark ML (***)</a></td>
             <td rowspan=3>Continue POC Challenge (****)</td>
         </tr>
@@ -104,7 +104,7 @@
             <td>14:15</td>
             <td rowspan=4><a href="./day-01/lab02-data-integration-part-2.md">Build Hands-on: Data Integration Part 2 (***)</a></td>
             <td rowspan=4><a href="./day-02/lab05-security.md">Build Hands-on: Security (***)</a></td>
-            <td rowspan=4><a href="./day-03/lab08-monitoring">Build Hands-on: Monitoring (***)</a></td>
+            <td rowspan=4><a href="./day-03/lab08-monitoring.md">Build Hands-on: Monitoring (***)</a></td>
             <td rowspan=2>Challenge Debrief (****)</td>
         </tr>
         <tr><td>14:30</td></tr>

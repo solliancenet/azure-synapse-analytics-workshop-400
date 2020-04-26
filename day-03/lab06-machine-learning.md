@@ -1,11 +1,13 @@
 # Machine Learning
 
-```
-Exploratory data analysis (basic stats), 
-Use SVD/PCA for dimensionality reduction, 
-Train ensemble of trees classifier
-Train classifier using Auto ML
-```
+- [Machine Learning](#machine-learning)
+  - [Exercise 1 - Training models](#exercise-1---training-models)
+    - [Task 1 - Performing exploratory data analysis using Spark notebooks](#task-1---performing-exploratory-data-analysis-using-spark-notebooks)
+    - [Task 2 - Training an ensemble of trees classifier](#task-2---training-an-ensemble-of-trees-classifier)
+    - [Task 3 - Training a classifier using Auto ML](#task-3---training-a-classifier-using-auto-ml)
+  - [Exercise 2 - Registering and using models in Syanpse Analytics](#exercise-2---registering-and-using-models-in-syanpse-analytics)
+    - [Task 1 - Registering the models with Azure Synapse Analytics](#task-1---registering-the-models-with-azure-synapse-analytics)
+  - [Task 2 - Making predictions with the registered models](#task-2---making-predictions-with-the-registered-models)
 
 Azure Synapse Analytics provides a unified environment for both data science and data engineering. What this means in practice, is that your data scientists can train and deploy models using Azure Synapse Analytics and your data engineers can write T-SQL queries that use those models to make predictions against tabular data stored in a SQL Pool database table.
 
@@ -33,29 +35,29 @@ All of the steps are performed within your Azure Synapse Analytics Studio.
 
 > What is ONNX? [ONNX](https://onnx.ai/) is an acronym for the Open Neural Network eXchange and is an open format built to represent machine learning models, regardless of what frameworks were used to create the model. This enables model portability, as models in the ONNX format can be run using a wide variety of frameworks, tools, runtimes and platforms. Think of it like a universal file format for machine learning models.
 
-## Task 1 - Performing exploratory data analysis using Spark notebooks
+## Exercise 1 - Training models
+
+### Task 1 - Performing exploratory data analysis using Spark notebooks
 
 A critical first step performed by data scientists is to explore the data so they can understand the dataset, assess the data preparation effort, and begin to formulate a plan for how they will use the data in order to train the model.
 
-**TODO:**
 Exploratory data analysis (basic stats), 
 Use SVD/PCA for dimensionality reduction, 
 
-## Task 2 - Training an ensemble of trees classifier
+### Task 2 - Training an ensemble of trees classifier
 
-**TODO:**
 Train ensemble of trees classifier
 
-## Task 3 - Training a classifier using Auto ML
+### Task 3 - Training a classifier using Auto ML
 
-**TODO:**
 Train classifier using Auto ML
 
-## Task 4 - Registering the models with Azure Synapse Analytics
+## Exercise 2 - Registering and using models in Syanpse Analytics
+
+### Task 1 - Registering the models with Azure Synapse Analytics
 
 In this task, you will register the models in Azure Synapse Analytics so that they are availble for use from T-SQL. This task picks up where you left off, with the ONNX model being made available in Azure Storage. 
 
-**TODO: Replace this step with a notebook approach:**
 
 1.  One step that is not shown by the notebook is an offline step that converts the ONNX model to hexadecimal. The resulting hex encoded model is also upload to Azure Storage. This conversion is currently performed with [this PowerShell script](./artifacts/00/ml/convert-to-hex.ps1), but could be automated using any scripting platform.
 
@@ -65,7 +67,7 @@ In this task, you will register the models in Azure Synapse Analytics so that th
 
    ![Showing the context menu, selecting New SQL Script, Empty Script](media/ex05-new-sql-script.png "Create new script")
 
-3. Replace the contents of this script with following. Be sure to replace the place holder values identified by the comments with the appropriate values from your environment.
+4. Replace the contents of this script with following. Be sure to replace the place holder values identified by the comments with the appropriate values from your environment.
 
 ``` sql
 -- Use polybase to load model into the model table
@@ -138,7 +140,7 @@ FROM [wwi_ml].[MLModelExt]
 4. This script uses PolyBase to load the hex encoded model from Azure Storage into a table within the SQL Pool database. Once the model is inserted into the table in this way, it is available for use by the Predict statement as you will see next.
 
 
-## Task 5 - Making predictions with the registered models
+## Task 2 - Making predictions with the registered models
 
 In this task, you will author a T-SQL query that uses the previously trained models to make predictions.
 
@@ -148,7 +150,6 @@ In this task, you will author a T-SQL query that uses the previously trained mod
 
    ![Showing the context menu, selecting New SQL Script, Empty Script](media/ex05-new-sql-script.png "Create new script")
 
-**TODO: Update this script with scoring for new model.**
 
 3. Replace the contents of this script with following:
 
