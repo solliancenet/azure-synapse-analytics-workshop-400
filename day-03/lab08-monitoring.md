@@ -92,9 +92,52 @@ The code creates a workload group called `CEODemo` to reserve resources exclusiv
 
 ![](media/ex05-check-system-flood-2.png)
 
+## Workload Monitoring
+
+Azure Synapse Analytics provides a rich monitoring experience within the Azure portal to surface insights regarding your data warehouse workload. The Azure portal is the recommended tool when monitoring your data warehouse as it provides configurable retention periods, alerts, recommendations, and customizable charts and dashboards for metrics and logs. The portal also enables you to integrate with other Azure monitoring services such as Azure Monitor (logs) with Log analytics to provide a holistic monitoring experience for not only your data warehouse but also your entire Azure analytics platform for an integrated monitoring experience. 
+
+For a programmatic experience when monitoring SQL Analytics via T-SQL, the service provides a set of Dynamic Management Views (DMVs). These views are useful when actively troubleshooting and identifying performance bottlenecks with your workload.
+
+## Task 3 - Workload Monitoring
+
+All logins to your data warehouse are logged to `sys.dm_pdw_exec_sessions`. This DMV contains the last 10,000 logins. The `session_id` is the primary key and is assigned sequentially for each new logon.
+
+1. Open Synapse Analytics Studio, and then navigate to the `Develop` hub. Then open `Lab 08 - Exercise 3 - Monitor Workload` from the list of SQL Scripts. 
+
+2. Select `SQLPool01` under `Connect To` and highlight the first SQL Command shown below. Run it to see active connections.
+
+![](media/ex03-step01.png)
+
+All queries executed on SQL pool are logged to `sys.dm_pdw_exec_requests`. This DMV contains the last 10,000 queries executed. The `request_id` uniquely identifies each query and is the primary key for this DMV. The `request_id` is assigned sequentially for each new query and is prefixed with `QID`, which stands for query ID. Querying this DMV for a given `session_id` shows all queries for a given logon.
+
+3. Let's flood the system with queries to create operations to monitor. To do this, we will run a Azure Synapse Pipeline which triggers queries. Select the `Orchestrate` Tab. **Run** `Execute BusinessAnalystNYC Script` Pipeline, which will run / trigger  `BusinessAnalystNYC` queries.
+
+4. **select** the SQL Command between lines #7-11 and **run** the query and from the query results, note the `Request_ID` of the query that you would like to investigate. 
+
+![](media/ex03-step02.png)
+
+As an alternative you can run the SQL Command between lines #15-17 to find the top 10 longest running queries.
+
+![](media/ex03-step03.png)
+
+5. To simplify the lookup of a query in the `sys.dm_pdw_exec_requests` table, use `LABEL` to assign a comment to your query, which can be looked up in the `sys.dm_pdw_exec_requests` view. To test labels **select** the SQL Command between lines #21-24 and **run** the query with the label `My Query`.
+
+![](media/ex03-step04.png)
+
+6. **select** the SQL Command between lines #29-31 and **run** the query filtering with result with the label `My Query`.
+
+![](media/ex03-step05.png)
+
+7. **Replace** the `QID#####` with the `Request_ID` you noted in Step 4. **select** the SQL Command between lines #36-38 and run it to retrieve the query's distributed SQL (DSQL) plan from `sys.dm_pdw_request_steps`.
+
+![](media/ex03-step06.png)
+
+When a DSQL plan is taking longer than expected, the cause can be a complex plan with many DSQL steps or just one step taking a long time. If the plan is many steps with several move operations, consider optimizing your table distributions to reduce data movement. 
+
 ## Resources
 
 - [Workload Group Isolation (Preview)](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql-data-warehouse/sql-data-warehouse-workload-isolation)
 - [Workload Isolation](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql-data-warehouse/sql-data-warehouse-workload-isolation)
 - [Workload Importance](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql-data-warehouse/sql-data-warehouse-workload-importance)
 - [Workload Classification](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql-data-warehouse/sql-data-warehouse-workload-classification)
+- [Monitoring workload using DMVs](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql-data-warehouse/sql-data-warehouse-manage-monitor)
