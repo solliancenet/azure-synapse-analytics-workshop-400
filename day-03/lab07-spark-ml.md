@@ -10,7 +10,7 @@ In this exercise you will train a model to recommend the top 5 products to users
 
 ### Task 1 - Using the Spark ML ALS algorithm
 
-In this task, you will train a reccommender model using the ALS algorithm from Spark ML.
+In this task, you will train a recommender model using the ALS algorithm from Spark ML.
 
 1. Open Synapse Analytics Studio, and then navigate to the `Develop` hub.
 
