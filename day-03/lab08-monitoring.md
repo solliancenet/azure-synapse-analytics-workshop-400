@@ -9,7 +9,7 @@ Pipeline runs can be monitored using the Monitor Hub and selecting Pipeline runs
 The execution of Spark applications representing the execution of notebooks and jobs can be monitored within the Monitor Hub, selecting Spark applications. Selecting a Spark application to view its progress and to launch the Spark UI to examine a running Spark job and stage details, or the Spark history server to examine a completed application.
 
 - [Exercise 1 - Workload Management](#exercise-1---workload-management)
-  - [Task 1 - Workload Importance in Azure Synapse](#task-1---workload-importance-in-azure-synapse)
+  - [Task 1 - Workload Importance](#task-1---workload-importance)
   - [Task 2 - Workload Isolation](#task-2---workload-isolation)
 - [Exercise 2 - Workload Monitoring](#exercise-2---workload-monitoring)
   - [Task 1 - Monitoring with Dynamic Management Views](#task-1---monitoring-with-dynamic-management-views)
@@ -24,7 +24,7 @@ Workload importance influences the order in which a request gets access to resou
 
 Workload isolation reserves resources for a workload group. Resources reserved in a workload group are held exclusively for that workload group to ensure execution. Workload groups also allow you to define the amount of resources that are assigned per request, much like resource classes do. Workload groups give you the ability to reserve or cap the amount of resources a set of requests can consume. Finally, workload groups are a mechanism to apply rules, such as query timeout, to requests.
 
-## Task 1 - Workload Importance in Azure Synapse
+## Task 1 - Workload Importance
 
 Often in a data warehouse scenario you have users who need their queries to run quickly. The user could be executives of the company who need to run reports or the user could be an analyst running an adhoc query. 
 
