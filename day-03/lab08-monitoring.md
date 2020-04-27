@@ -14,6 +14,7 @@ The execution of Spark applications representing the execution of notebooks and 
 - [Exercise 2 - Workload Monitoring](#exercise-2---workload-monitoring)
   - [Task 1 - Monitoring with Dynamic Management Views](#task-1---monitoring-with-dynamic-management-views)
   - [Task 2 - Orchestration Monitoring with the Monitor Hub](#task-2---orchestration-monitoring-with-the-monitor-hub)
+  - [Task 3 - Monitoring SQL Requests with the Monitor Hub](#task-3---monitoring-sql-requests-with-the-monitor-hub)
 
 ## Exercise 1 - Workload Management
 
@@ -154,6 +155,20 @@ When a DSQL plan is taking longer than expected, the cause can be a complex plan
 3. Hover onto the runnning pipeline and select `Cancel` to cancel the execution of the current instance of the pipeline.
 
 ![](media/ex02-task02-03.png)
+
+## Task 3 - Monitoring SQL Requests with the Monitor Hub
+
+1. Let's run a pipeline to monitor its execution in the next step. To do this, select the `Orchestrate` Tab. **Run** `Lab 8 - ExecuteBusinessAnalystQueries` Pipeline.
+
+![](media/ex02-task03-01.png)
+
+2. Navigate to the `Monitor` hub. Then select `SQL requests` to get a list of SQL requests that ran during the last 24 hours. Observe `Request Submitter`, `Submit Time`, `Duration` and `Queued Duration` values. 
+
+![](media/ex02-task03-02.png)
+
+3. Hover onto a SQL Request log and select `Request Content` to access the actual T-SQL command executed as part of the SQL Request.
+
+![](media/ex02-task03-03.png)
 
 ## Resources
 
