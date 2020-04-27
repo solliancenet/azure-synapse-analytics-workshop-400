@@ -13,6 +13,7 @@ The execution of Spark applications representing the execution of notebooks and 
   - [Task 2 - Workload Isolation](#task-2---workload-isolation)
 - [Exercise 2 - Workload Monitoring](#exercise-2---workload-monitoring)
   - [Task 1 - Monitoring with Dynamic Management Views](#task-1---monitoring-with-dynamic-management-views)
+  - [Task 2 - Orchestration Monitoring with the Monitor Hub](#task-2---orchestration-monitoring-with-the-monitor-hub)
 
 ## Exercise 1 - Workload Management
 
