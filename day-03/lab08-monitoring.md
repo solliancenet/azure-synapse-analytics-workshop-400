@@ -34,23 +34,23 @@ Setting importance in Synapse SQL for Azure Synapse allows you to influence the 
 
 2. Select `SQLPool01` under `Connect To` and highlight the first SQL Command shown below. Select `Run` to confirm that there are no queries currently being run by users logged in as `asa.sql.workload01` represeting the CEO of the organization or `asa.sql.workload02` representing the data analyst working on the project.
 
-![](media/ex05-confirm-no-queries.png)
+![](media/ex01-task01-01.png)
 
 3. You will flood the system with queries and see what happens for `asa.sql.workload01` and `asa.sql.workload02`. To do this, we'll run a Azure Synapse Pipeline which triggers queries. Select the `Orchestrate` Tab. **Run** `Lab 8 - ExecuteDataAnalystAndCEOQueries` Pipeline, which will run / trigger the `asa.sql.workload01` and `asa.sql.workload02` queries.
 
 4. Let's see what happened to all the queries we just triggered as they flood the system. **Select** the SQL Command between lines #18-21 and run the query.
 
-![](media/ex05-observe-flood.png)
+![](media/ex01-task01-02.png)
 
 5. We will give our `asa.sql.workload01` user queries priority by implementing the **Workload Importance** feature. In order to do that, **select** the SQL Command between lines #24-27 and run the query.
 
-![](media/ex05-workload-importance.png)
+![](media/ex01-task01-03.png)
 
 6. Let's flood the system again with queries and see what happens this time for `asa.sql.workload01` and `asa.sql.workload02` queries. To do this, we'll run a Azure Synapse Pipeline which triggers queries. **Select** the `Orchestrate` Tab, **run** `Lab 8 - ExecuteDataAnalystAndCEOQueries` Pipeline, which will run / trigger the `asa.sql.workload01` and `asa.sql.workload02` queries. 
 
 7. Run the SQL Command between lines #37-40 to see what happens to the `asa.sql.workload01` queries this time.
 
-![](media/ex05-workload-importance-2.png)
+![](media/ex01-task01-04.png)
 
 ## Task 2 - Workload Isolation
 
@@ -66,27 +66,27 @@ Users should avoid a workload management solution that configures 100% workload 
 
 2. Select `SQLPool01` under `Connect To` and highlight the first SQL Command shown below. 
 
-![](media/ex05-workload-isolation.png)
+![](media/ex01-task02-01.png)
 
 The code creates a workload group called `CEODemo` to reserve resources exclusively for the workload group. In this example, a workload group with a `MIN_PERCENTAGE_RESOURCE` set to 50% and `REQUEST_MIN_RESOURCE_GRANT_PERCENT` set to 25% is guaranteed 2 concurrency.
 
 3. **select** the SQL Command between lines #17-21 and **run** the query to create a workload Classifier called `CEODreamDemo` that would assigning a workload group and importance to incoming requests.
 
-![](media/ex05-workload-classifier.png)
+![](media/ex01-task02-02.png)
 
 4. Let's confirm that there are no active queries being run by `asa.sql.workload02`.  **select** the SQL Command between lines #25-31 and **run**.
 
-![](media/ex05-workload-isolation-confirm.png)
+![](media/ex01-task02-03.png)
 
 5. Let's flood the system with queries and see what happens for `asa.sql.workload02`. To do this, we will run a Azure Synapse Pipeline which triggers queries. Select the `Orchestrate` Tab. **Run** `Lab 8 - ExecuteBusinessAnalystQueries` Pipeline, which will run / trigger  `asa.sql.workload02` queries.
 
 6. Let us see what happened to all the `asa.sql.workload02` queries we just triggered as they flood the system. **select** the SQL Command between lines #44-50 and **run**.
 
-![](media/ex05-check-system-flood.png)
+![](media/ex01-task02-04.png)
 
 7. In this step, we will set 3.25% minimum resources per request. **select** the SQL Command between lines #53-66 and **run**.
 
-![](media/ex05-minimum-resources-per-request.png)
+![](media/ex01-task02-05.png)
 
 > **Note**: Configuring workload containment implicitly defines a maximum level of concurrency. With a CAP_PERCENTAGE_RESOURCE set to 60% and a REQUEST_MIN_RESOURCE_GRANT_PERCENT set to 1%, up to a 60-concurrency level is allowed for the workload group. Consider the method included below for determining the maximum concurrency:
 > 
@@ -96,7 +96,7 @@ The code creates a workload group called `CEODemo` to reserve resources exclusiv
 
 9. Let's see what happened to all of the `asa.sql.workload02` queries we just triggered as they flood the system. **select** the SQL Command between lines #77-83 and **run**.
 
-![](media/ex05-check-system-flood-2.png)
+![](media/ex01-task02-06.png)
 
 ## Exercise 2 - Workload Monitoring
 
