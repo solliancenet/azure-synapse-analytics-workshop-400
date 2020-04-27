@@ -2,9 +2,6 @@
 
 - [Machine Learning](#machine-learning)
   - [Exercise 1 - Training models](#exercise-1---training-models)
-    - [Task 1 - Performing exploratory data analysis using Spark notebooks](#task-1---performing-exploratory-data-analysis-using-spark-notebooks)
-    - [Task 2 - Training an ensemble of trees classifier](#task-2---training-an-ensemble-of-trees-classifier)
-    - [Task 3 - Training a classifier using Auto ML](#task-3---training-a-classifier-using-auto-ml)
   - [Exercise 2 - Registering and using models in Syanpse Analytics](#exercise-2---registering-and-using-models-in-syanpse-analytics)
     - [Task 1 - Registering the models with Azure Synapse Analytics](#task-1---registering-the-models-with-azure-synapse-analytics)
   - [Task 2 - Making predictions with the registered models](#task-2---making-predictions-with-the-registered-models)
@@ -37,27 +34,18 @@ All of the steps are performed within your Azure Synapse Analytics Studio.
 
 ## Exercise 1 - Training models
 
-### Task 1 - Performing exploratory data analysis using Spark notebooks
+Open the `Lab 06` notebook and run it step by step to complete this exercise. Some of the most important tasks you will perform are:
 
-A critical first step performed by data scientists is to explore the data so they can understand the dataset, assess the data preparation effort, and begin to formulate a plan for how they will use the data in order to train the model.
-
-Exploratory data analysis (basic stats), 
-Use SVD/PCA for dimensionality reduction, 
-
-### Task 2 - Training an ensemble of trees classifier
-
-Train ensemble of trees classifier
-
-### Task 3 - Training a classifier using Auto ML
-
-Train classifier using Auto ML
+- Exploratory data analysis (basic stats)
+- Use PCA for dimensionality reduction
+- Train ensemble of trees classifier (using XGBoost)
+- Train classifier using Auto ML
 
 ## Exercise 2 - Registering and using models in Syanpse Analytics
 
 ### Task 1 - Registering the models with Azure Synapse Analytics
 
 In this task, you will register the models in Azure Synapse Analytics so that they are availble for use from T-SQL. This task picks up where you left off, with the ONNX model being made available in Azure Storage. 
-
 
 1.  One step that is not shown by the notebook is an offline step that converts the ONNX model to hexadecimal. The resulting hex encoded model is also upload to Azure Storage. This conversion is currently performed with [this PowerShell script](./artifacts/00/ml/convert-to-hex.ps1), but could be automated using any scripting platform.
 
