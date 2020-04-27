@@ -8,7 +8,13 @@ Pipeline runs can be monitored using the Monitor Hub and selecting Pipeline runs
 
 The execution of Spark applications representing the execution of notebooks and jobs can be monitored within the Monitor Hub, selecting Spark applications. Selecting a Spark application to view its progress and to launch the Spark UI to examine a running Spark job and stage details, or the Spark history server to examine a completed application.
 
-## Workload Management
+- [Exercise 1 - Workload Management](#exercise-1---workload-management)
+  - [Task 1 - Workload Importance in Azure Synapse](#task-1---workload-importance-in-azure-synapse)
+  - [Task 2 - Workload Isolation](#task-2---workload-isolation)
+- [Exercise 2 - Workload Monitoring](#exercise-2---workload-monitoring)
+  - [Task 1 - Monitoring with Dynamic Management Views](#task-1---monitoring-with-dynamic-management-views)
+
+## Exercise 1 - Workload Management
 
 Running mixed workloads can pose resource challenges on busy systems. Solution Architects seek ways to separate classic data warehousing activities (such as loading, transforming and querying data) to ensure that enough resources exist to hit SLAs.
 
@@ -92,13 +98,13 @@ The code creates a workload group called `CEODemo` to reserve resources exclusiv
 
 ![](media/ex05-check-system-flood-2.png)
 
-## Workload Monitoring
+## Exercise 2 - Workload Monitoring
 
 Azure Synapse Analytics provides a rich monitoring experience within the Azure portal to surface insights regarding your data warehouse workload. The Azure portal is the recommended tool when monitoring your data warehouse as it provides configurable retention periods, alerts, recommendations, and customizable charts and dashboards for metrics and logs. The portal also enables you to integrate with other Azure monitoring services such as Azure Monitor (logs) with Log analytics to provide a holistic monitoring experience for not only your data warehouse but also your entire Azure analytics platform for an integrated monitoring experience. 
 
 For a programmatic experience when monitoring SQL Analytics via T-SQL, the service provides a set of Dynamic Management Views (DMVs). These views are useful when actively troubleshooting and identifying performance bottlenecks with your workload.
 
-## Task 3 - Workload Monitoring
+## Task 1 - Monitoring with Dynamic Management Views
 
 All logins to your data warehouse are logged to `sys.dm_pdw_exec_sessions`. This DMV contains the last 10,000 logins. The `session_id` is the primary key and is assigned sequentially for each new logon.
 
