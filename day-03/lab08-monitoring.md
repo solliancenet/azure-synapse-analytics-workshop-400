@@ -140,6 +140,20 @@ As an alternative you can run the SQL Command between lines #15-17 to find the t
 
 When a DSQL plan is taking longer than expected, the cause can be a complex plan with many DSQL steps or just one step taking a long time. If the plan is many steps with several move operations, consider optimizing your table distributions to reduce data movement. 
 
+## Task 2 - Orchestration Monitoring with the Monitor Hub
+
+1. Let's run a pipeline to monitor its execution in the next step. To do this, select the `Orchestrate` Tab. **Run** `Lab 8 - ExecuteBusinessAnalystQueries` Pipeline.
+
+![](media/ex02-task02-01.png)
+
+2. Navigate to the `Monitor` hub. Then select `Pipeline runs` to get a list of pipelines that ran during the last 24 hours. Observe Pipeline status. 
+
+![](media/ex02-task02-02.png)
+
+3. Hover onto the runnning pipeline and select `Cancel` to cancel the execution of the current instance of the pipeline.
+
+![](media/ex02-task02-03.png)
+
 ## Resources
 
 - [Workload Group Isolation (Preview)](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql-data-warehouse/sql-data-warehouse-workload-isolation)
