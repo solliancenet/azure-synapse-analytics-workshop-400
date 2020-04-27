@@ -114,7 +114,7 @@ All logins to your data warehouse are logged to `sys.dm_pdw_exec_sessions`. This
 
 2. Select `SQLPool01` under `Connect To` and highlight the first SQL Command shown below. Run it to see active connections.
 
-![](media/ex03-step01.png)
+![](media/ex02-task01-01.png)
 
 All queries executed on SQL pool are logged to `sys.dm_pdw_exec_requests`. This DMV contains the last 10,000 queries executed. The `request_id` uniquely identifies each query and is the primary key for this DMV. The `request_id` is assigned sequentially for each new query and is prefixed with `QID`, which stands for query ID. Querying this DMV for a given `session_id` shows all queries for a given logon.
 
@@ -122,23 +122,23 @@ All queries executed on SQL pool are logged to `sys.dm_pdw_exec_requests`. This 
 
 4. **select** the SQL Command between lines #7-11 and **run** the query and from the query results, note the `Request_ID` of the query that you would like to investigate. 
 
-![](media/ex03-step02.png)
+![](media/ex02-task01-02.png)
 
 As an alternative you can run the SQL Command between lines #15-17 to find the top 10 longest running queries.
 
-![](media/ex03-step03.png)
+![](media/ex02-task01-03.png)
 
 5. To simplify the lookup of a query in the `sys.dm_pdw_exec_requests` table, use `LABEL` to assign a comment to your query, which can be looked up in the `sys.dm_pdw_exec_requests` view. To test labels **select** the SQL Command between lines #21-24 and **run** the query with the label `My Query`.
 
-![](media/ex03-step04.png)
+![](media/ex02-task01-04.png)
 
 6. **select** the SQL Command between lines #29-31 and **run** the query filtering with result with the label `My Query`.
 
-![](media/ex03-step05.png)
+![](media/ex02-task01-05.png)
 
 7. **Replace** the `QID#####` with the `Request_ID` you noted in Step 4. **select** the SQL Command between lines #36-38 and run it to retrieve the query's distributed SQL (DSQL) plan from `sys.dm_pdw_request_steps`.
 
-![](media/ex03-step06.png)
+![](media/ex02-task01-06.png)
 
 When a DSQL plan is taking longer than expected, the cause can be a complex plan with many DSQL steps or just one step taking a long time. If the plan is many steps with several move operations, consider optimizing your table distributions to reduce data movement. 
 
