@@ -36,7 +36,7 @@ Setting importance in Synapse SQL for Azure Synapse allows you to influence the 
 
 ![](media/ex05-confirm-no-queries.png)
 
-3. You will flood the system with queries and see what happens for `asa.sql.workload01` and `asa.sql.workload02`. To do this, we'll run a Azure Synapse Pipeline which triggers queries. Select the `Orchestrate` Tab. **Run** `ExecuteDataAnalystAndCEOQueries` Pipeline, which will run / trigger the `asa.sql.workload01` and `asa.sql.workload02` queries.
+3. You will flood the system with queries and see what happens for `asa.sql.workload01` and `asa.sql.workload02`. To do this, we'll run a Azure Synapse Pipeline which triggers queries. Select the `Orchestrate` Tab. **Run** `Lab 8 - ExecuteDataAnalystAndCEOQueries` Pipeline, which will run / trigger the `asa.sql.workload01` and `asa.sql.workload02` queries.
 
 4. Let's see what happened to all the queries we just triggered as they flood the system. **Select** the SQL Command between lines #18-21 and run the query.
 
@@ -46,7 +46,7 @@ Setting importance in Synapse SQL for Azure Synapse allows you to influence the 
 
 ![](media/ex05-workload-importance.png)
 
-6. Let's flood the system again with queries and see what happens this time for `asa.sql.workload01` and `asa.sql.workload02` queries. To do this, we'll run a Azure Synapse Pipeline which triggers queries. **Select** the `Orchestrate` Tab, **run** `ExecuteDataAnalystAndCEOQueries` Pipeline, which will run / trigger the `asa.sql.workload01` and `asa.sql.workload02` queries. 
+6. Let's flood the system again with queries and see what happens this time for `asa.sql.workload01` and `asa.sql.workload02` queries. To do this, we'll run a Azure Synapse Pipeline which triggers queries. **Select** the `Orchestrate` Tab, **run** `Lab 8 - ExecuteDataAnalystAndCEOQueries` Pipeline, which will run / trigger the `asa.sql.workload01` and `asa.sql.workload02` queries. 
 
 7. Run the SQL Command between lines #37-40 to see what happens to the `asa.sql.workload01` queries this time.
 
@@ -74,13 +74,13 @@ The code creates a workload group called `CEODemo` to reserve resources exclusiv
 
 ![](media/ex05-workload-classifier.png)
 
-4. Let's confirm that there are no active queries being run by `BusinessAnalystNYC`.  **select** the SQL Command between lines #25-31 and **run**.
+4. Let's confirm that there are no active queries being run by `asa.sql.workload02`.  **select** the SQL Command between lines #25-31 and **run**.
 
 ![](media/ex05-workload-isolation-confirm.png)
 
-5. Let's flood the system with queries and see what happens for `BusinessAnalystNYC`. To do this, we will run a Azure Synapse Pipeline which triggers queries. Select the `Orchestrate` Tab. **Run** `Execute BusinessAnalystNYC Script` Pipeline, which will run / trigger  `BusinessAnalystNYC` queries.
+5. Let's flood the system with queries and see what happens for `asa.sql.workload02`. To do this, we will run a Azure Synapse Pipeline which triggers queries. Select the `Orchestrate` Tab. **Run** `Lab 8 - ExecuteBusinessAnalystQueries` Pipeline, which will run / trigger  `asa.sql.workload02` queries.
 
-6. Let us see what happened to all the `BusinessAnalystNYC` queries we just triggered as they flood the system. **select** the SQL Command between lines #44-50 and **run**.
+6. Let us see what happened to all the `asa.sql.workload02` queries we just triggered as they flood the system. **select** the SQL Command between lines #44-50 and **run**.
 
 ![](media/ex05-check-system-flood.png)
 
@@ -92,9 +92,9 @@ The code creates a workload group called `CEODemo` to reserve resources exclusiv
 > 
 > [Max Concurrency] = [CAP_PERCENTAGE_RESOURCE] / [REQUEST_MIN_RESOURCE_GRANT_PERCENT]
 
-8. Let's flood the system again and see what happens for `BusinessAnalystNYC`. To do this, we will run a Azure Synapse Pipeline which triggers queries. Select the `Orchestrate` Tab. **Run** `Execute BusinessAnalystNYC Script` Pipeline, which will run / trigger  `BusinessAnalystNYC` queries.
+8. Let's flood the system again and see what happens for `asa.sql.workload02`. To do this, we will run a Azure Synapse Pipeline which triggers queries. Select the `Orchestrate` Tab. **Run** `Lab 8 - ExecuteBusinessAnalystQueries` Pipeline, which will run / trigger  `asa.sql.workload02` queries.
 
-9. Let's see what happened to all of the `BusinessAnalystNYC` queries we just triggered as they flood the system. **select** the SQL Command between lines #77-83 and **run**.
+9. Let's see what happened to all of the `asa.sql.workload02` queries we just triggered as they flood the system. **select** the SQL Command between lines #77-83 and **run**.
 
 ![](media/ex05-check-system-flood-2.png)
 
@@ -116,7 +116,7 @@ All logins to your data warehouse are logged to `sys.dm_pdw_exec_sessions`. This
 
 All queries executed on SQL pool are logged to `sys.dm_pdw_exec_requests`. This DMV contains the last 10,000 queries executed. The `request_id` uniquely identifies each query and is the primary key for this DMV. The `request_id` is assigned sequentially for each new query and is prefixed with `QID`, which stands for query ID. Querying this DMV for a given `session_id` shows all queries for a given logon.
 
-3. Let's flood the system with queries to create operations to monitor. To do this, we will run a Azure Synapse Pipeline which triggers queries. Select the `Orchestrate` Tab. **Run** `Execute BusinessAnalystNYC Script` Pipeline, which will run / trigger  `BusinessAnalystNYC` queries.
+3. Let's flood the system with queries to create operations to monitor. To do this, we will run a Azure Synapse Pipeline which triggers queries. Select the `Orchestrate` Tab. **Run** `Lab 8 - ExecuteBusinessAnalystQueries` Pipeline, which will run / trigger  `asa.sql.workload02` queries.
 
 4. **select** the SQL Command between lines #7-11 and **run** the query and from the query results, note the `Request_ID` of the query that you would like to investigate. 
 
