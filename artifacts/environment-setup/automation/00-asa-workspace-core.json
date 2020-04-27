@@ -2,14 +2,20 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "uniqueSuffix": {
+      "type": "string",
+      "defaultValue": "03",
+      "metadata": {
+        "description": "Suffix added to all resource name to make them unique."
+      }
+    }
   },
   "variables": {
-    "uniqueSuffix": "03",
     "location": "[resourceGroup().location]",
     "sqlAdministratorLogin": "asa.sql.admin",
     "sqlAdministratorLoginPassword": "G1KSwXmdOfQvZcdYUwTA",
-    "workspaceName": "[concat('asaworkspace', variables('uniqueSuffix'))]",
-    "adlsStorageAccountName": "[concat('asadatalake', variables('uniqueSuffix'))]",
+    "workspaceName": "[concat('asaworkspace', parameters('uniqueSuffix'))]",
+    "adlsStorageAccountName": "[concat('asadatalake', parameters('uniqueSuffix'))]",
     "defaultDataLakeStorageFilesystemName": "tempdata",
     "sqlComputeName": "SQLPool01",
     "sparkComputeName": "SparkPool01",
@@ -29,12 +35,12 @@
     "packagesRequirementsFileName": "requirements.txt",
     "packagesRequirementsContent": "xgboost==1.0.2",
 
-    "keyVaultName": "[concat('asakeyvault', variables('uniqueSuffix'))]",
-    "blobStorageAccountName": "[concat('asastore', variables('uniqueSuffix'))]",
-    "applicationInsightsName": "[concat('asaappinsights', variables('uniqueSuffix'))]",
-    "amlWorkspaceName": "[concat('amlworkspace', variables('uniqueSuffix'))]",
+    "keyVaultName": "[concat('asakeyvault', parameters('uniqueSuffix'))]",
+    "blobStorageAccountName": "[concat('asastore', parameters('uniqueSuffix'))]",
+    "applicationInsightsName": "[concat('asaappinsights', parameters('uniqueSuffix'))]",
+    "amlWorkspaceName": "[concat('amlworkspace', parameters('uniqueSuffix'))]",
 
-    "cosmosDbAccountName": "[concat('asacosmosdb', variables('uniqueSuffix'))]"
+    "cosmosDbAccountName": "[concat('asacosmosdb', parameters('uniqueSuffix'))]"
   },
   "resources": [
     {
@@ -495,7 +501,7 @@
         ],
         "properties": {
             "resource": {
-                "throughput": 5000
+                "throughput": 400
             }
         }
     },
