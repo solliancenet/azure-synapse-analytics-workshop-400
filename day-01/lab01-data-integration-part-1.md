@@ -111,7 +111,7 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
 6. Create a new **Azure Data Lake Storage Gen2** dataset with the **Parquet** format type with the following characteristics:
 
     - **Name**: Enter `asal400_sales_adlsgen2`.
-    - **Linked service**: Select the `asadatalake01` linked service.
+    - **Linked service**: Select the `asadatalakeXX` linked service that already exists.
     - **File path**: Browse to the `wwi-02/sale-small` path.
     - **Import schema**: Select `From connection/store`.
 
@@ -120,7 +120,7 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
 7. Create a new **Azure Data Lake Storage Gen2** dataset with the **JSON** format type with the following characteristics:
 
     - **Name**: Enter `asal400_ecommerce_userprofiles_source`.
-    - **Linked service**: Select the `asadatalake01` linked service.
+    - **Linked service**: Select the `asadatalakeXX` linked service that already exists.
     - **File path**: Browse to the `wwi-02/online-user-profiles-02` path.
     - **Import schema**: Select `From connection/store`.
 
@@ -153,7 +153,7 @@ When you query Parquet files using Synapse SQL Serverless, you can explore the d
 
     ![The Data menu item is highlighted.](media/data-hub.png "Data hub")
 
-2. Expand **Storage accounts**. Expand the `asadatalake01` primary ADLS Gen2 account and select `wwi-02`.
+2. Expand **Storage accounts**. Expand the `asadatalakeXX` primary ADLS Gen2 account and select `wwi-02`.
 
 3. Navigate to the `sale-small/Year=2010/Quarter=Q4/Month=12/Day=20101231` folder. Right-click on the `sale-small-20101231-snappy.parquet` file, select **New SQL script**, then **Select TOP 100 rows**.
 
@@ -180,14 +180,14 @@ When you query Parquet files using Synapse SQL Serverless, you can explore the d
 
     ![The T-SQL query above is displayed within the query window.](media/sql-serverless-aggregates.png "Query window")
 
-6. Now let's figure out how many records are contained within the Parquet files for 2019 data. This information is important for planning how we optimize for importing the data into Azure Synapse Analytics. To do this, replace your query with the following:
+6. Now let's figure out how many records are contained within the Parquet files for 2019 data. This information is important for planning how we optimize for importing the data into Azure Synapse Analytics. To do this, replace your query with the following (be sure to update the name of your data lake in BULK statement, by replacing `[asadatalakeXX]`):
 
     ```sql
     SELECT
         COUNT_BIG(*)
     FROM
         OPENROWSET(
-            BULK 'https://asadatalake01.dfs.core.windows.net/wwi-02/sale-small/Year=2019/*/*/*/*',
+            BULK 'https://[asadatalakeXX].dfs.core.windows.net/wwi-02/sale-small/Year=2019/*/*/*/*',
             FORMAT='PARQUET'
         ) AS [r];
     ```
@@ -275,12 +275,12 @@ Optional: If you wish to keep this SQL script for future reference, select the P
 
 In addition to the sales data, we have customer profile data from an e-commerce system that provides top product purchases for each visitor of the site (customer) over the past 12 months. This data is stored within JSON files in the data lake. We will import this data in the next lab, but let's explore it while we're in the Spark notebook.
 
-1. Create a new cell in the Spark notebook, enter the following code, and execute the cell:
+1. Create a new cell in the Spark notebook, enter the following code, replace `[asadatalakeXX]` with your data lake name, and execute the cell:
 
     ```python
     df = (spark.read \
             .option("inferSchema", "true") \
-            .json("abfss://wwi-02@asadatalake01.dfs.core.windows.net/online-user-profiles-02/*.json", multiLine=True)
+            .json("abfss://wwi-02@[asadatalakeXX].dfs.core.windows.net/online-user-profiles-02/*.json", multiLine=True)
         )
 
     df.printSchema()
@@ -500,7 +500,7 @@ You will also create a new `Sale` clustered columnstore table within the `wwi_st
 
     ![The SQL script context menu item is highlighted.](media/synapse-studio-new-sql-script.png "New SQL script")
 
-3. In the toolbar menu, connect to the database on which you want to execute the query.
+3. In the toolbar menu, connect to the **SQL Pool** database to execute the query.
 
     ![The connect to option is highlighted in the query toolbar.](media/synapse-studio-query-toolbar-connect.png "Query toolbar")
 
@@ -591,10 +591,14 @@ PolyBase requires the following elements:
 
 2. Select **Run** from the toolbar menu to execute the SQL command.
 
-3. In the query window, replace the script with the following to create the external schema and external data table. Notice that we defined `TransactionId` as an `nvarchar(36)` field instead of `uniqueidentifier`. This is because external tables do not currently support `uniqueidentifier` columns:
+3. In the query window, replace the script with the following to create the external file format and external data table. Notice that we defined `TransactionId` as an `nvarchar(36)` field instead of `uniqueidentifier`. This is because external tables do not currently support `uniqueidentifier` columns:
 
     ```sql
-    CREATE SCHEMA [external]
+    CREATE EXTERNAL FILE FORMAT [ParquetFormat] 
+    WITH (
+        FORMAT_TYPE = PARQUET, 
+        DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'
+    )
     GO
 
     CREATE EXTERNAL TABLE [external].Sales
@@ -632,7 +636,7 @@ PolyBase requires the following elements:
     FROM [external].[Sales]
     ```
 
-6. Select **Run** from the toolbar menu to execute the SQL command. It takes around **2.5 - 3.5 minutes** to execute this command.
+6. Select **Run** from the toolbar menu to execute the SQL command. It takes around **6 - 8 minutes** to execute this command.
 
 7. In the query window, replace the script with the following to see how many rows were imported:
 
@@ -662,7 +666,7 @@ Now let's see how to perform the same load operation with the COPY statement.
     GO
     ```
 
-2. Select **Run** from the toolbar menu to execute the SQL command. It takes around **2.5 - 3.5 minutes** to execute this command.
+2. Select **Run** from the toolbar menu to execute the SQL command. It takes around **4 - 6 minutes** to execute this command.
 
 3. In the query window, replace the script with the following to see how many rows were imported:
 
@@ -896,15 +900,15 @@ To run loads with appropriate compute resources, create loading users designated
 
 8. Choose the **Parquet** format, then select **Continue**.
 
-9. In the properties, set the name to **asal400_december_sales** and select the **asadatalake01** linked service. Browse to the `wwi-02/campaign-analytics/large-sale-december2010-snappy.parquet` file location, select **From sample file** for schema import. [Download this sample file](media/sale-small-20100102-snappy.parquet?raw=true) to your computer, then browse to it in the **Select file** field. Select **OK**.
+9. In the properties, set the name to **asal400_december_sales** and select the **asadatalakeXX** linked service. Browse to the `wwi-02/campaign-analytics/large-sale-december2010-snappy.parquet` file location, select **From sample file** for schema import. [Download this sample file](media/sale-small-20100102-snappy.parquet?raw=true) to your computer, then browse to it in the **Select file** field. Select **OK**.
 
     ![The properties are displayed.](media/pipeline-copy-sales-source-dataset.png "Dataset properties")
 
-10. Select the **Source** tab, then select **+ New** next to `Sink dataset`.
+10. Select the **Sink** tab, then select **+ New** next to `Sink dataset`.
 
 11. Select the **Azure Synapse Analytics** data store, then select **Continue**.
 
-12. In the properties, set the name to `asal400_saleheap_asa` and select the **sqlpool01_import01** linked service that connects to Synapse Analytics with the `asa.sql.import01` user. Choose the ***wwi_staging.SaleHeap** table then select **OK**.
+12. In the properties, set the name to `asal400_saleheap_asa` and select the **sqlpool01_import01** linked service that connects to Synapse Analytics with the `asa.sql.import01` user. For the table name, scroll the Table name dropdown and choose the **wwi_staging.SaleHeap** table then select **OK**.
 
     ![The properties are displayed.](media/pipeline-copy-sales-sink-dataset.png "Dataset properties")
 
