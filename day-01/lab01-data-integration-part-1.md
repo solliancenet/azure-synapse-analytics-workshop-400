@@ -124,16 +124,7 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
     - **File path**: Browse to the `wwi-02/online-user-profiles-02` path.
     - **Import schema**: Select `From connection/store`.
 
-8. Create a new **Azure Synapse Analytics** dataset for storing Parquet-based sales data, with the following characteristics:
-
-    - **Name**: Enter `asal400_wwi_staging_sale_asa`.
-    - **Linked service**: Select the `SqlPool01` service.
-    - **Table name**: Select `wwi_staging.Sale`.
-    - **Import schema**: Select `From connection/store`.
-
-    ![New dataset form is displayed with the described configuration.](media/new-dataset-staging-sale-asa.png "New dataset")
-
-9. Select **Publish all** to save your new resources.
+8. Select **Publish all** to save your new resources.
 
     ![Publish all is highlighted.](media/publish-all-1.png "Publish all")
 
