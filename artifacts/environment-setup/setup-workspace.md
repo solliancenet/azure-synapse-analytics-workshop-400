@@ -1,10 +1,20 @@
-# Setup the Azure Synapse Analytics (ASA) workspace
+# Setup the Azure Synapse Analytics (ASA) workspace and associated resources
 
-## Task 1 - Create resources
+- [T]
+
+## Task 1 - Create core infrastructure
 
 1. Create a new resource group
 
-2. In the resource group, create a regular blob storage account. Create in it two private containers named `staging` and `models`.
+2. In the resource group, deploy the [ASA workspace ARM template](./automation/00-asa-workspace-core.json). Change the `uniqueSuffix` template variable as needed.
+
+
+
+---
+**IGNORE THE REMINDER OF THE DOCUMENT**
+
+---
+
 
 3. In the resource group, create an empty ASA workspace.
 
