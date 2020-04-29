@@ -294,7 +294,7 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
     ) T
     ```
 
-3. Run the EXPLAIN statement again to get the query plan:
+3. Run the following EXPLAIN statement again to get the query plan (do not select `Query Plan` from the toolbar as it will try do download the query plan and open it in SQL Server Management Studio):
 
     ```sql
     EXPLAIN
