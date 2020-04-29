@@ -34,11 +34,6 @@ $result = Create-IntegrationRuntime -TemplatesPath $templatesPath -SubscriptionI
 Start-Sleep -Seconds 20
 Get-OperationResult -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 
-$cosmosDbAccountKey = List-CosmosDBKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $cosmosDbAccountName -Token $managementToken
-$result = Create-CosmosDBLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $cosmosDbAccountName -Database $cosmosDbDatabase -Key $cosmosDbAccountKey -Token $synapseToken
-Start-Sleep -Seconds 20
-Get-OperationResult -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
-
 $dataLakeAccountKey = List-StorageAccountKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $dataLakeAccountName -Token $managementToken
 $result = Create-DataLakeLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $dataLakeAccountName  -Key $dataLakeAccountKey -Token $synapseToken
 Start-Sleep -Seconds 20
@@ -64,6 +59,11 @@ Set-AzCosmosDBSqlContainer -ResourceGroupName $resourceGroupName `
 
 $name = "wwi02_online_user_profiles_01_adal"
 $result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $name -LinkedServiceName $dataLakeAccountName -Token $synapseToken
+Start-Sleep -Seconds 20
+Get-OperationResult -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+
+$cosmosDbAccountKey = List-CosmosDBKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $cosmosDbAccountName -Token $managementToken
+$result = Create-CosmosDBLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $cosmosDbAccountName -Database $cosmosDbDatabase -Key $cosmosDbAccountKey -Token $synapseToken
 Start-Sleep -Seconds 20
 Get-OperationResult -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 
@@ -111,3 +111,7 @@ $result = Delete-ASAObject -WorkspaceName $workspaceName -Category "datasets" -N
 Start-Sleep -Seconds 20
 Get-OperationResult -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 
+$name = "asacosmosdb03"
+$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "linkedServices" -Name $name -Token $synapseToken
+Start-Sleep -Seconds 20
+Get-OperationResult -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
