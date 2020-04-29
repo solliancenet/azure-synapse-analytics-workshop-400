@@ -30,12 +30,10 @@ Create-KeyVaultLinkedService -TemplatesPath $templatesPath -WorkspaceName $works
 Create-IntegrationRuntime -TemplatesPath $templatesPath -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -Name "AzureIntegrationRuntime01" -CoreCount 16 -TimeToLive 60 -Token $managementToken
 
 $cosmosDbAccountKey = List-CosmosDBKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $cosmosDbAccountName -Token $managementToken
-
 $result = Create-CosmosDBLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $cosmosDbAccountName -Database $cosmosDbDatabase -Key $cosmosDbAccountKey -Token $synapseToken
 $result
 
 $dataLakeAccountKey = List-StorageAccountKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $dataLakeAccountName -Token $managementToken
-
 $result = Create-DataLakeLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $dataLakeAccountName  -Key $dataLakeAccountKey -Token $synapseToken
 $result
 
@@ -55,8 +53,6 @@ Set-AzCosmosDBSqlContainer -ResourceGroupName $resourceGroupName `
         -Name $cosmosDbContainer -Throughput 5000 `
         -PartitionKeyKind $container.Resource.PartitionKey.Kind `
         -PartitionKeyPath $container.Resource.PartitionKey.Paths
-
-
 
 $name = "wwi02_online_user_profiles_01_adal"
 $result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $name -LinkedServiceName $dataLakeAccountName -Token $synapseToken
