@@ -107,7 +107,9 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
     ) T
     ```
 
-    The `EXPLAIN WITH_RECOMMENDATIONS` clause returns the query plan for an Azure Synapse Analytics SQL statement without running the statement. Use EXPLAIN to preview which operations will require data movement and to view the estimated costs of the query operations. Your query should return something similar to:
+    The `EXPLAIN WITH_RECOMMENDATIONS` clause returns the query plan for an Azure Synapse Analytics SQL statement without running the statement. Use EXPLAIN to preview which operations will require data movement and to view the estimated costs of the query operations. By default, you will get the execution plan in XML format, which you can export to other formats like CSV or JSON. Do not select `Query Plan` from the toolbar as it will try do download the query plan and open it in SQL Server Management Studio.
+
+    Your query should return something similar to:
 
     ```xml
     <?xml version=""1.0"" encoding=""utf-8""?>
