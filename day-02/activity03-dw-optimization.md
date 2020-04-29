@@ -8,25 +8,20 @@ WWI wants you to prove your ability to optimize queries using their data. They h
 
 ``` SQL
 SELECT
-    FS.CustomerKey
+    FS.CustomerID
     ,MIN(FS.Quantity) as MinQuantity
     ,MAX(FS.Quantity) as MaxQuantity
-    ,AVG(FS.TaxRate) as AvgTaxRate
-    ,AVG(FS.TaxAmount) as AvgTaxAmount
-    ,AVG(FS.TotalExcludingTax) as AverageSaleWithoutTax
-    ,AVG(FS.TotalIncludingTax) as AverageSaleWithTax
-    ,COUNT(DISTINCT FS.StockItemKey) as DistinctStockItems
-    ,COUNT(DISTINCT DC.Country) as DistinctCountries
+    ,AVG(FS.Price) as AvgPrice
+    ,AVG(FS.TotalAmount) as AvgTotalAmount
+    ,AVG(FS.ProfitAmount) as AvgProfitAmount
+    ,COUNT(DISTINCT FS.StoreId) as DistinctStores
 FROM
-    wwi_perf.FactSale_Slow FS
-    join wwi.DimCity DC ON
-        DC.CityKey = FS.CityKey
+    wwi_perf.Sale_Heap FS
 GROUP BY
-    FS.CustomerKey
+    FS.CustomerId
 
 ```
-
-They know from experience that they can optimize this query so that it runs much faster than the 15 or so seconds the above one takes. Working with your team, just how fast can you make this query return results?
+You are not allowed to modify this table (in fact, **you should not modify this table** as it may affect the other labs). However, they have asked if you can create a new table and optimize the query such that it runs much faster than the 15 or so minutes the above one takes. Working with your team, just how fast can you make this query return results?
 
 ## Submit your team results!
 
