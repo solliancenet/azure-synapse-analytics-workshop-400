@@ -21,7 +21,7 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
 
 ### Task 1 - Identify performance issues related to tables
 
-1. In `Synapse Studio`, open a new SQL script and run the following statement:
+1. In `Synapse Studio`, open a new SQL script and run the following statement (make sure you run queries on SQL pools as opposed to `SQL on-demand`):
 
     ```sql
     SELECT  
