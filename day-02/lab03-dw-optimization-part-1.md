@@ -514,7 +514,7 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
 
     ```sql
     CREATE MATERIALIZED VIEW
-        mvCustomerSales
+        wwi_perf.mvCustomerSales
     WITH
     (
         DISTRIBUTION = HASH( CustomerId )
