@@ -187,7 +187,7 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
 
 5. Besides the `EXPLAIN` statement, you can also understand the plan details using the `sys.dm_pdw_request_steps` DMV.
 
-    Query the `sys.dm_pdw_exec_requests` DMW to find your query id:
+    Query the `sys.dm_pdw_exec_requests` DMW to find your query id (this is for the query you executed previously at step 2):
 
     ```sql
     SELECT  
