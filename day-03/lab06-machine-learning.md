@@ -12,7 +12,7 @@ In this lab, you will create several machine learning models and use them to mak
 
 For context, the following are the high level steps taken to create a Spark ML based model and deploy it so it is ready for use from T-SQL.
 
-![The process for registering and using a model](media/ex05-machine-learning-process.png "Review model registration process")
+![The process for registering and using a model](media/lab06-machine-learning-process.png "Review model registration process")
 
 All of the steps are performed within your Azure Synapse Analytics Studio.
 
@@ -49,13 +49,13 @@ Please note that each of these tasks will be addressed through several cells in 
 
 In this task, you will register the models in Azure Synapse Analytics so that they are availble for use from T-SQL. This task picks up where you left off, with the ONNX model being made available in Azure Storage. 
 
-1.  One step that is not shown by the notebook is an offline step that converts the ONNX model to hexadecimal. The resulting hex encoded model is also upload to Azure Storage. This conversion is currently performed with [this PowerShell script](./artifacts/00/ml/convert-to-hex.ps1), but could be automated using any scripting platform.
+1.  One step that is not shown by the notebook is an offline step that converts the ONNX model to hexadecimal. The resulting hex encoded model is also upload to Azure Storage. This conversion is currently performed with [this PowerShell script](./../artifacts/day-03/lab-06-machine-learning/convert-to-hex.ps1), but could be automated using any scripting platform.
 
 2. Open Synapse Analytics Studio, and then navigate to the `Data` hub.
 
 3. Expand the Databases listing, right click your SQL Pool and then select `New SQL Script`, and then `Empty script`.
 
-   ![Showing the context menu, selecting New SQL Script, Empty Script](media/ex05-new-sql-script.png "Create new script")
+   ![Showing the context menu, selecting New SQL Script, Empty Script](media/lab06-new-sql-script.png "Create new script")
 
 4. Replace the contents of this script with following. Be sure to replace the place holder values identified by the comments with the appropriate values from your environment.
 
@@ -138,7 +138,7 @@ In this task, you will author a T-SQL query that uses the previously trained mod
 
 2. Expand the Databases listing, right click your SQL Pool and then select `New SQL Script`, and then `Empty script`.
 
-   ![Showing the context menu, selecting New SQL Script, Empty Script](media/ex05-new-sql-script.png "Create new script")
+   ![Showing the context menu, selecting New SQL Script, Empty Script](media/lab06-new-sql-script.png "Create new script")
 
 
 3. Replace the contents of this script with following:
@@ -154,9 +154,9 @@ In this task, you will author a T-SQL query that uses the previously trained mod
 
 4. Select **Run** from the menubar.
 
-   ![The Run button](media/ex05-select-run.png "Select Run")
+   ![The Run button](media/lab06-select-run.png "Select Run")
 
 5. View the results, notice that the `Prediction` column is the model's prediction of how many items of the kind represented by `StockItemKey` that the customer identified by `CustomerKey` will purchase.
 
-   ![Viewing the prediction results in the query result pane](media/ex05-view-prediction-results.png "View prediction results")
+   ![Viewing the prediction results in the query result pane](media/lab06-view-prediction-results.png "View prediction results")
 
