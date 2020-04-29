@@ -483,7 +483,7 @@ In this task, you will create a new staging table named `SaleHeap` in a new sche
 
 You will also create a new `Sale` clustered columnstore table within the `wwi_staging` to compare data load speeds.
 
-1. 1. Open Synapse Analytics Studio, and then navigate to the **Develop** hub.
+1. Open Synapse Analytics Studio (<https://web.azuresynapse.net/>), and then navigate to the **Develop** hub.
 
     ![The Develop menu item is highlighted.](media/develop-hub.png "Develop hub")
 
