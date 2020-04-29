@@ -59,7 +59,7 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
     >```
     >
 
-3. Check the structure of the `Sale_Heap` table, by right clicking on it in the `Data` bub and selecting `New SQL script` and then `CREATE`. Take a look at the script used to create the table:
+3. Check the structure of the `Sale_Heap` table, by right clicking on it in the `Data` hub and selecting `New SQL script` and then `CREATE`. Take a look at the script used to create the table:
 
     ```sql
     CREATE TABLE [wwi_perf].[Sale_Heap]
