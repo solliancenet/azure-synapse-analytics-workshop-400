@@ -538,7 +538,7 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
         ,D.Month
     ```
 
-4. Get the execution plan of the first query:
+4. Run the following query to get an estimated execution plan (do not select `Query Plan` from the toolbar as it will try do download the query plan and open it in SQL Server Management Studio):
 
     ```sql
     EXPLAIN
@@ -560,7 +560,7 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
     ) T
     ```
 
-    The resulting execution plan shows how the newly created materialized view is used to optimize the execution.
+    The resulting execution plan shows how the newly created materialized view is used to optimize the execution. Note the `FROM [SQLPool02].[wwi_perf].[mvCustomerSales]` in the `<dsql_operations>` element.
 
     ```xml
     <?xml version="1.0" encoding="utf-8"?>
