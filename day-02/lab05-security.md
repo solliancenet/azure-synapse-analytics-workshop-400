@@ -94,15 +94,12 @@ When dealing with connectivity to external data sources and services, sensitive 
 
 4. Select the drop-down that reads `2 selected` under `Secret Permissions, observet that Get (which allows your workspace to retrieve the values of secrets from Key Vault) and List (which allows your workspace to enumerate secrets) are set.
 
-5. On the **Access policy** tab, select the **+ Add Access Policy** link.
-
-    ![On the Access policy tab of the Create key vault screen, the + Add Access Policy link is highlighted.](media/lab5_keyvaultaddaccesspolicymenu.png)
 
 ### Task 2 - Use Azure Key Vault for secrets when creating Linked Services
 
 Linked Services are synonymous with connection strings in Azure Synapse Analytics. Azure Synapse Analytics linked services provides the ability to connect to nearly 100 different types of external services ranging from Azure Storage Accounts to Amazon S3 and more. When connecting to external services, having secrets related to connection information is almost guaranteed. The best place to store these secrets is the Azure Key Vault. Azure Synapse Analytics provides the ability to configure all linked service connections with values from Azure Key Vault.
 
-In order to leverage Azure Key Vault in linked services, you must first add `KeyVault01` as a linked service in Azure Synapse Analytics.
+In order to leverage Azure Key Vault in linked services, you must first add `asakeyvaultXX` as a linked service in Azure Synapse Analytics.
 
 1. In **Azure Synapse Studio**, select **Manage** from the left menu.
 
