@@ -12,7 +12,7 @@ In this lab, you will create several machine learning models and use them to mak
 
 For context, the following are the high level steps taken to create a Spark ML based model and deploy it so it is ready for use from T-SQL.
 
-![The process for registering and using a model](media/ex05-model-registration-process.png "Review model registration process")
+![The process for registering and using a model](media/ex05-machine-learning-process.png "Review model registration process")
 
 All of the steps are performed within your Azure Synapse Analytics Studio.
 
@@ -40,6 +40,8 @@ Open the `Lab 06` notebook and run it step by step to complete this exercise. So
 - Use PCA for dimensionality reduction
 - Train ensemble of trees classifier (using XGBoost)
 - Train classifier using Auto ML
+
+Please note that each of these tasks will be addressed through several cells in the notebook.
 
 ## Exercise 2 - Registering and using models in Syanpse Analytics
 
