@@ -702,7 +702,7 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
 
     ![Check result set caching settings at the database level](./media/lab3_result_set_caching_db.png)
 
-    If `False` is returned for your SQL pool, runt the following query to activate it (you need to run it on the `master` database and replace `<sql_pool> with the name of your SQL pool):
+    If `False` is returned for your SQL pool, run the following query to activate it (you need to run it on the `master` database and replace `<sql_pool> with the name of your SQL pool):
 
     ```sql
     ALTER DATABASE [<sql_pool>]
@@ -875,6 +875,12 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
     >Pausing a database won't empty cached result set.
 
 ### Task 4 - Create and update statistics
+
+The more the SQL pool resource knows about your data, the faster it can execute queries. After loading data into SQL pool, collecting statistics on your data is one of the most important things you can do for query optimization.
+
+The SQL pool query optimizer is a cost-based optimizer. It compares the cost of various query plans, and then chooses the plan with the lowest cost. In most cases, it chooses the plan that will execute the fastest.
+
+For example, if the optimizer estimates that the date your query is filtering on will return one row it will choose one plan. If it estimates that the selected date will return 1 million rows, it will return a different plan.
 
 1. Check if statistics are set to be automatically created in the database:
 
