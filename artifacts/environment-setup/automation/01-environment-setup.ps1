@@ -115,3 +115,10 @@ $name = "asacosmosdb03"
 $result = Delete-ASAObject -WorkspaceName $workspaceName -Category "linkedServices" -Name $name -Token $synapseToken
 Start-Sleep -Seconds 20
 Get-OperationResult -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+
+
+Connect-AzAccount
+
+$storageContext = New-AzStorageContext -StorageAccountName "asadatalake176928" -StorageAccountKey "kIB4uF72ELejudmjLAr1sQC063Qc9uX5d2r0bbB1VrOdBctCxi8Z7cTzBcr2riiXxjtqykqFMXIXn4RDhBjiuw=="
+$blobs = Get-AzStorageBlob -Context $storageContext -Container "wwi-02" -Prefix online-user-profiles-01/9000
+$blobs.Count

@@ -37,7 +37,7 @@ One of WWI's large LOB systems switched how they export sales data around August
 
 ### WWI resources
 
-WWI loaded their data to the primary ADLS Gen2 account for the Synapse Analytics workspace. You can find the files in the following path: **`TODO: Insert path here`**
+WWI loaded their data to the primary ADLS Gen2 account for the Synapse Analytics workspace. You can find the files in the following path: `wwi02/sale-poc`.
 
 ### Success criteria
 
