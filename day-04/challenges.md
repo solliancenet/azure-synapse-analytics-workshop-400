@@ -92,10 +92,14 @@ Leadership wants to see some early, tangible benefit from the data modernization
 
 ### Success criteria
 
-- Business-critical queries must run in under 5 minutes per query.
+- Queries must run as fast as possible (ideally in under 1 minute per query).
 - New queries based off the "query wish list". These queries must also execute at human-interactive speeds.
   - Create compelling visualizations for the new queries.
   - Implement RBAC on the new reports, showing information pertinent to the logged in user, based on the criteria outlined above.
+
+>**INSIDER TIP**
+>
+> We've learned that WWI is running several PoC projects in parallel. Our sources tell us that one of the most important criteria to select the winner team will be the execution time of these queries. You should do your best to get the shortest execution times possible.
 
 ## 4 - Manage and monitor the solution
 
