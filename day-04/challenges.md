@@ -78,10 +78,6 @@ These business-critical queries take a long time to complete, which makes them n
 
 WWI has supplied the following business-critical queries that they currently use and suffer significant performance issues:
 
-#### Business-critical queries
-
-**TODO:** List T-SQL queries here.
-
 #### Query wish list
 
 Leadership wants to see some early, tangible benefit from the data modernization effort. They've been sold on the "art of the possible" and how Synapse helps unlock new insights on their data. These queries should have a visual component that gets decision makers excited about where the company is headed and have instant transference of complicated sales data into easy-to-understand market insights. They have described the following queries they'd like to see in the new system:
