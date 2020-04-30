@@ -31,9 +31,9 @@ Wide World Importers wants your help proving that Synapse Analytics is the right
 
 ### Technical details
 
-Sales data is currently being inserted into the SQL pool. About 30% of the data is already in the internal tables of the SQL Pool. This roughly covers Jan 2012 to April 2012. The remainder of the data is in external CSV and Parquet files.
+Sales data is currently being inserted into the SQL pool. About 60% of the data is already in the internal tables of the SQL Pool. This roughly covers Jan 2012 to April 2012. The remainder of the data is in external CSV and Parquet files.
 
-One of WWI's large LOB systems switched how they export sales data around August 2012. This is why there is a mix of CSV and Parquet files. The CSV external files cover May - August 2012, and the Parquet external files cover September - December 2012.
+One of WWI's large LOB systems switched how they export sales data around August 2017. This is why there is a mix of CSV and Parquet files. The CSV external files cover May - August 2017, and the Parquet external files cover September - December 2017.
 
 ### WWI resources
 
