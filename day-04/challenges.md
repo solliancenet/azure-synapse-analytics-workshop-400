@@ -119,7 +119,6 @@ As you and your team plan the security and monitoring aspects of the solution, k
   - Secrets are encrypted and not available in clear text, anywhere in the configuration.
     - Want to maintain exclusive control over the keys to used to encrypt the data warehouse data at rest. They do not want Microsoft or any other entity to provide or have access to these keys.
   - RBAC is implemented at both the data source (only system-level accounts access the source data), and at the serving layer. If you do not fully implement RBAC, you must be able to explain to your coach how you plan to implement it.
-  - Network-level security.
   - Will need the flexibility to assign users to groups who should have access to the workspace, as well those that might have elevated permissions, such as those who can administer the entire Synapse Workspace, or manage just the Spark or SQL Pools or use Pipelines.
 - Monitor all data processes and react to potential problems that might occur.
   - Monitor for suspicious traffic against the storage account and receive alerts for any flagged incidents.
