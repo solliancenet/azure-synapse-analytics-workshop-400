@@ -92,8 +92,7 @@ Leadership wants to see some early, tangible benefit from the data modernization
 
 ### Success criteria
 
-- Queries must run as fast as possible (ideally in under 1 minute per query).
-- New queries based off the "query wish list". These queries must also execute at human-interactive speeds.
+- Queries based off the "query wish list". These queries must execute at human-interactive speeds (ideally in under 1 minute per query).
   - Create compelling visualizations for the new queries.
   - Implement RBAC on the new reports, showing information pertinent to the logged in user, based on the criteria outlined above.
 
