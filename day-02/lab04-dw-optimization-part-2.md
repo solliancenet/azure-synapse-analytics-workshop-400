@@ -17,11 +17,6 @@
   - [Exercise 5 - Avoid extensive logging](#exercise-5---avoid-extensive-logging)
     - [Task 1 - Explore rules for minimally logged operations](#task-1---explore-rules-for-minimally-logged-operations)
     - [Task 2 - Optimizing a delete operation](#task-2---optimizing-a-delete-operation)
-    - [Task 3 - Optimizing an update operation](#task-3---optimizing-an-update-operation)
-    - [Task 4 - Optimizing operations with partition switching](#task-4---optimizing-operations-with-partition-switching)
-  - [Exercise 6 - Correlate replication and distribution strategies across multiple tables](#exercise-6---correlate-replication-and-distribution-strategies-across-multiple-tables)
-    - [Task 1 - Distribute lookup tables](#task-1---distribute-lookup-tables)
-    - [Task 2 - Replicate lookup tables](#task-2---replicate-lookup-tables)
 
 `<TBA>`
 Explicit instructions on scaling up to DW1500 before the lab and scaling back after Lab 04 is completed.
@@ -939,15 +934,3 @@ Loading data into a non-empty table with a clustered index can often contain a m
     >**Note**
     >
     >The query will run for a potentially long time. Once the time exceeds significantly the time to run the previous CTAS query, you can cancel it (as you can already see the benefit of the CTAS-based approach).
-
-### Task 3 - Optimizing an update operation
-
-
-
-### Task 4 - Optimizing operations with partition switching
-
-## Exercise 6 - Correlate replication and distribution strategies across multiple tables
-
-### Task 1 - Distribute lookup tables
-
-### Task 2 - Replicate lookup tables
