@@ -84,11 +84,10 @@ function Create-KeyVaultLinkedService {
     $keyVault = $keyVaultTemplate.Replace("#LINKED_SERVICE_NAME#", $Name).Replace("#KEY_VAULT_NAME#", $Name)
     $uri = "https://$($WorkspaceName).dev.azuresynapse.net/linkedservices/$($Name)?api-version=2019-06-01-preview"
 
-    Write-Debug "Calling endpoint $uri"
 
     $result = Invoke-RestMethod  -Uri $uri -Method PUT -Body $keyVault -Headers @{ Authorization="Bearer $Token" } -ContentType "application/json"
  
-    Write-Debug $result
+    return $result
 }
 
 function Create-BlobStorageLinkedService {

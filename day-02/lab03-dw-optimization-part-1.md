@@ -21,7 +21,7 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
 
 ### Task 1 - Identify performance issues related to tables
 
-1. In `Synapse Studio`, open a new SQL script and run the following statement:
+1. In `Synapse Studio`, open a new SQL script and run the following statement (make sure you run queries on SQL pools as opposed to `SQL on-demand`):
 
     ```sql
     SELECT  
@@ -50,7 +50,7 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
 
     The script takes up to a couple of minutes to execute and returns the result. There is clearly something wrong with the `Sale_Heap` table that induces the performance hit.
 
-    > Note the OPTION clause used in the statement. This comes in handy when you're looking to identify your query in the `sys.dm_pdw_exec_requests` DMV.
+    > Note the OPTION clause used in the statement. This comes in handy when you're looking to identify your query in the [sys.dm_pdw_exec_requests](https://docs.microsoft.com/en-us/sql/relational-databases/system-dynamic-management-views/sys-dm-pdw-exec-requests-transact-sql) DMV.
     >
     >```sql
     >SELECT  *
@@ -59,7 +59,7 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
     >```
     >
 
-3. Check the structure of the `Sale_Heap` table, by right clicking on it in the `Data` bub and selecting `New SQL script` and then `CREATE`. Take a look at the script used to create the table:
+3. Check the structure of the `Sale_Heap` table, by right clicking on it in the `Data` hub and selecting `New SQL script` and then `CREATE`. Take a look at the script used to create the table:
 
     ```sql
     CREATE TABLE [wwi_perf].[Sale_Heap]
@@ -107,7 +107,9 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
     ) T
     ```
 
-    The `EXPLAIN WITH_RECOMMENDATIONS` clause returns the query plan for an Azure Synapse Analytics SQL statement without running the statement. Use EXPLAIN to preview which operations will require data movement and to view the estimated costs of the query operations. Your query should return something similar to:
+    The `EXPLAIN WITH_RECOMMENDATIONS` clause returns the query plan for an Azure Synapse Analytics SQL statement without running the statement. Use EXPLAIN to preview which operations will require data movement and to view the estimated costs of the query operations. By default, you will get the execution plan in XML format, which you can export to other formats like CSV or JSON. Do not select `Query Plan` from the toolbar as it will try do download the query plan and open it in SQL Server Management Studio.
+
+    Your query should return something similar to:
 
     ```xml
     <?xml version=""1.0"" encoding=""utf-8""?>
@@ -187,7 +189,7 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
 
 5. Besides the `EXPLAIN` statement, you can also understand the plan details using the `sys.dm_pdw_request_steps` DMV.
 
-    Query the `sys.dm_pdw_exec_requests` DMW to find your query id:
+    Query the `sys.dm_pdw_exec_requests` DMW to find your query id (this is for the query you executed previously at step 2):
 
     ```sql
     SELECT  
@@ -294,7 +296,7 @@ Explicit instructions on scaling up to DW1500 before the lab and scaling back af
     ) T
     ```
 
-3. Run the EXPLAIN statement again to get the query plan:
+3. Run the following EXPLAIN statement again to get the query plan (do not select `Query Plan` from the toolbar as it will try do download the query plan and open it in SQL Server Management Studio):
 
     ```sql
     EXPLAIN
@@ -514,7 +516,7 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
 
     ```sql
     CREATE MATERIALIZED VIEW
-        mvCustomerSales
+        wwi_perf.mvCustomerSales
     WITH
     (
         DISTRIBUTION = HASH( CustomerId )
@@ -538,7 +540,7 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
         ,D.Month
     ```
 
-4. Get the execution plan of the first query:
+4. Run the following query to get an estimated execution plan (do not select `Query Plan` from the toolbar as it will try do download the query plan and open it in SQL Server Management Studio):
 
     ```sql
     EXPLAIN
@@ -560,7 +562,7 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
     ) T
     ```
 
-    The resulting execution plan shows how the newly created materialized view is used to optimize the execution.
+    The resulting execution plan shows how the newly created materialized view is used to optimize the execution. Note the `FROM [SQLPool02].[wwi_perf].[mvCustomerSales]` in the `<dsql_operations>` element.
 
     ```xml
     <?xml version="1.0" encoding="utf-8"?>
@@ -702,7 +704,7 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
 
     ![Check result set caching settings at the database level](./media/lab3_result_set_caching_db.png)
 
-    If `False` is returned for your SQL pool, runt the following query to activate it (you need to run it on the `master` database and replace `<sql_pool> with the name of your SQL pool):
+    If `False` is returned for your SQL pool, run the following query to activate it (you need to run it on the `master` database and replace `<sql_pool> with the name of your SQL pool):
 
     ```sql
     ALTER DATABASE [<sql_pool>]
@@ -875,6 +877,12 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
     >Pausing a database won't empty cached result set.
 
 ### Task 4 - Create and update statistics
+
+The more the SQL pool resource knows about your data, the faster it can execute queries. After loading data into SQL pool, collecting statistics on your data is one of the most important things you can do for query optimization.
+
+The SQL pool query optimizer is a cost-based optimizer. It compares the cost of various query plans, and then chooses the plan with the lowest cost. In most cases, it chooses the plan that will execute the fastest.
+
+For example, if the optimizer estimates that the date your query is filtering on will return one row it will choose one plan. If it estimates that the selected date will return 1 million rows, it will return a different plan.
 
 1. Check if statistics are set to be automatically created in the database:
 
