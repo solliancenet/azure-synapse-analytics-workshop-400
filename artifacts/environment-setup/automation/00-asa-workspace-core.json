@@ -12,7 +12,7 @@
   "variables": {
     "location": "[resourceGroup().location]",
     "sqlAdministratorLogin": "asa.sql.admin",
-    "sqlAdministratorLoginPassword": "G1KSwXmdOfQvZcdYUwTA",
+    "sqlAdministratorLoginPassword": "...",
     "workspaceName": "[concat('asaworkspace', parameters('uniqueSuffix'))]",
     "adlsStorageAccountName": "[concat('asadatalake', parameters('uniqueSuffix'))]",
     "defaultDataLakeStorageFilesystemName": "tempdata",
