@@ -22,16 +22,3 @@ GROUP BY
 
 ```
 You are not allowed to modify this table (in fact, **you should not modify this table** as it may affect the other labs). However, they have asked if you can create a new table and optimize the query such that it runs much faster than the 15 or so minutes the above one takes. Working with your team, just how fast can you make this query return results?
-
-## Submit your team results!
-
-When you have achieved your best result, follow these steps to submit your solution the leaderboard:
-
-1. Open the Develop hub.
-2. Select Notebooks and open `ASAL400 - Activity3 - Submit Results.ipynb`.
-3. Follow the instructions within the notebook to submit your results.
-
-
-
-
-
