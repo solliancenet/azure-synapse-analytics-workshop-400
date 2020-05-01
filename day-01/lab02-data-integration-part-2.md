@@ -302,13 +302,13 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
 
     ![The import projection button is highlighted in the projection tab.](media/data-flow-import-projection.png "Import projection")
 
-    The projection should display the following schema:
-
-    ![The imported projection is displayed.](media/data-flow-campaign-analysis-source-projection.png "Projection")
-
 7. If a data flow debug session is not currently running, select the **AzureLargeComputeOptimizedIntegrationRuntime** IR, then select **Turn on debug**.
 
     ![Select the IR then select turn on debug.](media/data-flow-debug-session-large-ir.png "Data Flow Debug Session Required")
+
+    The projection should display the following schema:
+
+    ![The imported projection is displayed.](media/data-flow-campaign-analysis-source-projection.png "Projection")
 
 8. Select the **Data preview** tab, then select **Refresh** to display data from the CSV file. If you scroll to the right, you should see that the City and State columns are now included.
 
