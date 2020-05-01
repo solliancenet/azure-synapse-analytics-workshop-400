@@ -34,7 +34,7 @@ All of the steps are performed within your Azure Synapse Analytics Studio.
 
 ## Exercise 1 - Training models
 
-Open the `Lab 06` notebook (located in the `Develop` hub, under `Notebooks` in Synapse Studio) and run it step by step to complete this exercise. Some of the most important tasks you will perform are:
+Open the `ASAL400 - Lab 06` notebook (located in the `Develop` hub, under `Notebooks` in Synapse Studio) and run it step by step to complete this exercise. Some of the most important tasks you will perform are:
 
 - Exploratory data analysis (basic stats)
 - Use PCA for dimensionality reduction

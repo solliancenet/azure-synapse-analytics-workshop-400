@@ -84,11 +84,10 @@ function Create-KeyVaultLinkedService {
     $keyVault = $keyVaultTemplate.Replace("#LINKED_SERVICE_NAME#", $Name).Replace("#KEY_VAULT_NAME#", $Name)
     $uri = "https://$($WorkspaceName).dev.azuresynapse.net/linkedservices/$($Name)?api-version=2019-06-01-preview"
 
-    Write-Debug "Calling endpoint $uri"
 
     $result = Invoke-RestMethod  -Uri $uri -Method PUT -Body $keyVault -Headers @{ Authorization="Bearer $Token" } -ContentType "application/json"
  
-    Write-Debug $result
+    return $result
 }
 
 function Create-BlobStorageLinkedService {
@@ -343,12 +342,20 @@ function Create-Pipeline {
     $FileName,
 
     [parameter(Mandatory=$true)]
+    [Hashtable]
+    $Parameters,
+
+    [parameter(Mandatory=$true)]
     [String]
     $Token 
     )
 
-    $itemTemplate = Get-Content -Path "$($PipelinesPath)/$($FileName).json"
-    $item = $itemTemplate
+    $item = Get-Content -Path "$($PipelinesPath)/$($FileName).json"
+    
+    foreach ($key in $Parameters.Keys) {
+        $item = $item.Replace("#$($key)#", $Parameters[$key])
+    }
+
     $uri = "https://$($WorkspaceName).dev.azuresynapse.net/pipelines/$($Name)?api-version=2019-06-01-preview"
 
     $result = Invoke-RestMethod  -Uri $uri -Method PUT -Body $item -Headers @{ Authorization="Bearer $Token" } -ContentType "application/json"
@@ -404,6 +411,35 @@ function Get-PipelineRun {
     return $result
 }
 
+function Wait-ForPipelineRun {
+    
+    param(
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $RunId,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $Token 
+    )
+
+    $result = Get-PipelineRun -WorkspaceName $WorkspaceName -RunId $RunId -Token $Token
+
+    while ($result.status -eq "InProgress") {
+        
+        Write-Information "Waiting for operation to complete..."
+        Start-Sleep -Seconds 10
+        $result = Get-PipelineRun -WorkspaceName $WorkspaceName -RunId $RunId -Token $Token
+    }
+
+    return $result
+}
+
 function Get-OperationResult {
     
     param(
@@ -448,12 +484,14 @@ function Wait-ForOperation {
     $uri = "https://$($WorkspaceName).dev.azuresynapse.net/operationResults/$($OperationId)?api-version=2019-06-01-preview"
     $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $Token" }
 
-    while ($result.state -ne $null) {
+    while ($result.status -ne $null) {
         
-        Write-Verbose "Waiting for operation..."
+        Write-Information "Waiting for operation to complete..."
         Start-Sleep -Seconds 10
         $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $Token" }
     }
+
+    return $result
 }
 
 function Delete-ASAObject {
@@ -484,6 +522,182 @@ function Delete-ASAObject {
     return $result
 }
 
+function Control-SQLPool {
+
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $SubscriptionId,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $ResourceGroupName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $SQLPoolName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $Action,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $SKU,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $Token
+    )
+
+    $uri = "https://management.azure.com/subscriptions/$($SubscriptionId)/resourcegroups/$($ResourceGroupName)/providers/Microsoft.Synapse/workspaces/$($WorkspaceName)/sqlPools/$($SQLPoolName)#ACTION#?api-version=2019-06-01-preview"
+    $method = "POST"
+    $body = $null
+
+    if (($Action.ToLowerInvariant() -eq "pause") -or ($Action.ToLowerInvariant() -eq "resume")) {
+
+        $uri = $uri.Replace("#ACTION#", "/$($Action)")
+
+    } elseif ($Action.ToLowerInvariant() -eq "scale") {
+        
+        $uri = $uri.Replace("#ACTION#", "")
+        $method = "PATCH"
+        $body = "{""sku"":{""name"":""$($SKU)""}}"
+
+    } else {
+        
+        throw "The $($Action) control action is not supported."
+
+    }
+
+    $result = Invoke-RestMethod  -Uri $uri -Method $method -Body $body -Headers @{ Authorization="Bearer $Token" } -ContentType "application/json"
+
+    return $result
+}
+
+function Get-SQLPool {
+
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $SubscriptionId,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $ResourceGroupName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $SQLPoolName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $TargetStatus,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $Token
+    )
+
+    $uri = "https://management.azure.com/subscriptions/$($SubscriptionId)/resourcegroups/$($ResourceGroupName)/providers/Microsoft.Synapse/workspaces/$($WorkspaceName)/sqlPools/$($SQLPoolName)?api-version=2019-06-01-preview"
+
+    $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $Token" } -ContentType "application/json"
+
+    if ($TargetStatus) {
+        while ($result.properties.status -ne $TargetStatus) {
+            Write-Information "Current status is $($result.properties.status). Waiting for $($TargetStatus) status..."
+            Start-Sleep -Seconds 10
+            $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $Token" } -ContentType "application/json"
+        }
+    }
+
+    Write-Information "The SQL pool has now the $($TargetStatus) status."
+    return $result
+}
+
+function Execute-SQLQuery {
+
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $SQLPoolName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $SQLQuery,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $Token
+    )
+
+    $uri = "https://$($WorkspaceName).sql.azuresynapse.net:1443/databases/$($SQLPoolName)/query?api-version=2018-08-01-preview&application=ArcadiaSqlEditor&topRows=5000&queryTimeoutInMinutes=59&allResultSets=true"
+
+    $result = Invoke-RestMethod  -Uri $uri -Method POST -Body $SQLQuery -Headers @{ Authorization="Bearer $Token" } -ContentType "application/x-www-form-urlencoded; charset=UTF-8" -TimeoutSec 3600
+
+    $errors = @()
+    foreach ($partialResult in $result) {
+        if (-not $partialResult.isSuccess) {
+
+            $errors += $partialResult.message
+        }
+    }
+    if ($errors.Count -gt 0) {
+        throw (-join $errors)
+    }
+
+    return $result
+}
+
+function Execute-SQLScriptFile {
+
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $SQLScriptsPath,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $SQLPoolName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $FileName,
+
+    [parameter(Mandatory=$true)]
+    [Hashtable]
+    $Parameters,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $Token
+    )
+
+    $sqlQuery = Get-Content -Raw -Path "$($SQLScriptsPath)/$($FileName).sql"
+
+    foreach ($key in $Parameters.Keys) {
+        $sqlQuery = $sqlQuery.Replace("#$($key)#", $Parameters[$key])
+    }
+
+    return Execute-SQLQuery -WorkspaceName $WorkspaceName -SQLPoolName $SQLPoolName -SQLQuery $sqlQuery -Token $Token
+}
+
 Export-ModuleMember -Function List-StorageAccountKeys
 Export-ModuleMember -Function List-CosmosDBKeys
 Export-ModuleMember -Function Create-KeyVaultLinkedService
@@ -496,6 +710,11 @@ Export-ModuleMember -Function Create-Dataset
 Export-ModuleMember -Function Create-Pipeline
 Export-ModuleMember -Function Run-Pipeline
 Export-ModuleMember -Function Get-PipelineRun
+Export-ModuleMember -Function Wait-ForPipelineRun
 Export-ModuleMember -Function Get-OperationResult
 Export-ModuleMember -Function Wait-ForOperation
 Export-ModuleMember -Function Delete-ASAObject
+Export-ModuleMember -Function Control-SQLPool
+Export-ModuleMember -Function Get-SQLPool
+Export-ModuleMember -Function Execute-SQLQuery
+Export-ModuleMember -Function Execute-SQLScriptFile

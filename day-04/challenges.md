@@ -31,13 +31,13 @@ Wide World Importers wants your help proving that Synapse Analytics is the right
 
 ### Technical details
 
-Sales data is currently being inserted into the SQL pool. About 30% of the data is already in the internal tables of the SQL Pool. This roughly covers Jan 2012 to April 2012. The remainder of the data is in external CSV and Parquet files.
+Sales data is currently being inserted into the SQL pool. About 60% of the data is already in the internal tables of the SQL Pool. This roughly covers Jan 2012 to April 2012. The remainder of the data is in external CSV and Parquet files.
 
-One of WWI's large LOB systems switched how they export sales data around August 2012. This is why there is a mix of CSV and Parquet files. The CSV external files cover May - August 2012, and the Parquet external files cover September - December 2012.
+One of WWI's large LOB systems switched how they export sales data around August 2017. This is why there is a mix of CSV and Parquet files. The CSV external files cover May - August 2017, and the Parquet external files cover September - December 2017.
 
 ### WWI resources
 
-WWI loaded their data to the primary ADLS Gen2 account for the Synapse Analytics workspace. You can find the files in the following path: **`TODO: Insert path here`**
+WWI loaded their data to the primary ADLS Gen2 account for the Synapse Analytics workspace. You can find the files in the following path: `wwi02/sale-poc`.
 
 ### Success criteria
 
@@ -55,9 +55,9 @@ Reference links
 
 Importing all of the existing data is only part of the data load story. Wide World Importers has a recovery-time objective (RTO) of 60 minutes for a full rebuild of the warehouse. If, during testing and experimentation, for example, data gets corrupted in the SQL pool, they want to be able to completely rebuild the warehouse for a new iteration of testing. The data engineers lack confidence in the warehouse and have grown accustomed to iterating over snapshots of their data throughout the process. This RTO gives them the confidence to proceed with further testing and configuration of the system.
 
-**Note: Is this only applicable if we use Delta?** In addition to the RTO requirements, top management is demanding more and more a departure from the traditional "analyze today, yesterday's data". The goal is to significantly reduce the gap between the moment data is generated and the moment it ends up in dashboards.
+In addition to the RTO requirements, top management is demanding more and more a departure from the traditional "analyze today, yesterday's data". The goal is to significantly reduce the gap between the moment data is generated and the moment it ends up in dashboards.
 
-Data post-2012 is now coming in as a continuous stream of Parquet files. Propose and implement a delta lake architecture where top management can get data with various compromises between speed of delivery and accuracy/completeness. Provide a bronze level where freshly collected sales data is analyzed using Synapse SQL Serverless and exposed into dashboards. Provide a silver level where data quality has been increased via data engineering. Finally, provide the gold level where top-quality data has been persisted in a Synapse SQL Pool.
+Data post-2017 is now coming in as a continuous stream of Parquet files. Propose and implement a data lake architecture where top management can get data with various compromises between speed of delivery and accuracy/completeness. Provide a bronze level where freshly collected sales data is analyzed using Synapse SQL Serverless and exposed into dashboards. Provide a silver level where data quality has been increased via data engineering. Finally, provide the gold level where top-quality data has been persisted in a Synapse SQL Pool.
 
 ### Success criteria
 
@@ -78,10 +78,6 @@ These business-critical queries take a long time to complete, which makes them n
 
 WWI has supplied the following business-critical queries that they currently use and suffer significant performance issues:
 
-#### Business-critical queries
-
-**TODO:** List T-SQL queries here.
-
 #### Query wish list
 
 Leadership wants to see some early, tangible benefit from the data modernization effort. They've been sold on the "art of the possible" and how Synapse helps unlock new insights on their data. These queries should have a visual component that gets decision makers excited about where the company is headed and have instant transference of complicated sales data into easy-to-understand market insights. They have described the following queries they'd like to see in the new system:
@@ -96,10 +92,13 @@ Leadership wants to see some early, tangible benefit from the data modernization
 
 ### Success criteria
 
-- Business-critical queries must run in under 5 minutes per query.
-- New queries based off the "query wish list". These queries must also execute at human-interactive speeds.
+- Queries based off the "query wish list". These queries must execute at human-interactive speeds (ideally in under 1 minute per query).
   - Create compelling visualizations for the new queries.
   - Implement RBAC on the new reports, showing information pertinent to the logged in user, based on the criteria outlined above.
+
+>**INSIDER TIP**
+>
+> We've learned that WWI is running several PoC projects in parallel. Our sources tell us that one of the most important criteria to select the winner team will be the execution time of these queries. You should do your best to get the shortest execution times possible.
 
 ## 4 - Manage and monitor the solution
 
@@ -119,8 +118,7 @@ As you and your team plan the security and monitoring aspects of the solution, k
   - Least-privilege access is incorporated.
   - Secrets are encrypted and not available in clear text, anywhere in the configuration.
     - Want to maintain exclusive control over the keys to used to encrypt the data warehouse data at rest. They do not want Microsoft or any other entity to provide or have access to these keys.
-  - RBAC is implemented at both the data source (only system-level accounts access the source data), and at the serving layer. If you do not fully implement RBAC, you must be able to explain to your coach how you plan to implement it.
-  - Network-level security.
-  - Will need the flexibility to assign users to groups who should have access to the workspace, as well those that might have elevated permissions, such as those who can administer the entire Synapse Workspace, or manage just the Spark or SQL Pools or use Pipelines.
+  - RBAC is implemented at both the data source (only system-level accounts access the source data), and at the serving layer. If you do not fully implement RBAC, you must be able to explain to WWI how you plan to implement it.
+  - Will need to prove the flexibility to assign users to groups who should have access to the workspace, as well those that might have elevated permissions, such as those who can administer the entire Synapse Workspace, or manage just the Spark or SQL Pools or use Pipelines.
 - Monitor all data processes and react to potential problems that might occur.
   - Monitor for suspicious traffic against the storage account and receive alerts for any flagged incidents.

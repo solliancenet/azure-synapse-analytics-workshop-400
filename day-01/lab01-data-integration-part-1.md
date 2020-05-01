@@ -88,7 +88,11 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
 
     ![The Data menu item is highlighted.](media/data-hub.png "Data hub")
 
-2. Create a new **Azure Cosmos DB (SQL API)** dataset with the following characteristics:
+2. Select **+** in the toolbar, then select **Dataset** to create a new dataset.
+
+    ![Create new Dataset.](media/new-dataset.png "New Dataset")
+
+3. Create a new **Azure Cosmos DB (SQL API)** dataset with the following characteristics:
 
     - **Name**: Enter `asal400_customerprofile_cosmosdb`.
     - **Linked service**: Select the Azure Cosmos DB linked service.
@@ -96,19 +100,19 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
 
     ![New Azure Cosmos DB dataset.](media/create-cosmos-db-dataset.png "New Cosmos DB dataset")
 
-3. After creating the dataset, navigate to its **Connection** tab, then select **Preview data**.
+4. After creating the dataset, navigate to its **Connection** tab, then select **Preview data**.
 
     ![The preview data button on the dataset is highlighted.](media/cosmos-dataset-preview-data-link.png "Preview data")
 
-4. Preview data queries the selected Azure Cosmos DB collection and returns a sample of the documents within. The documents are stored in JSON format and include a `userId` field, `cartId`, `preferredProducts` (an array of product IDs that may be empty), and `productReviews` (an array of written product reviews that may be empty). We will use this data in lab 2.
+5. Preview data queries the selected Azure Cosmos DB collection and returns a sample of the documents within. The documents are stored in JSON format and include a `userId` field, `cartId`, `preferredProducts` (an array of product IDs that may be empty), and `productReviews` (an array of written product reviews that may be empty). We will use this data in lab 2.
 
     ![A preview of the Azure Cosmos DB data is displayed.](media/cosmos-db-dataset-preview-data.png "Preview data")
 
-5. Select the **Schema** tab, then select **Import schema**. Synapse Analytics evaluates the JSON documents within the collection and infers the schema based on the nature of the data within. Since we are only storing one document type in this collection, you will see the inferred schema for all documents within.
+6. Select the **Schema** tab, then select **Import schema**. Synapse Analytics evaluates the JSON documents within the collection and infers the schema based on the nature of the data within. Since we are only storing one document type in this collection, you will see the inferred schema for all documents within.
 
     ![The inferred schema for the Azure Cosmos DB documents is displayed.](media/cosmos-db-dataset-schema.png "Schema")
 
-6. Create a new **Azure Data Lake Storage Gen2** dataset with the **Parquet** format type with the following characteristics:
+7. Create a new **Azure Data Lake Storage Gen2** dataset with the **Parquet** format type with the following characteristics:
 
     - **Name**: Enter `asal400_sales_adlsgen2`.
     - **Linked service**: Select the `asadatalakeXX` linked service that already exists.
@@ -117,14 +121,14 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
 
     ![The create ADLS Gen2 dataset form is displayed.](media/create-adls-dataset.png "Create ADLS Gen2 dataset")
 
-7. Create a new **Azure Data Lake Storage Gen2** dataset with the **JSON** format type with the following characteristics:
+8. Create a new **Azure Data Lake Storage Gen2** dataset with the **JSON** format type with the following characteristics:
 
     - **Name**: Enter `asal400_ecommerce_userprofiles_source`.
     - **Linked service**: Select the `asadatalakeXX` linked service that already exists.
     - **File path**: Browse to the `wwi-02/online-user-profiles-02` path.
     - **Import schema**: Select `From connection/store`.
 
-8. Select **Publish all** to save your new resources.
+9. Select **Publish all** to save your new resources.
 
     ![Publish all is highlighted.](media/publish-all-1.png "Publish all")
 
@@ -193,7 +197,7 @@ Optional: If you wish to keep this SQL script for future reference, select the P
 
 ### Task 2: Query sales Parquet data with Azure Synapse Spark
 
-1. Navigate to the **Data** hub, browse to the data lake storage account folder `sale-small/Year=2010/Quarter=Q4/Month=12/Day=20101231`, then right-click the Parquet file and select New notebook.
+1. Navigate to the **Data** hub, browse to the data lake storage account folder `sale-small/Year=2010/Quarter=Q4/Month=12/Day=20101231` if needed, then right-click the Parquet file and select New notebook.
 
     ![The Parquet file is displayed with the New notebook menu item highlighted.](media/new-spark-notebook-sales.png "New notebook")
 
@@ -627,7 +631,7 @@ PolyBase requires the following elements:
     FROM [external].[Sales]
     ```
 
-6. Select **Run** from the toolbar menu to execute the SQL command. It takes around **6 - 8 minutes** to execute this command.
+6. Select **Run** from the toolbar menu to execute the SQL command. It will take a few minutes to execute this command.
 
 7. In the query window, replace the script with the following to see how many rows were imported:
 
@@ -657,7 +661,7 @@ Now let's see how to perform the same load operation with the COPY statement.
     GO
     ```
 
-2. Select **Run** from the toolbar menu to execute the SQL command. It takes around **4 - 6 minutes** to execute this command.
+2. Select **Run** from the toolbar menu to execute the SQL command. It takes a few minutes to execute this command.
 
 3. In the query window, replace the script with the following to see how many rows were imported:
 
@@ -686,7 +690,7 @@ For both of the load operations above, we inserted data into the heap table. Wha
     GO
     ```
 
-2. Select **Run** from the toolbar menu to execute the SQL command. It takes around **3.5 - 4.5 minutes** to execute this command.
+2. Select **Run** from the toolbar menu to execute the SQL command. It takes a few minutes to execute this command.
 
 3. In the query window, replace the script with the following to see how many rows were imported:
 
@@ -750,6 +754,7 @@ The data has the following fields: `Date`, `NorthAmerica`, `SouthAmerica`, `Euro
 
     ```sql
     SELECT * FROM [wwi_staging].DailySalesCounts
+    ORDER BY [Date] DESC
     ```
 
 4. Select **Run** from the toolbar menu to execute the SQL command.
@@ -817,9 +822,9 @@ In this exercise, we will focus on the orchestration aspect. Lab 2 will focus mo
 
 ### Task 1: Configure workload management classification
 
-When loading a large amount of data, it is best to run only one load job at a time for fasted performance. If this isn't possible, run a minimal number of loads concurrently. be sure that you allocate enough memory to the pipeline session. To do this, increase the resource class of a user which has permissions to rebuild the index on this table to the recommended minimum.
+When loading a large amount of data, it is best to run only one load job at a time for fasted performance. If this isn't possible, run a minimal number of loads concurrently. If you expect a large loading job, consider scaling up your SQL pool before the load.
 
-For fastest loading speed, run only one load job at a time. If that isn't feasible, run a minimal number of loads concurrently. If you expect a large loading job, consider scaling up your SQL pool before the load.
+Be sure that you allocate enough memory to the pipeline session. To do this, increase the resource class of a user which has permissions to rebuild the index on this table to the recommended minimum.
 
 To run loads with appropriate compute resources, create loading users designated for running loads. Assign each loading user to a specific resource class or workload group. To run a load, sign in as one of the loading users, and then run the load. The load runs with the user's resource class.
 
@@ -927,6 +932,6 @@ To run loads with appropriate compute resources, create loading users designated
 
     ![The Monitor hub menu item is selected.](media/monitor-hub.png "Monitor hub")
 
-19. You can see the status of your pipeline run here. It will take some time to complete, so might want to return to check this status before you start the next lab. Note that you may need to refresh the view. Once the pipeline run is complete, you can query the `wwi_staging.SaleHeap` table to view the imported data.
+19. Select **Pipeline Runs**. You can see the status of your pipeline run here. It will take some time to complete, so might want to return to check this status before you start the next lab. Note that you may need to refresh the view. Once the pipeline run is complete, you can query the `wwi_staging.SaleHeap` table to view the imported data.
 
     ![The completed pipeline run is displayed.](media/pipeline-copy-sales-pipeline-run.png "Pipeline runs")

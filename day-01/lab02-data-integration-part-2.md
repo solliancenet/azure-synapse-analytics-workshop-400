@@ -63,11 +63,9 @@ When you create a new linked service, Azure IR provides fully managed compute re
 
     ![The New link is highlighted.](media/new-ir-link.png "Integration runtimes")
 
-3. In the `Integration runtime setup` blade, select **Azure, Self-Hosted**, then select **Continue**.
+3. In the `Integration runtime setup` blade, select **Azure**, then select **Continue**.
 
-4. Under `Network environment`, select **Azure**, then select **Continue**.
-
-5. In the `New integration runtime` form, configure the following:
+4. In the `New integration runtime` form, configure the following:
 
     - **Name**: Enter `AzureLargeComputeOptimizedIntegrationRuntime`.
     - **Region**: Select `Auto Resolve`.
@@ -76,17 +74,17 @@ When you create a new linked service, Azure IR provides fully managed compute re
 
     ![The form is displayed with the described configuration settings.](media/new-ir-form.png "Integration runtime setup")
 
-6. Select **Create**.
+5. Select **Create**.
 
-7. After creating the new IR, hover over the name on the list, then select the **Code** link.
+6. After creating the new IR, hover over the name on the list, then select the **Code** link.
 
     ![The code link is highlighted on the new integration runtime.](media/ir-code-link.png "Code link")
 
-8. Change the `timeToLive` value to **60**. Every time you execute a pipeline that uses the IR, one of the first steps that happens in the background is to provision the IR cluster if it is idle or inactive. Here we set the `timeToLive` value to 60 minutes to keep the provisioned cluster up and running for longer periods of time so we don't need to wait for the provisioning step each subsequent pipeline execution. Please note that setting this value to 60 minutes likely comes with a cost increase if you have infrequent pipeline runs, since you are leaving it in an active state for longer periods of time.
+7. Change the `timeToLive` value to **60**. Every time you execute a pipeline that uses the IR, one of the first steps that happens in the background is to provision the IR cluster if it is idle or inactive. Here we set the `timeToLive` value to 60 minutes to keep the provisioned cluster up and running for longer periods of time so we don't need to wait for the provisioning step each subsequent pipeline execution. Please note that setting this value to 60 minutes likely comes with a cost increase if you have infrequent pipeline runs, since you are leaving it in an active state for longer periods of time.
 
     ![The timeToLive setting is highlighted.](media/ir-code-view.png "Code editor")
 
-9. Select **OK**.
+8. Select **OK**.
 
 ### Task 2: Create SQL tables
 
@@ -202,7 +200,7 @@ Your organization was provided a poorly formatted CSV file containing marketing 
 
 ![Screenshot of the CSV file.](media/poorly-formatted-csv.png "Poorly formatted CSV")
 
-Issues include invalid characters in some product categories, invalid characters in the revenue currency data, and misaligned columns.
+Issues include invalid characters in the revenue currency data, and misaligned columns.
 
 1. Navigate to the **Data** hub.
 
@@ -304,13 +302,13 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
 
     ![The import projection button is highlighted in the projection tab.](media/data-flow-import-projection.png "Import projection")
 
-    The projection should display the following schema:
-
-    ![The imported projection is displayed.](media/data-flow-campaign-analysis-source-projection.png "Projection")
-
 7. If a data flow debug session is not currently running, select the **AzureLargeComputeOptimizedIntegrationRuntime** IR, then select **Turn on debug**.
 
     ![Select the IR then select turn on debug.](media/data-flow-debug-session-large-ir.png "Data Flow Debug Session Required")
+
+    The projection should display the following schema:
+
+    ![The imported projection is displayed.](media/data-flow-campaign-analysis-source-projection.png "Projection")
 
 8. Select the **Data preview** tab, then select **Refresh** to display data from the CSV file. If you scroll to the right, you should see that the City and State columns are now included.
 
@@ -353,7 +351,6 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
         | --- | --- | --- |
         | Revenue | `toDecimal(replace(concat(toString(RevenuePart1), toString(Revenue)), '\\', ''), 10, 2, '$###,###.##')` | Concatenate the `RevenuePart1` and `Revenue` fields, replace the invalid `\` character, then convert and format the data to a decimal type. |
         | RevenueTarget | `toDecimal(replace(concat(toString(RevenueTargetPart1), toString(RevenueTarget)), '\\', ''), 10, 2, '$###,###.##')` | Concatenate the `RevenueTargetPart1` and `RevenueTarget` fields, replace the invalid `\` character, then convert and format the data to a decimal type. |
-        | ProductCategory | `replace(toString(ProductCategory), 'Ã©', 'e')` | Replace the invalid characters in the `ProductCategory` field with the letter e. |
 
     ![The derived column's settings are displayed as described.](media/data-flow-campaign-analysis-derived-column-settings.png "Derived column's settings")
 
@@ -455,7 +452,7 @@ Now that the pipeline run is complete, let's take a look at the SQL table to ver
 
     ![The Data menu item is highlighted.](media/data-hub.png "Data hub")
 
-2. Expand the `SqlPool01` database underneath the **Databases** section. Right-click the `wwi.CampaignAnalytics` table, then select the **Select TOP 1000 rows** menu item under the New SQL script context menu.
+2. Expand the `SqlPool01` database underneath the **Databases** section, then expand `Tables`. Right-click the `wwi.CampaignAnalytics` table, then select the **Select TOP 1000 rows** menu item under the New SQL script context menu.
 
     ![The Select TOP 1000 rows menu item is highlighted.](media/select-top-1000-rows-campaign-analytics.png "Select TOP 1000 rows")
 
