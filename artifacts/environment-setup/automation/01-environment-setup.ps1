@@ -242,32 +242,69 @@ Write-Information "Create tables in wwi_perf schema in SQL pool $($sqlPoolName)"
 
 $params = @{}
 
+# Since these are potentially long running, we'll force a token reissue to avoid failed logins
+
 $script = "07-create-wwi-perf-sale-heap"
 Write-Information $script
+$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
+                -Method POST -Body $ropcBodySynapse -ContentType "application/x-www-form-urlencoded"
+$synapseToken = $result.access_token
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
+
 $script = "08-create-wwi-perf-sale-partition01"
 Write-Information $script
+$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
+                -Method POST -Body $ropcBodySynapse -ContentType "application/x-www-form-urlencoded"
+$synapseToken = $result.access_token
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
+
 $script = "09-create-wwi-perf-sale-partition02"
 Write-Information $script
+$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
+                -Method POST -Body $ropcBodySynapse -ContentType "application/x-www-form-urlencoded"
+$synapseToken = $result.access_token
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
+
 $script = "10-create-wwi-perf-sale-index"
 Write-Information $script
+$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
+                -Method POST -Body $ropcBodySynapse -ContentType "application/x-www-form-urlencoded"
+$synapseToken = $result.access_token
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
+
 $script = "11-create-wwi-perf-sale-hash-ordered"
 Write-Information $script
+$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
+                -Method POST -Body $ropcBodySynapse -ContentType "application/x-www-form-urlencoded"
+$synapseToken = $result.access_token
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
 $script = "12-create-wwi-perf-sale-hash-projection"
+
 Write-Information $script
+$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
+                -Method POST -Body $ropcBodySynapse -ContentType "application/x-www-form-urlencoded"
+$synapseToken = $result.access_token
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
+
 $script = "13-create-wwi-perf-sale-hash-projection2"
 Write-Information $script
+$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
+                -Method POST -Body $ropcBodySynapse -ContentType "application/x-www-form-urlencoded"
+$synapseToken = $result.access_token
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
+
 $script = "14-create-wwi-perf-sale-hash-projection-big"
 Write-Information $script
+$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
+                -Method POST -Body $ropcBodySynapse -ContentType "application/x-www-form-urlencoded"
+$synapseToken = $result.access_token
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
+
 $script = "15-create-wwi-perf-sale-hash-projection-big2"
 Write-Information $script
+$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
+                -Method POST -Body $ropcBodySynapse -ContentType "application/x-www-form-urlencoded"
+$synapseToken = $result.access_token
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
 
 
