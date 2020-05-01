@@ -813,19 +813,19 @@ Now that we have processed, joined, and imported the user profile data, let's an
 
 7. Notice that the language for this notebook is Spark Scala. We want to use Python to explore the data. To do this, we load the data into a temporary view, then we can load the view's contents into a dataframe in a new PySpark cell. To do this, execute the following in a new cell:
 
-    ```python
-    %%pyspark
-    # Calling the dataframe df created in Scala to Python
-    df = sqlContext.table("df")
-    # *********************
+```python
+%%pyspark
+# Calling the dataframe df created in Scala to Python
+df = sqlContext.table("df")
+# *********************
 
-    topPurchases = df.select(
-        "UserId", "ProductId",
-        "ItemsPurchasedLast12Months", "IsTopProduct",
-        "IsPreferredProduct")
+topPurchases = df.select(
+    "UserId", "ProductId",
+    "ItemsPurchasedLast12Months", "IsTopProduct",
+    "IsPreferredProduct")
 
-    topPurchases.show(100)
-    ```
+topPurchases.show(100)
+```
 
     We set the language of the cell to PySpark with the `%%pyspark` magic. Then we loaded the `df` view into a new dataframe. Finally, we created a new dataframe named `topPurchases` and displayed its contents.
 

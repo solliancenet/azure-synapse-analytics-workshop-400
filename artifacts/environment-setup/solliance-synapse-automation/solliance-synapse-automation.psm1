@@ -690,7 +690,7 @@ function Execute-SQLQuery {
 
     }
     $rawResult = Invoke-WebRequest -Uri $uri -Method POST -Body $SQLQuery -Headers $headers `
-        -ContentType "application/x-www-form-urlencoded; charset=UTF-8" -UseBasicParsing -Proxy 'http://127.0.0.1:8888'
+        -ContentType "application/x-www-form-urlencoded; charset=UTF-8" -UseBasicParsing -Proxy 'http://127.0.0.1:8888' -TimeoutSec 1
 
     $result = ConvertFrom-Json $rawResult.Content
 
