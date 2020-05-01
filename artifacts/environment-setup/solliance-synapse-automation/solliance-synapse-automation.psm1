@@ -547,7 +547,7 @@ function Control-SQLPool {
     [String]
     $Action,
 
-    [parameter(Mandatory=$true)]
+    [parameter(Mandatory=$false)]
     [String]
     $SKU,
 
@@ -600,7 +600,7 @@ function Get-SQLPool {
     [String]
     $SQLPoolName,
 
-    [parameter(Mandatory=$true)]
+    [parameter(Mandatory=$false)]
     [String]
     $TargetStatus,
 
