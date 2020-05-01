@@ -754,6 +754,7 @@ The data has the following fields: `Date`, `NorthAmerica`, `SouthAmerica`, `Euro
 
     ```sql
     SELECT * FROM [wwi_staging].DailySalesCounts
+    ORDER BY [Date] DESC
     ```
 
 4. Select **Run** from the toolbar menu to execute the SQL command.
