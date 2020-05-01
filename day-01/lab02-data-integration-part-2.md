@@ -452,7 +452,7 @@ Now that the pipeline run is complete, let's take a look at the SQL table to ver
 
     ![The Data menu item is highlighted.](media/data-hub.png "Data hub")
 
-2. Expand the `SqlPool01` database underneath the **Databases** section. Right-click the `wwi.CampaignAnalytics` table, then select the **Select TOP 1000 rows** menu item under the New SQL script context menu.
+2. Expand the `SqlPool01` database underneath the **Databases** section, then expand `Tables`. Right-click the `wwi.CampaignAnalytics` table, then select the **Select TOP 1000 rows** menu item under the New SQL script context menu.
 
     ![The Select TOP 1000 rows menu item is highlighted.](media/select-top-1000-rows-campaign-analytics.png "Select TOP 1000 rows")
 
