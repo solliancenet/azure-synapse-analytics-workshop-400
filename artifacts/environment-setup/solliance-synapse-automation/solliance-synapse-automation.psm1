@@ -660,6 +660,49 @@ function Wait-ForSQLPool {
     return $result
 }
 
+function Wait-ForSQLQuery {
+
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $SQLPoolName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $Label,
+
+    [parameter(Mandatory=$false)]
+    [DateTime]
+    $ReferenceTime,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $Token
+    )
+
+    Write-Information "Waiting for any pending operation to be properly triggered..."
+    Start-Sleep -Seconds 10
+    
+    $sql = "select status from sys.dm_pdw_exec_requests where [label] = '$($Label)' and submit_time > '$($ReferenceTime.ToString("yyyy-MM-dd HH:mm:ss"))'"
+
+    $result = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $sql -Token $synapseSQLToken
+    while (($result.data[0][0] -ne "Cancelled") -and ($result.data[0][0] -ne "Completed")) {
+        Write-Information "Current status is $($result.data[0][0]). Waiting for query to finish..."
+            Start-Sleep -Seconds 10
+            $result = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $sql -Token $synapseSQLToken
+    }
+
+    if ($result.data[0][0] -eq "Cancelled") {
+        throw "There was an error executing the query."
+    }
+
+    Write-Information "The query was successfully executed."
+}
+
 function Execute-SQLQuery {
 
     param(
@@ -675,6 +718,10 @@ function Execute-SQLQuery {
     [String]
     $SQLQuery,
 
+    [parameter(Mandatory=$false)]
+    [Boolean]
+    $ForceReturn,
+
     [parameter(Mandatory=$true)]
     [String]
     $Token
@@ -689,8 +736,16 @@ function Execute-SQLQuery {
         Origin = "https://web.azuresynapse.net"
 
     }
+
+    if ($ForceReturn) {
+        try {
+            Invoke-WebRequest -Uri $uri -Method POST -Body $SQLQuery -Headers $headers -ContentType "application/x-www-form-urlencoded; charset=UTF-8" -UseBasicParsing -TimeoutSec 15
+        } catch {}
+        return
+    }
+
     $rawResult = Invoke-WebRequest -Uri $uri -Method POST -Body $SQLQuery -Headers $headers `
-        -ContentType "application/x-www-form-urlencoded; charset=UTF-8" -UseBasicParsing -Proxy 'http://127.0.0.1:8888' -TimeoutSec 1
+        -ContentType "application/x-www-form-urlencoded; charset=UTF-8" -UseBasicParsing
 
     $result = ConvertFrom-Json $rawResult.Content
 
@@ -727,9 +782,13 @@ function Execute-SQLScriptFile {
     [String]
     $FileName,
 
-    [parameter(Mandatory=$true)]
+    [parameter(Mandatory=$false)]
     [Hashtable]
     $Parameters,
+
+    [parameter(Mandatory=$false)]
+    [Boolean]
+    $ForceReturn,
 
     [parameter(Mandatory=$true)]
     [String]
@@ -738,11 +797,13 @@ function Execute-SQLScriptFile {
 
     $sqlQuery = Get-Content -Raw -Path "$($SQLScriptsPath)/$($FileName).sql"
 
-    foreach ($key in $Parameters.Keys) {
-        $sqlQuery = $sqlQuery.Replace("#$($key)#", $Parameters[$key])
+    if ($Parameters) {
+        foreach ($key in $Parameters.Keys) {
+            $sqlQuery = $sqlQuery.Replace("#$($key)#", $Parameters[$key])
+        }
     }
 
-    return Execute-SQLQuery -WorkspaceName $WorkspaceName -SQLPoolName $SQLPoolName -SQLQuery $sqlQuery -Token $Token
+    return Execute-SQLQuery -WorkspaceName $WorkspaceName -SQLPoolName $SQLPoolName -SQLQuery $sqlQuery -ForceReturn $ForceReturn -Token $Token
 }
 
 Export-ModuleMember -Function List-StorageAccountKeys
@@ -766,3 +827,4 @@ Export-ModuleMember -Function Get-SQLPool
 Export-ModuleMember -Function Wait-ForSQLPool
 Export-ModuleMember -Function Execute-SQLQuery
 Export-ModuleMember -Function Execute-SQLScriptFile
+Export-ModuleMember -Function Wait-ForSQLQuery
