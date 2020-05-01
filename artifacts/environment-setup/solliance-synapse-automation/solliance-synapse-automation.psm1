@@ -600,10 +600,6 @@ function Get-SQLPool {
     [String]
     $SQLPoolName,
 
-    [parameter(Mandatory=$false)]
-    [String]
-    $TargetStatus,
-
     [parameter(Mandatory=$true)]
     [String]
     $Token
@@ -613,11 +609,47 @@ function Get-SQLPool {
 
     $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $Token" } -ContentType "application/json"
 
+    return $result
+}
+
+function Wait-ForSQLPool {
+
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $SubscriptionId,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $ResourceGroupName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $SQLPoolName,
+
+    [parameter(Mandatory=$false)]
+    [String]
+    $TargetStatus,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $Token
+    )
+
+    Write-Information "Waiting for any pending operation to be properly triggered..."
+    Start-Sleep -Seconds 20
+
+    $result = Get-SQLPool -SubscriptionId $SubscriptionId -ResourceGroupName $ResourceGroupName -WorkspaceName $WorkspaceName -SQLPoolName $SQLPoolName -Token $Token
+
     if ($TargetStatus) {
         while ($result.properties.status -ne $TargetStatus) {
             Write-Information "Current status is $($result.properties.status). Waiting for $($TargetStatus) status..."
             Start-Sleep -Seconds 10
-            $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $Token" } -ContentType "application/json"
+            $result = Get-SQLPool -SubscriptionId $SubscriptionId -ResourceGroupName $ResourceGroupName -WorkspaceName $WorkspaceName -SQLPoolName $SQLPoolName -Token $Token
         }
     }
 
@@ -718,5 +750,6 @@ Export-ModuleMember -Function Wait-ForOperation
 Export-ModuleMember -Function Delete-ASAObject
 Export-ModuleMember -Function Control-SQLPool
 Export-ModuleMember -Function Get-SQLPool
+Export-ModuleMember -Function Wait-ForSQLPool
 Export-ModuleMember -Function Execute-SQLQuery
 Export-ModuleMember -Function Execute-SQLScriptFile
