@@ -1,23 +1,5 @@
 # Data Integration Part 2
 
-- [Data Integration Part 2](#data-integration-part-2)
-  - [Resource naming throughout this lab](#resource-naming-throughout-this-lab)
-  - [Exercise 1: Create datasets and SQL tables](#exercise-1-create-datasets-and-sql-tables)
-    - [Task 1: Create custom Integration Runtime (IR)](#task-1-create-custom-integration-runtime-ir)
-    - [Task 2: Create SQL tables](#task-2-create-sql-tables)
-    - [Task 3: Create campaign analytics datasets](#task-3-create-campaign-analytics-datasets)
-    - [Task 4: Create user profile datasets](#task-4-create-user-profile-datasets)
-  - [Exercise 2: Create data pipeline to import poorly formatted CSV](#exercise-2-create-data-pipeline-to-import-poorly-formatted-csv)
-    - [Task 1: Create campaign analytics data flow](#task-1-create-campaign-analytics-data-flow)
-    - [Task 2: Create campaign analytics data pipeline](#task-2-create-campaign-analytics-data-pipeline)
-    - [Task 3: Run the campaign analytics data pipeline](#task-3-run-the-campaign-analytics-data-pipeline)
-    - [Task 4: View campaign analytics table contents](#task-4-view-campaign-analytics-table-contents)
-  - [Exercise 3: Create data pipeline to join disparate data sources](#exercise-3-create-data-pipeline-to-join-disparate-data-sources)
-    - [Task 1: Create user profile data flow](#task-1-create-user-profile-data-flow)
-    - [Task 2: Create user profile data pipeline](#task-2-create-user-profile-data-pipeline)
-    - [Task 3: Trigger, monitor, and analyze the user profile data pipeline](#task-3-trigger-monitor-and-analyze-the-user-profile-data-pipeline)
-  - [Exercise 4: Create Synapse Spark notebook to find top products](#exercise-4-create-synapse-spark-notebook-to-find-top-products)
-
 <!-- Create e2e pipeline for initial load & update
 Data Prep: Handle bad data, file formats, join disparate sources
 Troubleshoot: pipeline/activity failure (something beyond simply looking at the portal)

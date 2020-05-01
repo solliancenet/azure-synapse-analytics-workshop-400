@@ -1,9 +1,5 @@
 # Machine Learning with Spark
 
-- [Machine Learning with Spark](#machine-learning-with-spark)
-  - [Exercise 1 - Training and batch scoring with a recommender](#exercise-1---training-and-batch-scoring-with-a-recommender)
-    - [Task 1 - Using the Spark ML ALS algorithm](#task-1---using-the-spark-ml-als-algorithm)
-
 ## Exercise 1 - Training and batch scoring with a recommender
 
 In this exercise you will train a model to recommend the top 5 products to users.

@@ -1,11 +1,5 @@
 # Machine Learning
 
-- [Machine Learning](#machine-learning)
-  - [Exercise 1 - Training models](#exercise-1---training-models)
-  - [Exercise 2 - Registering and using models in Syanpse Analytics](#exercise-2---registering-and-using-models-in-syanpse-analytics)
-    - [Task 1 - Registering the models with Azure Synapse Analytics](#task-1---registering-the-models-with-azure-synapse-analytics)
-  - [Task 2 - Making predictions with the registered models](#task-2---making-predictions-with-the-registered-models)
-
 Azure Synapse Analytics provides a unified environment for both data science and data engineering. What this means in practice, is that your data scientists can train and deploy models using Azure Synapse Analytics and your data engineers can write T-SQL queries that use those models to make predictions against tabular data stored in a SQL Pool database table.
 
 In this lab, you will create several machine learning models and use them to make predictions using the T-SQL `Predict` statement.
