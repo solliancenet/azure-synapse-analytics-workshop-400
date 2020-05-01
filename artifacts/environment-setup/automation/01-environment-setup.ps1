@@ -203,6 +203,13 @@ foreach ($script in $scripts.Keys) {
 
         $refTime = (Get-Date).ToUniversalTime()
         Write-Information "Starting $($script) with label $($scripts[$script])"
+
+        # refresh the token, just in case
+        $result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
+                -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
+        $synapseSQLToken = $result.access_token
+        
+        # initiate the script and wait until it finishes
         Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -ForceReturn $true -Token $synapseSQLToken
         Wait-ForSQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Label $scripts[$script] -ReferenceTime $refTime -Token $synapseSQLToken
 }

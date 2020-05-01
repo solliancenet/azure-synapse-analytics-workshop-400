@@ -10,7 +10,7 @@ A SQL Pool named `SQLPool01` with a database name `SQLPool01`
 * asa.sql.workload02
 
 ## Key Vault Secrets
-* SQL-USER-ASA-SQL-WORKLOAD (stores the password for `asa.sql.workload01` and `asa.sql.workload02`, used by the below linked services)
+* SQL-USER-ASA (stores the password for `asa.sql.workload01` and `asa.sql.workload02`, used by the below linked services)
 
 ## Linked Services
 * sqlpool01_workload01
