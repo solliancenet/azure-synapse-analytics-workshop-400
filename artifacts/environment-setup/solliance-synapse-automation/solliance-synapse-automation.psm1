@@ -600,10 +600,6 @@ function Get-SQLPool {
     [String]
     $SQLPoolName,
 
-    [parameter(Mandatory=$false)]
-    [String]
-    $TargetStatus,
-
     [parameter(Mandatory=$true)]
     [String]
     $Token
@@ -613,11 +609,47 @@ function Get-SQLPool {
 
     $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $Token" } -ContentType "application/json"
 
+    return $result
+}
+
+function Wait-ForSQLPool {
+
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $SubscriptionId,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $ResourceGroupName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $SQLPoolName,
+
+    [parameter(Mandatory=$false)]
+    [String]
+    $TargetStatus,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $Token
+    )
+
+    Write-Information "Waiting for any pending operation to be properly triggered..."
+    Start-Sleep -Seconds 20
+
+    $result = Get-SQLPool -SubscriptionId $SubscriptionId -ResourceGroupName $ResourceGroupName -WorkspaceName $WorkspaceName -SQLPoolName $SQLPoolName -Token $Token
+
     if ($TargetStatus) {
         while ($result.properties.status -ne $TargetStatus) {
             Write-Information "Current status is $($result.properties.status). Waiting for $($TargetStatus) status..."
             Start-Sleep -Seconds 10
-            $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $Token" } -ContentType "application/json"
+            $result = Get-SQLPool -SubscriptionId $SubscriptionId -ResourceGroupName $ResourceGroupName -WorkspaceName $WorkspaceName -SQLPoolName $SQLPoolName -Token $Token
         }
     }
 
@@ -647,7 +679,8 @@ function Execute-SQLQuery {
 
     $uri = "https://$($WorkspaceName).sql.azuresynapse.net:1443/databases/$($SQLPoolName)/query?api-version=2018-08-01-preview&application=ArcadiaSqlEditor&topRows=5000&queryTimeoutInMinutes=59&allResultSets=true"
 
-    $result = Invoke-RestMethod  -Uri $uri -Method POST -Body $SQLQuery -Headers @{ Authorization="Bearer $Token" } -ContentType "application/x-www-form-urlencoded; charset=UTF-8" -TimeoutSec 3600
+    $rawResult = Invoke-WebRequest -Uri $uri -Method POST -Body $SQLQuery -Headers @{ Authorization="Bearer $($Token)" } -ContentType "application/x-www-form-urlencoded; charset=UTF-8"
+    $result = ConvertFrom-Json $rawResult.Content
 
     $errors = @()
     foreach ($partialResult in $result) {
@@ -718,5 +751,6 @@ Export-ModuleMember -Function Wait-ForOperation
 Export-ModuleMember -Function Delete-ASAObject
 Export-ModuleMember -Function Control-SQLPool
 Export-ModuleMember -Function Get-SQLPool
+Export-ModuleMember -Function Wait-ForSQLPool
 Export-ModuleMember -Function Execute-SQLQuery
 Export-ModuleMember -Function Execute-SQLScriptFile

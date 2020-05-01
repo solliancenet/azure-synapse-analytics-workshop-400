@@ -16,3 +16,4 @@ SELECT
 	,CAST([Quantity] as bigint) as [Quantity]
 FROM
 	[wwi_perf].[Sale_Heap]
+OPTION  (LABEL  = 'CTAS : Sale_Hash_Projection_Big2')

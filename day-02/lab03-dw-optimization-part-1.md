@@ -1,18 +1,5 @@
 # DW Optimization Part 1
 
-- [DW Optimization Part 1](#dw-optimization-part-1)
-  - [Exercise 1 - Explore query performance and improve table structure](#exercise-1---explore-query-performance-and-improve-table-structure)
-    - [Task 1 - Identify performance issues related to tables](#task-1---identify-performance-issues-related-to-tables)
-    - [Task 2 - Improve table structure with hash distribution and columnstore index](#task-2---improve-table-structure-with-hash-distribution-and-columnstore-index)
-    - [Task 3 - Improve further the structure of the table with partitioning](#task-3---improve-further-the-structure-of-the-table-with-partitioning)
-  - [Exercise 2 - Improve query performance](#exercise-2---improve-query-performance)
-    - [Task 1 -  Improve COUNT performance](#task-1---improve-count-performance)
-    - [Task 2 - Use materialized views](#task-2---use-materialized-views)
-    - [Task 3 - Use result set caching](#task-3---use-result-set-caching)
-    - [Task 4 - Create and update statistics](#task-4---create-and-update-statistics)
-    - [Task 5 - Create and update indexes](#task-5---create-and-update-indexes)
-    - [Task 6 - Ordered Clustered Columnstore Indexes](#task-6---ordered-clustered-columnstore-indexes)
-
 `<TBA>`
 Explicit instructions on scaling up to DW1500 before the lab and scaling back after Lab 04 is completed.
 `</TBA>`

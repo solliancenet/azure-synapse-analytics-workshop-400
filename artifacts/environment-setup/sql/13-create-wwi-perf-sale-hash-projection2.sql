@@ -16,3 +16,4 @@ SELECT
 	,[Quantity]
 FROM
 	[wwi_perf].[Sale_Heap]
+OPTION  (LABEL  = 'CTAS : Sale_Hash_Projection2')

@@ -145,14 +145,13 @@ Write-Information "Start the $($sqlPoolName) SQL pool if needed."
 $result = Get-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Token $managementToken
 if ($result.properties.status -ne "Online") {
     Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action resume -Token $managementToken
-    $result = Get-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online -Token $managementToken
+    Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online -Token $managementToken
 }
 
 Write-Information "Scale up the $($sqlPoolName) SQL pool to DW3000c to prepare for baby MOADs import."
 
 Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action scale -SKU DW3000c -Token $managementToken
-Start-Sleep -Seconds 30 # It is going to take atleast 30 seconds to scale. Wait for sometime so that state changes to Scaling, then wait for TargetStatus Online 
-$result = Get-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online -Token $managementToken
+Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online -Token $managementToken
 
 Write-Information "Create SQL logins in master SQL pool"
 
@@ -249,36 +248,74 @@ Write-Information "Create tables in wwi_perf schema in SQL pool $($sqlPoolName)"
 
 $params = @{}
 
+# Since these are potentially long running, we'll force a token reissue to avoid failed logins
+
 $script = "07-create-wwi-perf-sale-heap"
 Write-Information $script
+$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
+                -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
+$synapseSQLToken = $result.access_token
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
+
 $script = "08-create-wwi-perf-sale-partition01"
 Write-Information $script
+$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
+                -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
+$synapseSQLToken = $result.access_token
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
+
 $script = "09-create-wwi-perf-sale-partition02"
 Write-Information $script
+$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
+                -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
+$synapseSQLToken = $result.access_token
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
+
 $script = "10-create-wwi-perf-sale-index"
 Write-Information $script
+$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
+                -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
+$synapseSQLToken = $result.access_token
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
+
 $script = "11-create-wwi-perf-sale-hash-ordered"
 Write-Information $script
+$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
+                -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
+$synapseSQLToken = $result.access_token
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
+
 $script = "12-create-wwi-perf-sale-hash-projection"
 Write-Information $script
+$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
+                -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
+$synapseSQLToken = $result.access_token
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
+
 $script = "13-create-wwi-perf-sale-hash-projection2"
 Write-Information $script
+$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
+                -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
+$synapseSQLToken = $result.access_token
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
+
 $script = "14-create-wwi-perf-sale-hash-projection-big"
 Write-Information $script
+$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
+                -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
+$synapseSQLToken = $result.access_token
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
+
 $script = "15-create-wwi-perf-sale-hash-projection-big2"
 Write-Information $script
+$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
+                -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
+$synapseSQLToken = $result.access_token
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
 
 
 Write-Information "Scale down the $($sqlPoolName) SQL pool to DW1000c after baby MOADs import."
 
 Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action scale -SKU DW1000c -Token $managementToken
-$result = Get-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online -Token $managementToken
+Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online -Token $managementToken
+

@@ -8,23 +8,6 @@ This lab will guide you through several  security-related steps that cover an en
 
 2. Introspect the data that is contained within the SQL Pools in the context of potential sensitive/confidential data disclosure. Identify the columns representing sensitive data, then secure them by adding column-level security. Determine at the table level what data should be hidden from specific groups of users then define security predicates to apply row level security (filters) on the table. If desired, you also have the option of applying Dynamic Data Masking to mask sensitive data returned in queries on a column by column basis.
 
-- [End-to-end security with Azure Synapse Analytics](#end-to-end-security-with-azure-synapse-analytics)
-  - [Resource naming throughout this lab](#resource-naming-throughout-this-lab)
-  - [Exercise 1 - Securing Azure Synapse Analytics supporting infrastructure](#exercise-1---securing-azure-synapse-analytics-supporting-infrastructure)
-    - [Task 1 - Observing the SQL Active Directory admin](#task-1---observing-the-sql-active-directory-admin)
-    - [Task 2 - Manage IP firewall rules](#task-2---manage-ip-firewall-rules)
-  - [Exercise 2 - Securing the Azure Synapse Analytics workspace and managed services](#exercise-2---securing-the-azure-synapse-analytics-workspace-and-managed-services)
-    - [Task 1 - Managing secrets with Azure Key Vault](#task-1---managing-secrets-with-azure-key-vault)
-    - [Task 2 - Use Azure Key Vault for secrets when creating Linked Services](#task-2---use-azure-key-vault-for-secrets-when-creating-linked-services)
-    - [Task 3 - Secure workspace pipeline runs](#task-3---secure-workspace-pipeline-runs)
-    - [Task 4 - Secure Azure Synapse Analytics SQL Pools](#task-4---secure-azure-synapse-analytics-sql-pools)
-  - [Exercise 3 - Securing Azure Synapse Analytics workspace data](#exercise-3---securing-azure-synapse-analytics-workspace-data)
-    - [Task 1 - Column Level Security](#task-1---column-level-security)
-    - [Task 2 - Row level security](#task-2---row-level-security)
-    - [Task 3 - Dynamic data masking](#task-3---dynamic-data-masking)
-  - [Reference](#reference)
-  - [Other Resources](#other-resources)
-
 ## Resource naming throughout this lab
 
 For the remainder of this guide, the following terms will be used for various ASA-related resources (make sure you replace them with actual names and values):
