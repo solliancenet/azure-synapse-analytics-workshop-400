@@ -8,16 +8,6 @@ Pipeline runs can be monitored using the Monitor Hub and selecting Pipeline runs
 
 The execution of Spark applications representing the execution of notebooks and jobs can be monitored within the Monitor Hub, selecting Spark applications. Selecting a Spark application to view its progress and to launch the Spark UI to examine a running Spark job and stage details, or the Spark history server to examine a completed application.
 
-- [Monitoring](#monitoring)
-  - [Exercise 1 - Workload Management](#exercise-1---workload-management)
-    - [Task 1 - Workload Importance](#task-1---workload-importance)
-    - [Task 2 - Workload Isolation](#task-2---workload-isolation)
-  - [Exercise 2 - Workload Monitoring](#exercise-2---workload-monitoring)
-    - [Task 1 - Monitoring with Dynamic Management Views](#task-1---monitoring-with-dynamic-management-views)
-    - [Task 2 - Orchestration Monitoring with the Monitor Hub](#task-2---orchestration-monitoring-with-the-monitor-hub)
-    - [Task 3 - Monitoring SQL Requests with the Monitor Hub](#task-3---monitoring-sql-requests-with-the-monitor-hub)
-  - [Resources](#resources)
-
 ## Exercise 1 - Workload Management
 
 Running mixed workloads can pose resource challenges on busy systems. Solution Architects seek ways to separate classic data warehousing activities (such as loading, transforming, and querying data) to ensure that enough resources exist to hit SLAs.

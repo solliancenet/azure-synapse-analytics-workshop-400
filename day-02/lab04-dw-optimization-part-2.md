@@ -1,23 +1,5 @@
 # DW Optimization Part 2
 
-- [DW Optimization Part 2](#dw-optimization-part-2)
-  - [Exercise 1 - Check for skewed data and space usage](#exercise-1---check-for-skewed-data-and-space-usage)
-    - [Task 1 - Analyze the space used by tables](#task-1---analyze-the-space-used-by-tables)
-    - [Task 2 - Use a more advanced approach to understand table space usage](#task-2---use-a-more-advanced-approach-to-understand-table-space-usage)
-  - [Exercise 2 - Understand column store storage details](#exercise-2---understand-column-store-storage-details)
-    - [Task 1 - Create view for column store row group stats](#task-1---create-view-for-column-store-row-group-stats)
-    - [Task 2 - Explore column store storage details](#task-2---explore-column-store-storage-details)
-  - [Exercise 3 - Study the impact of wrong choices for column data types](#exercise-3---study-the-impact-of-wrong-choices-for-column-data-types)
-    - [Task 1 - Create and populate tables with optimal column data types](#task-1---create-and-populate-tables-with-optimal-column-data-types)
-    - [Task 2 - Create and populate tables with sub-optimal column data types](#task-2---create-and-populate-tables-with-sub-optimal-column-data-types)
-    - [Task 3 - Compare storage requirements](#task-3---compare-storage-requirements)
-  - [Exercise 4 - Study the impact of materialized views](#exercise-4---study-the-impact-of-materialized-views)
-    - [Task 1 - Analyze the execution plan of a query](#task-1---analyze-the-execution-plan-of-a-query)
-    - [Task 2 - Improve the execution plan of the query with a materialized view](#task-2---improve-the-execution-plan-of-the-query-with-a-materialized-view)
-  - [Exercise 5 - Avoid extensive logging](#exercise-5---avoid-extensive-logging)
-    - [Task 1 - Explore rules for minimally logged operations](#task-1---explore-rules-for-minimally-logged-operations)
-    - [Task 2 - Optimizing a delete operation](#task-2---optimizing-a-delete-operation)
-
 `<TBA>`
 Explicit instructions on scaling up to DW1500 before the lab and scaling back after Lab 04 is completed.
 `</TBA>`

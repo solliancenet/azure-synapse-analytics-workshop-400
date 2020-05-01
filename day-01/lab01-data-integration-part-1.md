@@ -1,25 +1,5 @@
 # Data Integration Part 1
 
-- [Data Integration Part 1](#data-integration-part-1)
-  - [Resource naming throughout this lab](#resource-naming-throughout-this-lab)
-  - [Exercise 1: Configure linked service and create datasets](#exercise-1-configure-linked-service-and-create-datasets)
-    - [Task 1: Create linked service](#task-1-create-linked-service)
-    - [Task 2: Create datasets](#task-2-create-datasets)
-  - [Exercise 2: Explore source data in the Data hub](#exercise-2-explore-source-data-in-the-data-hub)
-    - [Task 1: Query sales Parquet data with Synapse SQL Serverless](#task-1-query-sales-parquet-data-with-synapse-sql-serverless)
-    - [Task 2: Query sales Parquet data with Azure Synapse Spark](#task-2-query-sales-parquet-data-with-azure-synapse-spark)
-    - [Task 3: Query user profile JSON data with Azure Synapse Spark](#task-3-query-user-profile-json-data-with-azure-synapse-spark)
-  - [Exercise 3: Import sales data with PolyBase and COPY using T-SQL](#exercise-3-import-sales-data-with-polybase-and-copy-using-t-sql)
-    - [Task 1: Create staging tables](#task-1-create-staging-tables)
-    - [Task 2: Configure and run PolyBase load operation](#task-2-configure-and-run-polybase-load-operation)
-    - [Task 3: Configure and run the COPY statement](#task-3-configure-and-run-the-copy-statement)
-    - [Task 4: Load data into the clustered columnstore table](#task-4-load-data-into-the-clustered-columnstore-table)
-    - [Task 5: Use COPY to load text file with non-standard row delimiters](#task-5-use-copy-to-load-text-file-with-non-standard-row-delimiters)
-    - [Task 6: Use PolyBase to load text file with non-standard row delimiters](#task-6-use-polybase-to-load-text-file-with-non-standard-row-delimiters)
-  - [Exercise 4: Import sales data with COPY using a pipeline](#exercise-4-import-sales-data-with-copy-using-a-pipeline)
-    - [Task 1: Configure workload management classification](#task-1-configure-workload-management-classification)
-    - [Task 2: Create pipeline with copy activity](#task-2-create-pipeline-with-copy-activity)
-
 <!-- Integrating Data Sources
 Using Data Hub: Preview blob & DB data, T-SQL (On-Demand) and PySpark DataFrame
 Orchestrate Hub: Connectors, Copy data
