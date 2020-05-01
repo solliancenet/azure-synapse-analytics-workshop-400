@@ -63,11 +63,9 @@ When you create a new linked service, Azure IR provides fully managed compute re
 
     ![The New link is highlighted.](media/new-ir-link.png "Integration runtimes")
 
-3. In the `Integration runtime setup` blade, select **Azure, Self-Hosted**, then select **Continue**.
+3. In the `Integration runtime setup` blade, select **Azure**, then select **Continue**.
 
-4. Under `Network environment`, select **Azure**, then select **Continue**.
-
-5. In the `New integration runtime` form, configure the following:
+4. In the `New integration runtime` form, configure the following:
 
     - **Name**: Enter `AzureLargeComputeOptimizedIntegrationRuntime`.
     - **Region**: Select `Auto Resolve`.
@@ -76,17 +74,17 @@ When you create a new linked service, Azure IR provides fully managed compute re
 
     ![The form is displayed with the described configuration settings.](media/new-ir-form.png "Integration runtime setup")
 
-6. Select **Create**.
+5. Select **Create**.
 
-7. After creating the new IR, hover over the name on the list, then select the **Code** link.
+6. After creating the new IR, hover over the name on the list, then select the **Code** link.
 
     ![The code link is highlighted on the new integration runtime.](media/ir-code-link.png "Code link")
 
-8. Change the `timeToLive` value to **60**. Every time you execute a pipeline that uses the IR, one of the first steps that happens in the background is to provision the IR cluster if it is idle or inactive. Here we set the `timeToLive` value to 60 minutes to keep the provisioned cluster up and running for longer periods of time so we don't need to wait for the provisioning step each subsequent pipeline execution. Please note that setting this value to 60 minutes likely comes with a cost increase if you have infrequent pipeline runs, since you are leaving it in an active state for longer periods of time.
+7. Change the `timeToLive` value to **60**. Every time you execute a pipeline that uses the IR, one of the first steps that happens in the background is to provision the IR cluster if it is idle or inactive. Here we set the `timeToLive` value to 60 minutes to keep the provisioned cluster up and running for longer periods of time so we don't need to wait for the provisioning step each subsequent pipeline execution. Please note that setting this value to 60 minutes likely comes with a cost increase if you have infrequent pipeline runs, since you are leaving it in an active state for longer periods of time.
 
     ![The timeToLive setting is highlighted.](media/ir-code-view.png "Code editor")
 
-9. Select **OK**.
+8. Select **OK**.
 
 ### Task 2: Create SQL tables
 
