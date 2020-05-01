@@ -430,6 +430,9 @@ function Wait-ForPipelineRun {
     $Token 
     )
 
+    Write-Information "Waiting for any pending operation to be properly triggered..."
+    Start-Sleep -Seconds 20
+
     $result = Get-PipelineRun -WorkspaceName $WorkspaceName -RunId $RunId -Token $Token
 
     while ($result.status -eq "InProgress") {
@@ -679,7 +682,13 @@ function Execute-SQLQuery {
 
     $uri = "https://$($WorkspaceName).sql.azuresynapse.net:1443/databases/$($SQLPoolName)/query?api-version=2018-08-01-preview&application=ArcadiaSqlEditor&topRows=5000&queryTimeoutInMinutes=59&allResultSets=true"
 
-    $rawResult = Invoke-WebRequest -Uri $uri -Method POST -Body $SQLQuery -Headers @{ Authorization="Bearer $($Token)" } -ContentType "application/x-www-form-urlencoded; charset=UTF-8"
+    $headers = @{ 
+        Authorization="Bearer $($Token)" 
+        Connection="keep-alive" 
+    }
+    $rawResult = Invoke-WebRequest -Uri $uri -Method POST -Body $SQLQuery -Headers $headers `
+        -ContentType "application/x-www-form-urlencoded; charset=UTF-8" -UseBasicParsing -Proxy 'http://127.0.0.1:8888'
+
     $result = ConvertFrom-Json $rawResult.Content
 
     $errors = @()
