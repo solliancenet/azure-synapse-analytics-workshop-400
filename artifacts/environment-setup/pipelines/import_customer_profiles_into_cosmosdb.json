@@ -31,9 +31,9 @@
                         "writeBehavior": "insert"
                     },
                     "enableStaging": false,
-                    "parallelCopies": 500,
+                    "parallelCopies": 100,
                     "enableSkipIncompatibleRow": true,
-                    "dataIntegrationUnits": 32
+                    "dataIntegrationUnits": 16
                 },
                 "inputs": [
                     {
