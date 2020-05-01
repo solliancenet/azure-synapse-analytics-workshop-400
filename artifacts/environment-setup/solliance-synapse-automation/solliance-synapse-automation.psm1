@@ -645,7 +645,7 @@ function Execute-SQLQuery {
 
     $uri = "https://$($WorkspaceName).sql.azuresynapse.net:1443/databases/$($SQLPoolName)/query?api-version=2018-08-01-preview&application=ArcadiaSqlEditor&topRows=5000&queryTimeoutInMinutes=59&allResultSets=true"
 
-    $result = Invoke-RestMethod  -Uri $uri -Method POST -Body $SQLQuery -Headers @{ Authorization="Bearer $Token" } -ContentType "application/x-www-form-urlencoded; charset=UTF-8"
+    $result = Invoke-RestMethod  -Uri $uri -Method POST -Body $SQLQuery -Headers @{ Authorization="Bearer $Token" } -ContentType "application/x-www-form-urlencoded; charset=UTF-8" -TimeoutSec 3600
 
     $errors = @()
     foreach ($partialResult in $result) {

@@ -138,11 +138,6 @@ Write-Information "Scale up the $($sqlPoolName) SQL pool to DW3000c to prepare f
 Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action scale -SKU DW3000c -Token $managementToken
 $result = Get-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online -Token $managementToken
 
-Write-Information "Scale down the $($sqlPoolName) SQL pool to DW1000c after baby MOADs import."
-
-Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action scale -SKU DW1000c -Token $managementToken
-$result = Get-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online -Token $managementToken
-
 
 Write-Information "Create SQL logins in master SQL pool"
 
@@ -234,3 +229,30 @@ Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 $result = Run-Pipeline -WorkspaceName $workspaceName -Name $name -Token $synapseToken
 $result = Wait-ForPipelineRun -WorkspaceName $workspaceName -RunId $result.runId -Token $synapseToken
 $result
+
+Write-Information "Create tables in wwi_perf schema in SQL pool $($sqlPoolName)"
+
+$scripts = @(
+        "07-create-wwi-perf-sale-heap",
+        "08-create-wwi-perf-sale-partition01",
+        "09-create-wwi-perf-sale-partition02",
+        "10-create-wwi-perf-sale-index",
+        "11-create-wwi-perf-sale-hash-ordered",
+        "12-create-wwi-perf-sale-hash-projection",
+        "13-create-wwi-perf-sale-hash-projection2",
+        "14-create-wwi-perf-sale-hash-projection-big,"
+        "15-create-wwi-perf-sale-hash-projection-big2"
+)
+
+foreach ($script in $scripts) {
+
+        Write-Information $script
+
+        $params = @{}
+        $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
+}
+
+Write-Information "Scale down the $($sqlPoolName) SQL pool to DW1000c after baby MOADs import."
+
+Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action scale -SKU DW1000c -Token $managementToken
+$result = Get-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online -Token $managementToken
