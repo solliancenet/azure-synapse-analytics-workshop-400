@@ -88,7 +88,11 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
 
     ![The Data menu item is highlighted.](media/data-hub.png "Data hub")
 
-2. Create a new **Azure Cosmos DB (SQL API)** dataset with the following characteristics:
+2. Select **+** in the toolbar, then select **Dataset** to create a new dataset.
+
+    ![Create new Dataset.](media/new-dataset.png "New Dataset")
+
+3. Create a new **Azure Cosmos DB (SQL API)** dataset with the following characteristics:
 
     - **Name**: Enter `asal400_customerprofile_cosmosdb`.
     - **Linked service**: Select the Azure Cosmos DB linked service.
@@ -96,19 +100,19 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
 
     ![New Azure Cosmos DB dataset.](media/create-cosmos-db-dataset.png "New Cosmos DB dataset")
 
-3. After creating the dataset, navigate to its **Connection** tab, then select **Preview data**.
+4. After creating the dataset, navigate to its **Connection** tab, then select **Preview data**.
 
     ![The preview data button on the dataset is highlighted.](media/cosmos-dataset-preview-data-link.png "Preview data")
 
-4. Preview data queries the selected Azure Cosmos DB collection and returns a sample of the documents within. The documents are stored in JSON format and include a `userId` field, `cartId`, `preferredProducts` (an array of product IDs that may be empty), and `productReviews` (an array of written product reviews that may be empty). We will use this data in lab 2.
+5. Preview data queries the selected Azure Cosmos DB collection and returns a sample of the documents within. The documents are stored in JSON format and include a `userId` field, `cartId`, `preferredProducts` (an array of product IDs that may be empty), and `productReviews` (an array of written product reviews that may be empty). We will use this data in lab 2.
 
     ![A preview of the Azure Cosmos DB data is displayed.](media/cosmos-db-dataset-preview-data.png "Preview data")
 
-5. Select the **Schema** tab, then select **Import schema**. Synapse Analytics evaluates the JSON documents within the collection and infers the schema based on the nature of the data within. Since we are only storing one document type in this collection, you will see the inferred schema for all documents within.
+6. Select the **Schema** tab, then select **Import schema**. Synapse Analytics evaluates the JSON documents within the collection and infers the schema based on the nature of the data within. Since we are only storing one document type in this collection, you will see the inferred schema for all documents within.
 
     ![The inferred schema for the Azure Cosmos DB documents is displayed.](media/cosmos-db-dataset-schema.png "Schema")
 
-6. Create a new **Azure Data Lake Storage Gen2** dataset with the **Parquet** format type with the following characteristics:
+7. Create a new **Azure Data Lake Storage Gen2** dataset with the **Parquet** format type with the following characteristics:
 
     - **Name**: Enter `asal400_sales_adlsgen2`.
     - **Linked service**: Select the `asadatalakeXX` linked service that already exists.
@@ -117,14 +121,14 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
 
     ![The create ADLS Gen2 dataset form is displayed.](media/create-adls-dataset.png "Create ADLS Gen2 dataset")
 
-7. Create a new **Azure Data Lake Storage Gen2** dataset with the **JSON** format type with the following characteristics:
+8. Create a new **Azure Data Lake Storage Gen2** dataset with the **JSON** format type with the following characteristics:
 
     - **Name**: Enter `asal400_ecommerce_userprofiles_source`.
     - **Linked service**: Select the `asadatalakeXX` linked service that already exists.
     - **File path**: Browse to the `wwi-02/online-user-profiles-02` path.
     - **Import schema**: Select `From connection/store`.
 
-8. Select **Publish all** to save your new resources.
+9. Select **Publish all** to save your new resources.
 
     ![Publish all is highlighted.](media/publish-all-1.png "Publish all")
 
