@@ -199,8 +199,6 @@ When you query Parquet files using Synapse SQL Serverless, you can explore the d
 display(data_path.limit(100))
 ```
 
-<!-- ![The Sales query is shown with the Display option.](media/spark-display-sales.png "Sales - Display") -->
-
 > **Note:** To run just the cell, either hover over the cell and select the _Run cell_ icon to the left of the cell, or select the cell then type **Ctrl+Enter** on your keyboard.
 
 7. Create a new cell underneath by selecting **{} Add code** when hovering over the blank space at the bottom of the notebook.
