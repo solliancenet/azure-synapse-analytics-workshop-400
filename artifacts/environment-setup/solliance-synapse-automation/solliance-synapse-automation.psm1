@@ -685,6 +685,9 @@ function Execute-SQLQuery {
     $headers = @{ 
         Authorization="Bearer $($Token)" 
         Connection="keep-alive" 
+        "User-Agent"="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36"
+        Origin = "https://web.azuresynapse.net"
+
     }
     $rawResult = Invoke-WebRequest -Uri $uri -Method POST -Body $SQLQuery -Headers $headers `
         -ContentType "application/x-www-form-urlencoded; charset=UTF-8" -UseBasicParsing -Proxy 'http://127.0.0.1:8888'
