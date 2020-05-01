@@ -932,6 +932,6 @@ To run loads with appropriate compute resources, create loading users designated
 
     ![The Monitor hub menu item is selected.](media/monitor-hub.png "Monitor hub")
 
-19. You can see the status of your pipeline run here. It will take some time to complete, so might want to return to check this status before you start the next lab. Note that you may need to refresh the view. Once the pipeline run is complete, you can query the `wwi_staging.SaleHeap` table to view the imported data.
+19. Select **Pipeline Runs**. You can see the status of your pipeline run here. It will take some time to complete, so might want to return to check this status before you start the next lab. Note that you may need to refresh the view. Once the pipeline run is complete, you can query the `wwi_staging.SaleHeap` table to view the imported data.
 
     ![The completed pipeline run is displayed.](media/pipeline-copy-sales-pipeline-run.png "Pipeline runs")
