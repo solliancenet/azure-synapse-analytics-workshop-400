@@ -39,7 +39,7 @@
                     "enableStaging": true,
                     "stagingSettings": {
                         "linkedServiceName": {
-                            "referenceName": "asastore03",
+                            "referenceName": "#BLOB_STORAGE_LINKED_SERVICE_NAME#",
                             "type": "LinkedServiceReference"
                         },
                         "path": "staging"
@@ -210,7 +210,7 @@
                     "enableStaging": true,
                     "stagingSettings": {
                         "linkedServiceName": {
-                            "referenceName": "asastore03",
+                            "referenceName": "#BLOB_STORAGE_LINKED_SERVICE_NAME#",
                             "type": "LinkedServiceReference"
                         },
                         "path": "staging"
@@ -311,7 +311,7 @@
                     "enableStaging": true,
                     "stagingSettings": {
                         "linkedServiceName": {
-                            "referenceName": "asastore03",
+                            "referenceName": "#BLOB_STORAGE_LINKED_SERVICE_NAME#",
                             "type": "LinkedServiceReference"
                         },
                         "path": "staging"

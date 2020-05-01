@@ -342,12 +342,20 @@ function Create-Pipeline {
     $FileName,
 
     [parameter(Mandatory=$true)]
+    [Hashtable]
+    $Parameters,
+
+    [parameter(Mandatory=$true)]
     [String]
     $Token 
     )
 
-    $itemTemplate = Get-Content -Path "$($PipelinesPath)/$($FileName).json"
-    $item = $itemTemplate
+    $item = Get-Content -Path "$($PipelinesPath)/$($FileName).json"
+    
+    foreach ($key in $Parameters.Keys) {
+        $item = $item.Replace("#$($key)#", $Parameters[$key])
+    }
+
     $uri = "https://$($WorkspaceName).dev.azuresynapse.net/pipelines/$($Name)?api-version=2019-06-01-preview"
 
     $result = Invoke-RestMethod  -Uri $uri -Method PUT -Body $item -Headers @{ Authorization="Bearer $Token" } -ContentType "application/json"
@@ -400,6 +408,35 @@ function Get-PipelineRun {
 
     $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $Token" }
     
+    return $result
+}
+
+function Wait-ForPipelineRun {
+    
+    param(
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $RunId,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $Token 
+    )
+
+    $result = Get-PipelineRun -WorkspaceName $WorkspaceName -RunId $RunId -Token $Token
+
+    while ($result.status -eq "InProgress") {
+        
+        Write-Information "Waiting for operation to complete..."
+        Start-Sleep -Seconds 10
+        $result = Get-PipelineRun -WorkspaceName $WorkspaceName -RunId $RunId -Token $Token
+    }
+
     return $result
 }
 
@@ -654,8 +691,8 @@ function Execute-SQLScriptFile {
 
     $sqlQuery = Get-Content -Raw -Path "$($SQLScriptsPath)/$($FileName).sql"
 
-    foreach ($key in $parameters.Keys) {
-        $sqlQuery = $sqlQuery.Replace("#$($key)#", $parameters[$key])
+    foreach ($key in $Parameters.Keys) {
+        $sqlQuery = $sqlQuery.Replace("#$($key)#", $Parameters[$key])
     }
 
     return Execute-SQLQuery -WorkspaceName $WorkspaceName -SQLPoolName $SQLPoolName -SQLQuery $sqlQuery -Token $Token
@@ -673,6 +710,7 @@ Export-ModuleMember -Function Create-Dataset
 Export-ModuleMember -Function Create-Pipeline
 Export-ModuleMember -Function Run-Pipeline
 Export-ModuleMember -Function Get-PipelineRun
+Export-ModuleMember -Function Wait-ForPipelineRun
 Export-ModuleMember -Function Get-OperationResult
 Export-ModuleMember -Function Wait-ForOperation
 Export-ModuleMember -Function Delete-ASAObject

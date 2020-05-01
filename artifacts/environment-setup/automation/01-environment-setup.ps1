@@ -221,3 +221,17 @@ foreach ($dataset in $datasets.Keys) {
         Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 }
 
+
+Write-Information "Create Setup - Load SQL Pool pipeline"
+
+$params = @{
+        BLOB_STORAGE_LINKED_SERVICE_NAME = $blobStorageAccountName
+}
+$name = "Setup - Load SQL Pool"
+$fileName = "load_sql_pool_from_data_lake"
+$result = Create-Pipeline -PipelinesPath $pipelinesPath -WorkspaceName $workspaceName -Name $name -FileName $fileName -Parameters $params -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+
+$result = Run-Pipeline -WorkspaceName $workspaceName -Name $name -Token $synapseToken
+$result = Wait-ForPipelineRun -WorkspaceName $workspaceName -RunId $result.runId -Token $synapseToken
+$result
