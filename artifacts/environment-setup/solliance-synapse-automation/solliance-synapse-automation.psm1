@@ -341,9 +341,9 @@ function Create-Pipeline {
     [String]
     $FileName,
 
-    [parameter(Mandatory=$true)]
+    [parameter(Mandatory=$false)]
     [Hashtable]
-    $Parameters,
+    $Parameters = $null,
 
     [parameter(Mandatory=$true)]
     [String]
@@ -352,8 +352,10 @@ function Create-Pipeline {
 
     $item = Get-Content -Path "$($PipelinesPath)/$($FileName).json"
     
-    foreach ($key in $Parameters.Keys) {
-        $item = $item.Replace("#$($key)#", $Parameters[$key])
+    if ($Parameters -ne $null) {
+        foreach ($key in $Parameters.Keys) {
+            $item = $item.Replace("#$($key)#", $Parameters[$key])
+        }
     }
 
     $uri = "https://$($WorkspaceName).dev.azuresynapse.net/pipelines/$($Name)?api-version=2019-06-01-preview"
