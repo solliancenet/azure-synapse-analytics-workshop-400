@@ -180,15 +180,14 @@ $params = @{
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "05-create-tables-in-wwi-ml-schema" -Parameters $params -Token $synapseSQLToken
 $result
 
-# TEMPORARILY DISABLED DUE TO ERROR IN SCRIPT
-#
-#Write-Information "Create tables in the [wwi_security] schema in $($sqlPoolName)"
-#
-#$params = @{ 
-#        DATA_LAKE_ACCOUNT_NAME = $dataLakeAccountName  
-#}
-#$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "06-create-tables-in-wwi-security-schema" -Parameters $params -Token $synapseSQLToken
-#$result
+
+Write-Information "Create tables in the [wwi_security] schema in $($sqlPoolName)"
+
+$params = @{ 
+        DATA_LAKE_ACCOUNT_NAME = $dataLakeAccountName  
+}
+$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "06-create-tables-in-wwi-security-schema" -Parameters $params -Token $synapseSQLToken
+$result
 
 
 Write-Information "Create linked service for SQL pool $($sqlPoolName) with user asa.sql.admin"
@@ -204,3 +203,21 @@ $linkedServiceName = "$($sqlPoolName.ToLower())_highperf"
 $result = Create-SQLPoolKeyVaultLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $linkedServiceName -DatabaseName $sqlPoolName `
                  -UserName "asa.sql.highperf" -KeyVaultLinkedServiceName $keyVaultName -SecretName $keyVaultSQLUserSecretName -Token $synapseToken
 Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+
+Write-Information "Create data sets for data load in SQL pool $($sqlPoolName)"
+
+$datasets = @{
+        wwi02_date_adls = $dataLakeAccountName
+        wwi02_product_adls = $dataLakeAccountName
+        wwi02_sale_small_adls = $dataLakeAccountName
+        wwi02_date_asa = $sqlPoolName.ToLower()
+        wwi02_product_asa = $sqlPoolName.ToLower()
+        wwi02_sale_small_asa = "$($sqlPoolName.ToLower())_highperf"
+}
+
+foreach ($dataset in $datasets.Keys) {
+        Write-Information "Creating dataset $($dataset))"
+        $result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $dataset -LinkedServiceName $datasets[$dataset] -Token $synapseToken
+        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+}
+
