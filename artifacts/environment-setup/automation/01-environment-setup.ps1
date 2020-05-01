@@ -193,10 +193,10 @@ $scripts = [ordered]@{
         "09-create-wwi-perf-sale-partition02" = "CTAS : Sale_Partition02"
         "10-create-wwi-perf-sale-index" = "CTAS : Sale_Index"
         "11-create-wwi-perf-sale-hash-ordered" = "CTAS : Sale_Hash_Ordered"
-        "12-create-wwi-perf-sale-hash-projection" = "CTAS : Sale_Hash_Projection"
-        "13-create-wwi-perf-sale-hash-projection2" = "CTAS : Sale_Hash_Projection2"
-        "14-create-wwi-perf-sale-hash-projection-big" = "CTAS : Sale_Hash_Projection_Big"
-        "15-create-wwi-perf-sale-hash-projection-big2" = "CTAS : Sale_Hash_Projection_Big2"
+        #"12-create-wwi-perf-sale-hash-projection" = "CTAS : Sale_Hash_Projection"              -- will be created in a lab
+        #"13-create-wwi-perf-sale-hash-projection2" = "CTAS : Sale_Hash_Projection2"            -- will be created in a lab
+        #"14-create-wwi-perf-sale-hash-projection-big" = "CTAS : Sale_Hash_Projection_Big"      -- will be created in a lab
+        #"15-create-wwi-perf-sale-hash-projection-big2" = "CTAS : Sale_Hash_Projection_Big2"    -- will be created in a lab
 }
 
 foreach ($script in $scripts.Keys) {
