@@ -40,6 +40,7 @@ $blobStorageAccountName = "asastore$($uniqueId)"
 $keyVaultName = "asakeyvault$($uniqueId)"
 $keyVaultSQLUserSecretName = "SQL-USER-ASA"
 $sqlPoolName = "SQLPool01"
+$integrationRuntimeName = "AzureIntegrationRuntime01"
 
 
 $ropcBodyCore = "client_id=$($clientId)&username=$($userName)&password=$($password)&grant_type=password"
@@ -57,16 +58,23 @@ $result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs
                 -Method POST -Body $ropcBodyManagement -ContentType "application/x-www-form-urlencoded"
 $managementToken = $result.access_token
 
+Write-Information "Create KeyVault linked service $($keyVaultName)"
 
 $result = Create-KeyVaultLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $keyVaultName -Token $synapseToken
 Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 
-$result = Create-IntegrationRuntime -TemplatesPath $templatesPath -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -Name "AzureIntegrationRuntime01" -CoreCount 16 -TimeToLive 60 -Token $managementToken
+Write-Information "Create Integration Runtime $($integrationRuntimeName)"
+
+$result = Create-IntegrationRuntime -TemplatesPath $templatesPath -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -Name $integrationRuntimeName -CoreCount 16 -TimeToLive 60 -Token $managementToken
 Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+
+Write-Information "Create Data Lake linked service $($dataLakeAccountName)"
 
 $dataLakeAccountKey = List-StorageAccountKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $dataLakeAccountName -Token $managementToken
 $result = Create-DataLakeLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $dataLakeAccountName  -Key $dataLakeAccountKey -Token $synapseToken
 Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+
+Write-Information "Create Blob Storage linked service $($blobStorageAccountName)"
 
 $blobStorageAccountKey = List-StorageAccountKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $blobStorageAccountName -Token $managementToken
 $result = Create-BlobStorageLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $blobStorageAccountName  -Key $blobStorageAccountKey -Token $synapseToken
@@ -156,7 +164,7 @@ $datasets = @{
 }
 
 foreach ($dataset in $datasets.Keys) {
-        Write-Information "Creating dataset $($dataset))"
+        Write-Information "Creating dataset $($dataset)"
         $result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $dataset -LinkedServiceName $datasets[$dataset] -Token $synapseToken
         Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 }
@@ -179,81 +187,36 @@ $result
 Write-Information "Create tables in wwi_perf schema in SQL pool $($sqlPoolName)"
 
 $params = @{}
+$scripts = [ordered]@{
+        "07-create-wwi-perf-sale-heap" = "CTAS : Sale_Heap"
+        "08-create-wwi-perf-sale-partition01" = "CTAS : Sale_Partition01"
+        "09-create-wwi-perf-sale-partition02" = "CTAS : Sale_Partition02"
+        "10-create-wwi-perf-sale-index" = "CTAS : Sale_Index"
+        "11-create-wwi-perf-sale-hash-ordered" = "CTAS : Sale_Hash_Ordered"
+        "12-create-wwi-perf-sale-hash-projection" = "CTAS : Sale_Hash_Projection"
+        "13-create-wwi-perf-sale-hash-projection2" = "CTAS : Sale_Hash_Projection2"
+        "14-create-wwi-perf-sale-hash-projection-big" = "CTAS : Sale_Hash_Projection_Big"
+        "15-create-wwi-perf-sale-hash-projection-big2" = "CTAS : Sale_Hash_Projection_Big2"
+}
 
-# Since these are potentially long running, we'll force a token reissue to avoid failed logins
+foreach ($script in $scripts.Keys) {
 
-$script = "07-create-wwi-perf-sale-heap"
-Write-Information $script
-$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
-                -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
-$synapseSQLToken = $result.access_token
-$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
-
-$script = "08-create-wwi-perf-sale-partition01"
-Write-Information $script
-$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
-                -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
-$synapseSQLToken = $result.access_token
-$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
-
-$script = "09-create-wwi-perf-sale-partition02"
-Write-Information $script
-$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
-                -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
-$synapseSQLToken = $result.access_token
-$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
-
-$script = "10-create-wwi-perf-sale-index"
-Write-Information $script
-$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
-                -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
-$synapseSQLToken = $result.access_token
-$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
-
-$script = "11-create-wwi-perf-sale-hash-ordered"
-Write-Information $script
-$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
-                -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
-$synapseSQLToken = $result.access_token
-$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
-
-$script = "12-create-wwi-perf-sale-hash-projection"
-Write-Information $script
-$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
-                -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
-$synapseSQLToken = $result.access_token
-$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
-
-$script = "13-create-wwi-perf-sale-hash-projection2"
-Write-Information $script
-$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
-                -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
-$synapseSQLToken = $result.access_token
-$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
-
-$script = "14-create-wwi-perf-sale-hash-projection-big"
-Write-Information $script
-$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
-                -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
-$synapseSQLToken = $result.access_token
-$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
-
-$script = "15-create-wwi-perf-sale-hash-projection-big2"
-Write-Information $script
-$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
-                -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
-$synapseSQLToken = $result.access_token
-$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
-
+        $refTime = (Get-Date).ToUniversalTime()
+        Write-Information "Starting $($script) with label $($scripts[$script])"
+        Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -ForceReturn $true -Token $synapseSQLToken
+        Wait-ForSQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Label $scripts[$script] -ReferenceTime $refTime -Token $synapseSQLToken
+}
 
 Write-Information "Scale down the $($sqlPoolName) SQL pool to DW1000c after baby MOADs import."
 
 Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action scale -SKU DW1000c -Token $managementToken
 Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online -Token $managementToken
 
+Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action pause -Token $managementToken
+Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Paused -Token $managementToken
 
-
-
+Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action resume -Token $managementToken
+Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online -Token $managementToken
 
 
 
