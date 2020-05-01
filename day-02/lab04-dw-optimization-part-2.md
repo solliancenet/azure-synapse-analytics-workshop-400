@@ -877,7 +877,7 @@ Loading data into a non-empty table with a clustered index can often contain a m
 
     ```sql
     SELECT
-        COUNT(*) as TransactionItemsCount
+        COUNT_BIG(*) as TransactionItemsCount
     FROM
         [wwi_perf].[Sale_Heap]
     WHERE
