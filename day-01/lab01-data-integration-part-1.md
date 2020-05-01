@@ -171,9 +171,9 @@ When you query Parquet files using Synapse SQL Serverless, you can explore the d
 
     The output should be **339507246** records.
 
-Optional: If you wish to keep this SQL script for future reference, select the Properties button, provide a descriptive name, such as `ASAL400 - Lab1 - Explore sales data`, then select **Publish all**.
+    Optional: If you wish to keep this SQL script for future reference, select the Properties button, provide a descriptive name, such as `ASAL400 - Lab1 - Explore sales data`, then select **Publish all**.
 
-![The SQL Script properties is displayed with the new script name, and the Publish all button is highlighted.](media/rename-publish-sql-script.png "SQL Script Properties")
+    ![The SQL Script properties is displayed with the new script name, and the Publish all button is highlighted.](media/rename-publish-sql-script.png "SQL Script Properties")
 
 ### Task 2: Query sales Parquet data with Azure Synapse Spark
 
@@ -199,9 +199,9 @@ Optional: If you wish to keep this SQL script for future reference, select the P
 display(data_path.limit(100))
 ```
 
-    <!-- ![The Sales query is shown with the Display option.](media/spark-display-sales.png "Sales - Display") -->
+<!-- ![The Sales query is shown with the Display option.](media/spark-display-sales.png "Sales - Display") -->
 
-    > **Note:** To run just the cell, either hover over the cell and select the _Run cell_ icon to the left of the cell, or select the cell then type **Ctrl+Enter** on your keyboard.
+> **Note:** To run just the cell, either hover over the cell and select the _Run cell_ icon to the left of the cell, or select the cell then type **Ctrl+Enter** on your keyboard.
 
 7. Create a new cell underneath by selecting **{} Add code** when hovering over the blank space at the bottom of the notebook.
 
