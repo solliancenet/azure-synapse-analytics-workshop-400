@@ -232,25 +232,36 @@ $result
 
 Write-Information "Create tables in wwi_perf schema in SQL pool $($sqlPoolName)"
 
-$scripts = @(
-        "07-create-wwi-perf-sale-heap",
-        "08-create-wwi-perf-sale-partition01",
-        "09-create-wwi-perf-sale-partition02",
-        "10-create-wwi-perf-sale-index",
-        "11-create-wwi-perf-sale-hash-ordered",
-        "12-create-wwi-perf-sale-hash-projection",
-        "13-create-wwi-perf-sale-hash-projection2",
-        "14-create-wwi-perf-sale-hash-projection-big,"
-        "15-create-wwi-perf-sale-hash-projection-big2"
-)
+$params = @{}
 
-foreach ($script in $scripts) {
+$script = "07-create-wwi-perf-sale-heap"
+Write-Information $script
+$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
+$script = "08-create-wwi-perf-sale-partition01"
+Write-Information $script
+$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
+$script = "09-create-wwi-perf-sale-partition02"
+Write-Information $script
+$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
+$script = "10-create-wwi-perf-sale-index"
+Write-Information $script
+$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
+$script = "11-create-wwi-perf-sale-hash-ordered"
+Write-Information $script
+$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
+$script = "12-create-wwi-perf-sale-hash-projection"
+Write-Information $script
+$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
+$script = "13-create-wwi-perf-sale-hash-projection2"
+Write-Information $script
+$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
+$script = "14-create-wwi-perf-sale-hash-projection-big"
+Write-Information $script
+$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
+$script = "15-create-wwi-perf-sale-hash-projection-big2"
+Write-Information $script
+$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
 
-        Write-Information $script
-
-        $params = @{}
-        $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
-}
 
 Write-Information "Scale down the $($sqlPoolName) SQL pool to DW1000c after baby MOADs import."
 
