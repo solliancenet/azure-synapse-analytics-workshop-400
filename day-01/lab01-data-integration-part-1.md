@@ -187,11 +187,13 @@ Optional: If you wish to keep this SQL script for future reference, select the P
 
     ![The Spark pool list is displayed.](media/attach-spark-pool.png "Attach to Spark pool")
 
-4. Select **Run all** on the notebook toolbar to execute the notebook.
+4. Update the cell to **remove** the `%%pyspark` line. If you do not do this, you will receive an error when you update the cell during the steps that follow.
+
+5. Select **Run all** on the notebook toolbar to execute the notebook.
 
     > **Note:** The first time you run a notebook in a Spark pool, Synapse creates a new session. This can take approximately 3 minutes.
 
-5. As you can see, the output is not formatted very well. To change this, replace the last line of code with the following and run the cell again to see the improved display:
+6. As you can see, the output is not formatted very well. To change this, replace the last line of code with the following and run the cell again to see the improved display:
 
     ```python
     display(data_path.limit(100))
@@ -201,11 +203,11 @@ Optional: If you wish to keep this SQL script for future reference, select the P
 
     > **Note:** To run just the cell, either hover over the cell and select the _Run cell_ icon to the left of the cell, or select the cell then type **Ctrl+Enter** on your keyboard.
 
-6. Create a new cell underneath by selecting **{} Add code** when hovering over the blank space at the bottom of the notebook.
+7. Create a new cell underneath by selecting **{} Add code** when hovering over the blank space at the bottom of the notebook.
 
     ![The Add Code menu option is highlighted.](media/new-cell.png "Add code")
 
-7. The Spark engine can analyze the Parquet files and infer the schema. To do this, enter the following in the new cell:
+8. The Spark engine can analyze the Parquet files and infer the schema. To do this, enter the following in the new cell:
 
     ```python
     data_path.printSchema()
@@ -228,7 +230,7 @@ Optional: If you wish to keep this SQL script for future reference, select the P
      |-- StoreId: short (nullable = true)
     ```
 
-8. Now let's use the dataframe to perform the same grouping and aggregate query we performed with the SQL Serverless pool. Create a new cell and enter the following:
+9. Now let's use the dataframe to perform the same grouping and aggregate query we performed with the SQL Serverless pool. Create a new cell and enter the following:
 
     ```python
     from pyspark.sql import SparkSession
@@ -611,7 +613,7 @@ PolyBase requires the following elements:
     FROM [external].[Sales]
     ```
 
-6. Select **Run** from the toolbar menu to execute the SQL command. It will take a few minutes to execute this command.
+6. Select **Run** from the toolbar menu to execute the SQL command. It will take a few minutes to execute this command. **Take note** of how long it took to execute this query.
 
 7. In the query window, replace the script with the following to see how many rows were imported:
 
@@ -619,7 +621,7 @@ PolyBase requires the following elements:
     SELECT COUNT_BIG(1) FROM wwi_staging.SaleHeap(nolock)
     ```
 
-8. Select **Run** from the toolbar menu to execute the SQL command.
+8. Select **Run** from the toolbar menu to execute the SQL command. You should see a result of `339507246`.
 
 ### Task 3: Configure and run the COPY statement
 
@@ -641,7 +643,7 @@ Now let's see how to perform the same load operation with the COPY statement.
     GO
     ```
 
-2. Select **Run** from the toolbar menu to execute the SQL command. It takes a few minutes to execute this command.
+2. Select **Run** from the toolbar menu to execute the SQL command. It takes a few minutes to execute this command. **Take note** of how long it took to execute this query.
 
 3. In the query window, replace the script with the following to see how many rows were imported:
 
@@ -649,7 +651,7 @@ Now let's see how to perform the same load operation with the COPY statement.
     SELECT COUNT_BIG(1) FROM wwi_staging.SaleHeap(nolock)
     ```
 
-4. Select **Run** from the toolbar menu to execute the SQL command.
+4. Select **Run** from the toolbar menu to execute the SQL command. You should see a result of `339507246`.
 
 Do the number of rows match for both load operations? Which activity was fastest? You should see that both copied the same amount of data in roughly the same amount of time.
 
@@ -670,7 +672,7 @@ For both of the load operations above, we inserted data into the heap table. Wha
     GO
     ```
 
-2. Select **Run** from the toolbar menu to execute the SQL command. It takes a few minutes to execute this command.
+2. Select **Run** from the toolbar menu to execute the SQL command. It takes a few minutes to execute this command. **Take note** of how long it took to execute this query.
 
 3. In the query window, replace the script with the following to see how many rows were imported:
 
@@ -876,7 +878,7 @@ To run loads with appropriate compute resources, create loading users designated
 
 8. Choose the **Parquet** format, then select **Continue**.
 
-9. In the properties, set the name to **asal400_december_sales** and select the **asadatalakeXX** linked service. Browse to the `wwi-02/campaign-analytics/large-sale-december2010-snappy.parquet` file location, select **From sample file** for schema import. [Download this sample file](media/sale-small-20100102-snappy.parquet?raw=true) to your computer, then browse to it in the **Select file** field. Select **OK**.
+9. In the properties, set the name to **asal400_december_sales** and select the **asadatalakeXX** linked service. Browse to the `wwi-02/campaign-analytics/large-sale-december2010-snappy.parquet` file location, select **From sample file** for schema import. [Download this sample file](https://github.com/solliancenet/azure-synapse-analytics-workshop-400/blob/master/day-01/media/sale-small-20100102-snappy.parquet?raw=true) to your computer, then browse to it in the **Select file** field. Select **OK**.
 
     ![The properties are displayed.](media/pipeline-copy-sales-source-dataset.png "Dataset properties")
 
