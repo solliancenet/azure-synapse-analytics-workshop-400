@@ -18,7 +18,7 @@ This lab will guide you through several  security-related steps that cover an en
     - [Task 2 - Use Azure Key Vault for secrets when creating Linked Services](#task-2---use-azure-key-vault-for-secrets-when-creating-linked-services)
     - [Task 3 - Secure workspace pipeline runs](#task-3---secure-workspace-pipeline-runs)
     - [Task 4 - Secure Azure Synapse Analytics SQL Pools](#task-4---secure-azure-synapse-analytics-sql-pools)
-  - [Exercise 2 - Securing Azure Synapse Analytics workspace data](#exercise-2---securing-azure-synapse-analytics-workspace-data)
+  - [Exercise 3 - Securing Azure Synapse Analytics workspace data](#exercise-3---securing-azure-synapse-analytics-workspace-data)
     - [Task 1 - Column Level Security](#task-1---column-level-security)
     - [Task 2 - Row level security](#task-2---row-level-security)
     - [Task 3 - Dynamic data masking](#task-3---dynamic-data-masking)
@@ -188,7 +188,7 @@ Transparent Data Encryption (TDE) is a feature of SQL Server that provides encry
     ![On the SQL Pool Transparent Data Encryption screen, the Data Encryption toggle is set to the ON position and the Save button is highlighted in the toolbar.](media/lab5_sqlpoolenabletdeform.png)
 
 
-## Exercise 2 - Securing Azure Synapse Analytics workspace data
+## Exercise 3 - Securing Azure Synapse Analytics workspace data
 
 ### Task 1 - Column Level Security
 
@@ -198,7 +198,7 @@ It is important to identify data columns of that hold sensitive information. Typ
 
    ![In Azure Synapse Studio, the Develop item is selected from the left menu.](media/lab5_synapsestudiodevelopmenuitem.png)
 
-2. From the **Develop** menu, expand the **SQL scripts** section, and select **ASAL400 - Lab 05 - Exercise 2 - Column Level Security**.
+2. From the **Develop** menu, expand the **SQL scripts** section, and select **ASAL400 - Lab 05 - Exercise 3 - Column Level Security**.
 
    ![In Synapse Studio the develop menu is displayed with SQL Scripts section expanded, ASAL400 - Lab05 - Exercise 3 - Column Level Security is selected from the context menu.](media/lab5_synapsecolumnlevel.png)
 
@@ -218,7 +218,7 @@ It is important to identify data columns of that hold sensitive information. Typ
 
    ![In Azure Synapse Studio, the Develop item is selected from the left menu.](media/lab5_synapsestudiodevelopmenuitem.png)
 
-2. From the **Develop** menu, expand the **SQL scripts** section, and select **ASAL400 - Lab05 - Exercise 2 - Row Level Security**.
+2. From the **Develop** menu, expand the **SQL scripts** section, and select **ASAL400 - Lab05 - Exercise 3 - Row Level Security**.
 
     ![In Synapse Studio the develop menu is displayed with SQL Scripts section expanded, ASAL400 - Lab05 - Exercise 3 - Row Level Security is selected from the context menu.](media/lab5_synapserowlevelsecurity.png)
 
@@ -238,7 +238,7 @@ It is important to identify data columns of that hold sensitive information. Typ
 
    ![In Azure Synapse Studio, the Develop item is selected from the left menu.](media/lab5_synapsestudiodevelopmenuitem.png)
 
-2. From the **Develop** menu, expand the **SQL scripts** section, and select **ASAL400 - Lab05 - Exercise 2 - Dynamic Data Masking**.
+2. From the **Develop** menu, expand the **SQL scripts** section, and select **ASAL400 - Lab05 - Exercise 3 - Dynamic Data Masking**.
   
    ![In Synapse Studio the develop menu is displayed with SQL Scripts section expanded, ASAL400 - Lab05 - Exercise 3 - Dynamic Data Masking is selected from the context menu.](media/lab5_synapsedynamicdatamasking.png)
 

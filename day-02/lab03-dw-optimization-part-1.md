@@ -437,10 +437,6 @@ Notice the two partitioning strategies we've used here. The first partitioning s
 
 ### Task 1 -  Improve COUNT performance
 
-*Editor note:*
-
-*Not happy yet with the show of HyperLogLog's performance gain. Needs a bit more work.*
-
 1. The following query attempts to find the TOP 100 of customers that have the most sale transactions:
 
     ```sql
