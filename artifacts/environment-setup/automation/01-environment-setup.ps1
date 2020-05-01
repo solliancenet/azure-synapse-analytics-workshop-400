@@ -95,9 +95,8 @@ $result = Create-Pipeline -PipelinesPath $pipelinesPath -WorkspaceName $workspac
 Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 
 $result = Run-Pipeline -WorkspaceName $workspaceName -Name $name -Token $synapseToken
-Get-PipelineRun -WorkspaceName $workspaceName -RunId $result.runId -Token $synapseToken
-
-#!!!!!! Stop here and wait for the pipeline execution to finish
+$result = Wait-ForPipelineRun -WorkspaceName $workspaceName -RunId $result.runId -Token $synapseToken
+$result
 
 $container = Get-AzCosmosDBSqlContainer `
         -ResourceGroupName $resourceGroupName `
