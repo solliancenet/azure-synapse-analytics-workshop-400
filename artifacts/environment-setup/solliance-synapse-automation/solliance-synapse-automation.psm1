@@ -447,12 +447,14 @@ function Wait-ForOperation {
     $uri = "https://$($WorkspaceName).dev.azuresynapse.net/operationResults/$($OperationId)?api-version=2019-06-01-preview"
     $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $Token" }
 
-    while ($result.state -ne $null) {
+    while ($result.status -ne $null) {
         
-        Write-Information "Waiting for operation..."
+        Write-Information "Waiting for operation to complete..."
         Start-Sleep -Seconds 10
         $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $Token" }
     }
+
+    return $result
 }
 
 function Delete-ASAObject {
@@ -608,11 +610,15 @@ function Execute-SQLQuery {
 
     $result = Invoke-RestMethod  -Uri $uri -Method POST -Body $SQLQuery -Headers @{ Authorization="Bearer $Token" } -ContentType "application/x-www-form-urlencoded; charset=UTF-8"
 
+    $errors = @()
     foreach ($partialResult in $result) {
         if (-not $partialResult.isSuccess) {
 
-            throw "The SQL query returned at least one error."
+            $errors += $partialResult.message
         }
+    }
+    if ($errors.Count -gt 0) {
+        throw (-join $errors)
     }
 
     return $result

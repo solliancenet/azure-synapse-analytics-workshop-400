@@ -25,6 +25,7 @@ $cosmosDbContainer = "OnlineUserProfile01"
 $dataLakeAccountName = "asadatalake$($uniqueId)"
 $blobStorageAccountName = "asastore$($uniqueId)"
 $keyVaultName = "asakeyvault$($uniqueId)"
+$keyVaultSQLUserSecretName = "SQL-USER-ASA"
 $sqlPoolName = "SQLPool01"
 
 $userName = Read-Host "User name"
@@ -50,22 +51,18 @@ $managementToken = $result.access_token
 
 
 $result = Create-KeyVaultLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $keyVaultName -Token $synapseToken
-Start-Sleep -Seconds 20
-Get-OperationResult -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 
 $result = Create-IntegrationRuntime -TemplatesPath $templatesPath -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -Name "AzureIntegrationRuntime01" -CoreCount 16 -TimeToLive 60 -Token $managementToken
-Start-Sleep -Seconds 20
-Get-OperationResult -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 
 $dataLakeAccountKey = List-StorageAccountKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $dataLakeAccountName -Token $managementToken
 $result = Create-DataLakeLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $dataLakeAccountName  -Key $dataLakeAccountKey -Token $synapseToken
-Start-Sleep -Seconds 20
-Get-OperationResult -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 
 $blobStorageAccountKey = List-StorageAccountKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $blobStorageAccountName -Token $managementToken
-$result = Create-BlobStorageLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $dataLakeAccountName  -Key $dataLakeAccountKey -Token $synapseToken
-Start-Sleep -Seconds 20
-Get-OperationResult -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+$result = Create-BlobStorageLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $blobStorageAccountName  -Key $blobStorageAccountKey -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 
 # Increase RUs in CosmosDB container
 
@@ -82,24 +79,20 @@ Set-AzCosmosDBSqlContainer -ResourceGroupName $resourceGroupName `
 
 $name = "wwi02_online_user_profiles_01_adal"
 $result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $name -LinkedServiceName $dataLakeAccountName -Token $synapseToken
-Start-Sleep -Seconds 20
-Get-OperationResult -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 
 $cosmosDbAccountKey = List-CosmosDBKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $cosmosDbAccountName -Token $managementToken
 $result = Create-CosmosDBLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $cosmosDbAccountName -Database $cosmosDbDatabase -Key $cosmosDbAccountKey -Token $synapseToken
-Start-Sleep -Seconds 20
-Get-OperationResult -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 
 $name = "customer_profile_cosmosdb"
 $result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $name -LinkedServiceName $cosmosDbAccountName -Token $synapseToken
-Start-Sleep -Seconds 20
-Get-OperationResult -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 
 $name = "Setup - Import User Profile Data into Cosmos DB"
 $fileName = "import_customer_profiles_into_cosmosdb"
 $result = Create-Pipeline -PipelinesPath $pipelinesPath -WorkspaceName $workspaceName -Name $name -FileName $fileName -Token $synapseToken
-Start-Sleep -Seconds 20
-Get-OperationResult -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 
 $result = Run-Pipeline -WorkspaceName $workspaceName -Name $name -Token $synapseToken
 Get-PipelineRun -WorkspaceName $workspaceName -RunId $result.runId -Token $synapseToken
@@ -119,23 +112,19 @@ Set-AzCosmosDBSqlContainer -ResourceGroupName $resourceGroupName `
 
 $name = "Setup - Import User Profile Data into Cosmos DB"
 $result = Delete-ASAObject -WorkspaceName $workspaceName -Category "pipelines" -Name $name -Token $synapseToken
-Start-Sleep -Seconds 20
-Get-OperationResult -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 
 $name = "customer_profile_cosmosdb"
 $result = Delete-ASAObject -WorkspaceName $workspaceName -Category "datasets" -Name $name -Token $synapseToken
-Start-Sleep -Seconds 20
-Get-OperationResult -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 
 $name = "wwi02_online_user_profiles_01_adal"
 $result = Delete-ASAObject -WorkspaceName $workspaceName -Category "datasets" -Name $name -Token $synapseToken
-Start-Sleep -Seconds 20
-Get-OperationResult -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 
 $name = "asacosmosdb03"
 $result = Delete-ASAObject -WorkspaceName $workspaceName -Category "linkedServices" -Name $name -Token $synapseToken
-Start-Sleep -Seconds 20
-Get-OperationResult -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 
 Write-Information "Start the $($sqlPoolName) SQL pool if needed."
 
@@ -156,15 +145,62 @@ Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGrou
 $result = Get-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online -Token $managementToken
 
 
-Write-Information "Create SQL logins on master SQL pool"
+Write-Information "Create SQL logins in master SQL pool"
 
 $params = @{ PASSWORD = $sqlPassword }
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName "master" -FileName "01-create-logins" -Parameters $params -Token $synapseSQLToken
 $result
 
-Write-Information "Create SQL users and role assignments on master SQL pool"
+Write-Information "Create SQL users and role assignments in $($sqlPoolName)"
 
 $params = @{ USER_NAME = $userName }
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "02-create-users" -Parameters $params -Token $synapseSQLToken
 $result
 
+Write-Information "Create schemas in $($sqlPoolName)"
+
+$params = @{}
+$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "03-create-schemas" -Parameters $params -Token $synapseSQLToken
+$result
+
+Write-Information "Create tables in the [wwi] schema in $($sqlPoolName)"
+
+$params = @{}
+$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "04-create-tables-in-wwi-schema" -Parameters $params -Token $synapseSQLToken
+$result
+
+
+Write-Information "Create tables in the [wwi_ml] schema in $($sqlPoolName)"
+
+$dataLakeAccountKey = List-StorageAccountKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $dataLakeAccountName -Token $managementToken
+$params = @{ 
+        DATA_LAKE_ACCOUNT_NAME = $dataLakeAccountName  
+        DATA_LAKE_ACCOUNT_KEY = $dataLakeAccountKey 
+}
+$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "05-create-tables-in-wwi-ml-schema" -Parameters $params -Token $synapseSQLToken
+$result
+
+# TEMPORARILY DISABLED DUE TO ERROR IN SCRIPT
+#
+#Write-Information "Create tables in the [wwi_security] schema in $($sqlPoolName)"
+#
+#$params = @{ 
+#        DATA_LAKE_ACCOUNT_NAME = $dataLakeAccountName  
+#}
+#$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "06-create-tables-in-wwi-security-schema" -Parameters $params -Token $synapseSQLToken
+#$result
+
+
+Write-Information "Create linked service for SQL pool $($sqlPoolName) with user asa.sql.admin"
+
+$linkedServiceName = $sqlPoolName.ToLower()
+$result = Create-SQLPoolKeyVaultLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $linkedServiceName -DatabaseName $sqlPoolName `
+                 -UserName "asa.sql.admin" -KeyVaultLinkedServiceName $keyVaultName -SecretName $keyVaultSQLUserSecretName -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+
+Write-Information "Create linked service for SQL pool $($sqlPoolName) with user asa.sql.highperf"
+
+$linkedServiceName = "$($sqlPoolName.ToLower())_highperf"
+$result = Create-SQLPoolKeyVaultLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $linkedServiceName -DatabaseName $sqlPoolName `
+                 -UserName "asa.sql.highperf" -KeyVaultLinkedServiceName $keyVaultName -SecretName $keyVaultSQLUserSecretName -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
