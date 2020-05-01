@@ -72,74 +72,6 @@ $blobStorageAccountKey = List-StorageAccountKeys -SubscriptionId $subscriptionId
 $result = Create-BlobStorageLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $blobStorageAccountName  -Key $blobStorageAccountKey -Token $synapseToken
 Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 
-# Increase RUs in CosmosDB container
-
-$container = Get-AzCosmosDBSqlContainer `
-        -ResourceGroupName $resourceGroupName `
-        -AccountName $cosmosDbAccountName -DatabaseName $cosmosDbDatabase `
-        -Name $cosmosDbContainer
-
-Set-AzCosmosDBSqlContainer -ResourceGroupName $resourceGroupName `
-        -AccountName $cosmosDbAccountName -DatabaseName $cosmosDbDatabase `
-        -Name $cosmosDbContainer -Throughput 5000 `
-        -PartitionKeyKind $container.Resource.PartitionKey.Kind `
-        -PartitionKeyPath $container.Resource.PartitionKey.Paths
-
-$name = "wwi02_online_user_profiles_01_adal"
-$result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $name -LinkedServiceName $dataLakeAccountName -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
-
-$cosmosDbAccountKey = List-CosmosDBKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $cosmosDbAccountName -Token $managementToken
-$result = Create-CosmosDBLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $cosmosDbAccountName -Database $cosmosDbDatabase -Key $cosmosDbAccountKey -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
-
-$name = "customer_profile_cosmosdb"
-$result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $name -LinkedServiceName $cosmosDbAccountName -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
-
-$name = "Setup - Import User Profile Data into Cosmos DB"
-$fileName = "import_customer_profiles_into_cosmosdb"
-$result = Create-Pipeline -PipelinesPath $pipelinesPath -WorkspaceName $workspaceName -Name $name -FileName $fileName -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
-
-$result = Run-Pipeline -WorkspaceName $workspaceName -Name $name -Token $synapseToken
-$result = Wait-ForPipelineRun -WorkspaceName $workspaceName -RunId $result.runId -Token $synapseToken
-$result
-
-#
-# =============== WAIT HERE FOR PIPELINE TO FINISH - MIGHT TAKE ~45 MINUTES ====================
-#                         
-#                    COPY 722647 records to CosmosDB ==> SELECT VALUE COUNT(1) FROM C
-#
-
-$container = Get-AzCosmosDBSqlContainer `
-        -ResourceGroupName $resourceGroupName `
-        -AccountName $cosmosDbAccountName -DatabaseName $cosmosDbDatabase `
-        -Name $cosmosDbContainer
-
-Set-AzCosmosDBSqlContainer -ResourceGroupName $resourceGroupName `
-        -AccountName $cosmosDbAccountName -DatabaseName $cosmosDbDatabase `
-        -Name $cosmosDbContainer -Throughput 400 `
-        -PartitionKeyKind $container.Resource.PartitionKey.Kind `
-        -PartitionKeyPath $container.Resource.PartitionKey.Paths
-
-$name = "Setup - Import User Profile Data into Cosmos DB"
-$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "pipelines" -Name $name -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
-
-$name = "customer_profile_cosmosdb"
-$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "datasets" -Name $name -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
-
-$name = "wwi02_online_user_profiles_01_adal"
-$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "datasets" -Name $name -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
-
-# TODO: Ciprian - Not sure what is this for
-#$name = "asacosmosdb03"
-#$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "linkedServices" -Name $name -Token $synapseToken
-#Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
-
 Write-Information "Start the $($sqlPoolName) SQL pool if needed."
 
 $result = Get-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Token $managementToken
@@ -319,3 +251,85 @@ Write-Information "Scale down the $($sqlPoolName) SQL pool to DW1000c after baby
 Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action scale -SKU DW1000c -Token $managementToken
 Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online -Token $managementToken
 
+
+
+
+
+
+
+
+
+
+
+
+#
+# =============== COSMOS DB IMPORT - MUST REMAIN LAST IN SCRIPT !!! ====================
+#                         
+
+
+# Increase RUs in CosmosDB container
+
+$container = Get-AzCosmosDBSqlContainer `
+        -ResourceGroupName $resourceGroupName `
+        -AccountName $cosmosDbAccountName -DatabaseName $cosmosDbDatabase `
+        -Name $cosmosDbContainer
+
+Set-AzCosmosDBSqlContainer -ResourceGroupName $resourceGroupName `
+        -AccountName $cosmosDbAccountName -DatabaseName $cosmosDbDatabase `
+        -Name $cosmosDbContainer -Throughput 5000 `
+        -PartitionKeyKind $container.Resource.PartitionKey.Kind `
+        -PartitionKeyPath $container.Resource.PartitionKey.Paths
+
+$name = "wwi02_online_user_profiles_01_adal"
+$result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $name -LinkedServiceName $dataLakeAccountName -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+
+$cosmosDbAccountKey = List-CosmosDBKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $cosmosDbAccountName -Token $managementToken
+$result = Create-CosmosDBLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $cosmosDbAccountName -Database $cosmosDbDatabase -Key $cosmosDbAccountKey -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+
+$name = "customer_profile_cosmosdb"
+$result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $name -LinkedServiceName $cosmosDbAccountName -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+
+$name = "Setup - Import User Profile Data into Cosmos DB"
+$fileName = "import_customer_profiles_into_cosmosdb"
+$result = Create-Pipeline -PipelinesPath $pipelinesPath -WorkspaceName $workspaceName -Name $name -FileName $fileName -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+
+$result = Run-Pipeline -WorkspaceName $workspaceName -Name $name -Token $synapseToken
+$result = Wait-ForPipelineRun -WorkspaceName $workspaceName -RunId $result.runId -Token $synapseToken
+$result
+
+#
+# =============== WAIT HERE FOR PIPELINE TO FINISH - MIGHT TAKE ~45 MINUTES ====================
+#                         
+#                    COPY 722647 records to CosmosDB ==> SELECT VALUE COUNT(1) FROM C
+#
+
+$container = Get-AzCosmosDBSqlContainer `
+        -ResourceGroupName $resourceGroupName `
+        -AccountName $cosmosDbAccountName -DatabaseName $cosmosDbDatabase `
+        -Name $cosmosDbContainer
+
+Set-AzCosmosDBSqlContainer -ResourceGroupName $resourceGroupName `
+        -AccountName $cosmosDbAccountName -DatabaseName $cosmosDbDatabase `
+        -Name $cosmosDbContainer -Throughput 400 `
+        -PartitionKeyKind $container.Resource.PartitionKey.Kind `
+        -PartitionKeyPath $container.Resource.PartitionKey.Paths
+
+$name = "Setup - Import User Profile Data into Cosmos DB"
+$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "pipelines" -Name $name -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+
+$name = "customer_profile_cosmosdb"
+$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "datasets" -Name $name -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+
+$name = "wwi02_online_user_profiles_01_adal"
+$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "datasets" -Name $name -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+
+$name = "asacosmosdb03"
+$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "linkedServices" -Name $name -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
