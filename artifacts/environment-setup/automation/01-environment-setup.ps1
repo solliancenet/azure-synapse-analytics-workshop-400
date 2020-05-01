@@ -284,8 +284,8 @@ $result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs
                 -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
 $synapseSQLToken = $result.access_token
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -Parameters $params -Token $synapseSQLToken
-$script = "12-create-wwi-perf-sale-hash-projection"
 
+$script = "12-create-wwi-perf-sale-hash-projection"
 Write-Information $script
 $result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
                 -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
@@ -318,3 +318,4 @@ Write-Information "Scale down the $($sqlPoolName) SQL pool to DW1000c after baby
 
 Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action scale -SKU DW1000c -Token $managementToken
 Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online -Token $managementToken
+
