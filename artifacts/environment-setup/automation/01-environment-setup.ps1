@@ -151,7 +151,6 @@ if ($result.properties.status -ne "Online") {
 Write-Information "Scale up the $($sqlPoolName) SQL pool to DW3000c to prepare for baby MOADs import."
 
 Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action scale -SKU DW3000c -Token $managementToken
-Start-Sleep -Seconds 30 # It is going to take atleast 30 seconds to scale. Wait for sometime so that state changes to Scaling, then wait for TargetStatus Online 
 Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online -Token $managementToken
 
 Write-Information "Create SQL logins in master SQL pool"
