@@ -330,6 +330,6 @@ $name = "wwi02_online_user_profiles_01_adal"
 $result = Delete-ASAObject -WorkspaceName $workspaceName -Category "datasets" -Name $name -Token $synapseToken
 Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 
-$name = "asacosmosdb03"
+$name = $cosmosDbAccountName
 $result = Delete-ASAObject -WorkspaceName $workspaceName -Category "linkedServices" -Name $name -Token $synapseToken
 Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
