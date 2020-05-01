@@ -8,12 +8,25 @@ $InformationPreference = "Continue"
 # Install-Module -Name Az.CosmosDB -AllowClobber -Scope CurrentUser
 # Import-Module Az.CosmosDB
 
-Connect-AzAccount
-$uniqueId = "176496"
+#
+# TODO: Keep all required configuration in C:\LabFiles\AzureCreds.ps1 file
+. C:\LabFiles\AzureCreds.ps1
 
-$tenantId = "cefcb8e7-ee30-49b8-b190-133f1daafd85"
-$subscriptionId = "c8ffc575-49c1-41ae-aa40-67f9995acb33"
-$resourceGroupName = "Synapse-L400-Workshop-$($uniqueId)"
+$userName = $AzureUserName                # READ FROM FILE
+$password = $AzurePassword                # READ FROM FILE
+$clientId = $TokenGeneratorClientId       # READ FROM FILE
+$sqlPassword = $AzureSQLPassword          # READ FROM FILE
+
+$securePassword = $password | ConvertTo-SecureString -AsPlainText -Force
+$cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $userName, $SecurePassword
+
+Connect-AzAccount -Credential $cred | Out-Null
+
+$resourceGroupName = (Get-AzResourceGroup | Where-Object { $_.ResourceGroupName -like "*L400*" }).ResourceGroupName
+$uniqueId =  (Get-AzResourceGroup -Name $resourceGroupName).Tags["DeploymentId"]
+$subscriptionId = (Get-AzContext).Subscription.Id
+$tenantId = (Get-AzContext).Tenant.Id
+
 $templatesPath = ".\artifacts\environment-setup\templates"
 $datasetsPath = ".\artifacts\environment-setup\datasets"
 $pipelinesPath = ".\artifacts\environment-setup\pipelines"
@@ -27,11 +40,6 @@ $blobStorageAccountName = "asastore$($uniqueId)"
 $keyVaultName = "asakeyvault$($uniqueId)"
 $keyVaultSQLUserSecretName = "SQL-USER-ASA"
 $sqlPoolName = "SQLPool01"
-
-$userName = Read-Host "User name"
-$password = Read-Host "Password"
-$clientId = Read-Host "Client id"
-$sqlPassword = Read-Host "SQL password"
 
 
 $ropcBodyCore = "client_id=$($clientId)&username=$($userName)&password=$($password)&grant_type=password"
