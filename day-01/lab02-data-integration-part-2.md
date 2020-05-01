@@ -202,7 +202,7 @@ Your organization was provided a poorly formatted CSV file containing marketing 
 
 ![Screenshot of the CSV file.](media/poorly-formatted-csv.png "Poorly formatted CSV")
 
-Issues include invalid characters in some product categories, invalid characters in the revenue currency data, and misaligned columns.
+Issues include invalid characters in the revenue currency data, and misaligned columns.
 
 1. Navigate to the **Data** hub.
 
@@ -353,7 +353,6 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
         | --- | --- | --- |
         | Revenue | `toDecimal(replace(concat(toString(RevenuePart1), toString(Revenue)), '\\', ''), 10, 2, '$###,###.##')` | Concatenate the `RevenuePart1` and `Revenue` fields, replace the invalid `\` character, then convert and format the data to a decimal type. |
         | RevenueTarget | `toDecimal(replace(concat(toString(RevenueTargetPart1), toString(RevenueTarget)), '\\', ''), 10, 2, '$###,###.##')` | Concatenate the `RevenueTargetPart1` and `RevenueTarget` fields, replace the invalid `\` character, then convert and format the data to a decimal type. |
-        | ProductCategory | `replace(toString(ProductCategory), 'Ã©', 'e')` | Replace the invalid characters in the `ProductCategory` field with the letter e. |
 
     ![The derived column's settings are displayed as described.](media/data-flow-campaign-analysis-derived-column-settings.png "Derived column's settings")
 
