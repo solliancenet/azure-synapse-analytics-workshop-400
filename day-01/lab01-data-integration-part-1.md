@@ -631,7 +631,7 @@ PolyBase requires the following elements:
     FROM [external].[Sales]
     ```
 
-6. Select **Run** from the toolbar menu to execute the SQL command. It takes around **6 - 8 minutes** to execute this command.
+6. Select **Run** from the toolbar menu to execute the SQL command. It will take a few minutes to execute this command.
 
 7. In the query window, replace the script with the following to see how many rows were imported:
 
@@ -661,7 +661,7 @@ Now let's see how to perform the same load operation with the COPY statement.
     GO
     ```
 
-2. Select **Run** from the toolbar menu to execute the SQL command. It takes around **4 - 6 minutes** to execute this command.
+2. Select **Run** from the toolbar menu to execute the SQL command. It takes a few minutes to execute this command.
 
 3. In the query window, replace the script with the following to see how many rows were imported:
 
@@ -690,7 +690,7 @@ For both of the load operations above, we inserted data into the heap table. Wha
     GO
     ```
 
-2. Select **Run** from the toolbar menu to execute the SQL command. It takes around **3.5 - 4.5 minutes** to execute this command.
+2. Select **Run** from the toolbar menu to execute the SQL command. It takes a few minutes to execute this command.
 
 3. In the query window, replace the script with the following to see how many rows were imported:
 
