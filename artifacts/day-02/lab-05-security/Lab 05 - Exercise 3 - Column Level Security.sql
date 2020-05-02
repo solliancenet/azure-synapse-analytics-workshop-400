@@ -36,7 +36,7 @@
     -- The following query will succeed since we are not including the Revenue column in the query.
     EXECUTE AS USER ='DataAnalystMiami';
     select [ProductID], [Analyst], [Product], [CampaignName],[Quantity], [Region], [State], [City], [RevenueTarget] from wwi_security.Sale;
-
+    
     -- Step:5 Whereas, the CEO of the company should be authorized with all the information present in the warehouse.To do so, we execute the following query.
     Revert;
     GRANT SELECT ON wwi_security.Sale TO CEO;  --Full access to all columns.

@@ -835,10 +835,12 @@ function Create-SQLScript {
     )
 
     $item = Get-Content -Raw -Path "$($TemplatesPath)/$($TemplateFileName).json"
-    $query = Get-Content -Raw -Path $ScriptFileName
+    $query = Get-Content -Raw -Path $ScriptFileName -Encoding utf8
     $query = (ConvertTo-Json $query.ToString())
 
     $item = $item.Replace("#SQL_SCRIPT_NAME#", $Name).Replace("#SQL_SCRIPT_QUERY#", $query)
+
+    Write-Information $item
 
     $uri = "https://$($WorkspaceName).dev.azuresynapse.net/sqlscripts/$($Name)?api-version=2019-06-01-preview"
 

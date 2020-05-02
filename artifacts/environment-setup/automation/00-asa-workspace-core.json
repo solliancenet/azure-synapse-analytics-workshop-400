@@ -1,4 +1,4 @@
-{
+﻿{
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
@@ -7,12 +7,17 @@
       "metadata": {
         "description": "Suffix added to all resource name to make them unique."
       }
+    },
+    "sqlAdministratorLoginPassword": {
+      "type": "String",
+      "metadata": {
+        "description": "Password for SQL Admin"
+      }
     }
   },
   "variables": {
     "location": "[resourceGroup().location]",
     "sqlAdministratorLogin": "asa.sql.admin",
-    "sqlAdministratorLoginPassword": "...",
     "workspaceName": "[concat('asaworkspace', parameters('uniqueSuffix'))]",
     "adlsStorageAccountName": "[concat('asadatalake', parameters('uniqueSuffix'))]",
     "defaultDataLakeStorageFilesystemName": "tempdata",
@@ -183,7 +188,7 @@
           "computeSubnetId": "[variables('computeSubnetId')]"
         },
         "sqlAdministratorLogin": "[variables('sqlAdministratorLogin')]",
-        "sqlAdministratorLoginPassword": "[variables('sqlAdministratorLoginPassword')]"
+        "sqlAdministratorLoginPassword": "[parameters('sqlAdministratorLoginPassword')]"
       },
       "resources": [
         {
