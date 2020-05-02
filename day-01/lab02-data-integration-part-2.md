@@ -899,11 +899,11 @@ The output should look similar to the following:
 res4: Array[org.apache.spark.sql.Row] = Array([9065916,3020,null,false,true], [9065916,2735,null,false,true], [9065916,1149,null,false,true], [9065916,2594,null,false,true], [9065916,4591,null,false,true], [9065916,3012,null,false,true], [9065916,1985,null,false,true], [9065916,1773,null,false,true], [9065916,380,null,false,true], [9068349,4383,null,false,true])
 ```
 
-7. Notice that the language for this notebook is Spark Scala. We want to use Python to explore the data. To do this, we load the data into a temporary view, then we can load the view's contents into a dataframe in a new PySpark cell. To do this, execute the following in a new cell:
+7. Notice that the language for this notebook is Spark Scala. We want to use Python to explore the data. To do this, we load the data into a temporary view, then we can load the view's contents into a DataFrame in a new PySpark cell. To do this, execute the following in a new cell:
 
 ```python
 %%pyspark
-# Calling the dataframe df created in Scala to Python
+# Calling the DataFrame df created in Scala to Python
 df = sqlContext.table("df")
 # *********************
 
@@ -915,11 +915,11 @@ topPurchases = df.select(
 topPurchases.show(100)
 ```
 
-We set the language of the cell to PySpark with the `%%pyspark` magic. Then we loaded the `df` view into a new dataframe. Finally, we created a new dataframe named `topPurchases` and displayed its contents.
+We set the language of the cell to PySpark with the `%%pyspark` magic. Then we loaded the `df` view into a new DataFrame. Finally, we created a new DataFrame named `topPurchases` and displayed its contents.
 
-![The cell code and output are displayed.](media/notebook-top-products-load-python-df.png "Load Python dataframe")
+![The cell code and output are displayed.](media/notebook-top-products-load-python-df.png "Load Python DataFrame")
 
-8. Execute the following in a new cell to create a new dataframe to hold only top preferred products where both `IsTopProduct` and `IsPreferredProduct` are true:
+8. Execute the following in a new cell to create a new DataFrame to hold only top preferred products where both `IsTopProduct` and `IsPreferredProduct` are true:
 
 ```python
 %%pyspark
@@ -953,7 +953,7 @@ AS
 
 *Note that there is no output for the above query.* The query uses the `df` temporary view as a source and applies a `row_number() over` method to apply a row number for the records for each user where `ItemsPurchasedLast12Months` is greatest. The `where` clause filters the results so we only retrieve up to five products where both `IsTopProduct` and `IsPreferredProduct` are set to true. This gives us the top five most purchased products for each user where those products are _also_ identified as their favorite products, according to their user profile stored in Azure Cosmos DB.
 
-10. Execute the following in a new cell to create and display a new dataframe that stores the results of the `top_5_products` temporary view you created in the previous cell:
+10. Execute the following in a new cell to create and display a new DataFrame that stores the results of the `top_5_products` temporary view you created in the previous cell:
 
 ```python
 %%pyspark
@@ -1044,11 +1044,11 @@ df: org.apache.spark.sql.DataFrame = [UserId: int, ProductId: int ... 3 more fie
 res2: Array[org.apache.spark.sql.Row] = Array([9527760,3414,null,false,true], [9527760,684,null,false,true], [9527760,179,null,false,true], [9527760,2390,null,false,true], [9527760,2680,null,false,true], [9527760,2264,null,false,true], [9434312,3623,null,false,true], [9434312,3654,null,false,true], [9434312,1968,null,false,true], [9434312,4107,null,false,true])
 ```
 
-Although the language for this notebook is Scala, want to use Python to explore the data. To do this, we load the data into a temporary view, then we can load the view's contents into a dataframe in a new PySpark cell. To do this, we execute the following in a new cell:
+Although the language for this notebook is Scala, want to use Python to explore the data. To do this, we load the data into a temporary view, then we can load the view's contents into a DataFrame in a new PySpark cell. To do this, we execute the following in a new cell:
 
 ```python
 %%pyspark
-# Calling the dataframe df created in Scala to Python
+# Calling the DataFrame df created in Scala to Python
 df = sqlContext.table("df")
 # *********************
 
@@ -1062,7 +1062,7 @@ topPurchases.show(100)
 
 We set the language of the cell to PySpark with the `%%pyspark` magic. Then we loaded the `df` view into a new DataFrame. Finally, we created a new DataFrame named `topPurchases` and displayed its contents.
 
-![The cell code and output are displayed.](media/notebook-top-products-load-python-df.png "Load Python dataframe")
+![The cell code and output are displayed.](media/notebook-top-products-load-python-df.png "Load Python DataFrame")
 
 Since we want to work from a DataFrame that holds only top preferred products, as indicated where both `IsTopProduct` and `IsPreferredProduct` are true, we execute the following in a new cell:
 
