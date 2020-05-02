@@ -68,6 +68,10 @@ $asaArtifacts = [ordered]@{
                 Category = "datasets"
                 Valid = $false
          }
+         "Lab 08 - Execute Business Analyst Queries" = @{
+                Category = "pipelines"
+                Valid = $false
+        }
 }
 
 foreach ($asaArtifactName in $asaArtifacts.Keys) {
@@ -82,6 +86,7 @@ foreach ($asaArtifactName in $asaArtifacts.Keys) {
         }
 }
 
+# the $asaArtifacts contains the current status of the workspace
 
 $tables = [ordered]@{
         "wwi_perf.Sale_Index" = @{
@@ -101,7 +106,6 @@ FROM
                 T.schema_id = S.schema_id
 "@
 $result = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $query
-
 
 
 foreach ($dataRow in $result.data) {
@@ -125,4 +129,4 @@ foreach ($dataRow in $result.data) {
         }
 }
 
-
+# $tables contains the current status of the necessary tables
