@@ -300,9 +300,10 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
 
     ![The script link is highlighted above the canvas.](media/data-flow-script.png "Script")
 
-7. Replace the list of columns (`output`) with the following, then select **OK**:
+7. Replace the script with the following to provide the column mappings (`output`), then select **OK**:
 
     ```json
+    source(output(
             {_col0_} as string,
             {_col1_} as string,
             {_col2_} as string,
@@ -313,6 +314,10 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
             {_col7_} as double,
             {_col8_} as string,
             {_col9_} as string
+        ),
+        allowSchemaDrift: true,
+        validateSchema: false,
+        skipLines: 1) ~> CampaignAnalytics
     ```
 
     Your script should match the following:
@@ -461,7 +466,9 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
 4. Wait for the pipeline run to successfully complete. You may need to refresh the view.
 
-    ![The pipeline run succeeded.](media/pipeline-user-profiles-run-complete.png "Pipeline runs")
+    ![The pipeline run succeeded.](media/pipeline-campaign-analysis-run-complete.png "Pipeline runs")
+
+5. **Important:** if the pipeline run fails with `Internal Server Error:Failed to submit job on job cluster. Integration Runtime` or takes longer than **5 minutes** to complete, you are likely experiencing capacity-related issues. In this case, it is likely that changing to a different IR will also fail. If one of these cases is true, **skip ahead** to **Task 4b (fallback)** to see a successful outcome.
 
 ### Task 4: View campaign analytics table contents
 
@@ -497,6 +504,29 @@ Now that the pipeline run is complete, let's take a look at the SQL table to ver
     - **Legend (series) columns**: Select `TotalRevenue`, `TotalRevenueTarget`, and `Delta`.
 
     ![The new query and chart view are displayed.](media/campaign-analytics-query-results-chart.png "Chart view")
+
+### Task 4b (fallback): View campaign analytics table contents
+
+> Read this task if the pipeline run failed due to capacity-related issues.
+
+The pipeline truncates the `wwi.CampaignAnalytics` table and inserts the cleaned up campaign analytics data from the improperly formatted CSV. When we query the table to view its contents, it looks like the following:
+
+![The CampaignAnalytics query results are displayed.](media/campaign-analytics-query-results.png "Query results")
+
+If we wish to view the total revenue compared to the target revenue of each product category, we can update the query as follows:
+
+```sql
+SELECT ProductCategory
+,SUM(Revenue) AS TotalRevenue
+,SUM(RevenueTarget) AS TotalRevenueTarget
+,(SUM(RevenueTarget) - SUM(Revenue)) AS Delta
+FROM [wwi].[CampaignAnalytics]
+GROUP BY ProductCategory
+```
+
+The query results output includes the standard Table view, as well as a Chart view. If we switch to the column chart view and set the category column to `ProductCategory`, we see the following:
+
+![The new query and chart view are displayed.](media/campaign-analytics-query-results-chart.png "Chart view")
 
 <!-- Exercise 3: Create data pipeline to import user reviews
 
