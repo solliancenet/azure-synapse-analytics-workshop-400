@@ -62,7 +62,8 @@ Setting importance in Synapse SQL for Azure Synapse allows you to influence the 
 
     ```sql
     SELECT s.login_name, r.[Status], r.Importance, submit_time, start_time ,s.session_id FROM sys.dm_pdw_exec_sessions s 
-    JOIN sys.dm_pdw_exec_requests r ON s.session_id = r.session_id   WHERE s.login_name IN ('asa.sql.workload01','asa.sql.workload02') and Importance
+    JOIN sys.dm_pdw_exec_requests r ON s.session_id = r.session_id
+    WHERE s.login_name IN ('asa.sql.workload01','asa.sql.workload02') and Importance
     is not NULL AND r.[status] in ('Running','Suspended') and submit_time>dateadd(minute,-2,getdate())
     ORDER BY submit_time ,status
     ```
@@ -91,7 +92,8 @@ Setting importance in Synapse SQL for Azure Synapse allows you to influence the 
 
     ```sql
     SELECT s.login_name, r.[Status], r.Importance, submit_time, start_time ,s.session_id FROM sys.dm_pdw_exec_sessions s 
-    JOIN sys.dm_pdw_exec_requests r ON s.session_id = r.session_id   WHERE s.login_name IN ('asa.sql.workload01','asa.sql.workload02') and Importance
+    JOIN sys.dm_pdw_exec_requests r ON s.session_id = r.session_id
+    WHERE s.login_name IN ('asa.sql.workload01','asa.sql.workload02') and Importance
     is not NULL AND r.[status] in ('Running','Suspended') and submit_time>dateadd(minute,-2,getdate())
     ORDER BY submit_time ,status desc
     ```
@@ -125,11 +127,11 @@ Users should avoid a workload management solution that configures 100% workload 
 4. In the query window, replace the script with the following:
 
     ```sql
-    IF NOT EXISTS (SELECT * FROM sys.workload_management_workload_classifiers where group_name = 'CEODemo')
+    IF NOT EXISTS (SELECT * FROM sys.workload_management_workload_groups where name = 'CEODemo')
     BEGIN
-          Create  WORKLOAD GROUP CEODemo WITH  
+        Create WORKLOAD GROUP CEODemo WITH  
         ( MIN_PERCENTAGE_RESOURCE = 50        -- integer value
-          ,REQUEST_MIN_RESOURCE_GRANT_PERCENT = 25 --  
+        ,REQUEST_MIN_RESOURCE_GRANT_PERCENT = 25 --  
         ,CAP_PERCENTAGE_RESOURCE = 100
         )
     END
@@ -144,7 +146,7 @@ Users should avoid a workload management solution that configures 100% workload 
     ```sql
     IF NOT EXISTS (SELECT * FROM sys.workload_management_workload_classifiers where  name = 'CEODreamDemo')
     BEGIN
-            Create Workload Classifier CEODreamDemo with
+        Create Workload Classifier CEODreamDemo with
         ( Workload_Group ='CEODemo',MemberName='asa.sql.workload02',IMPORTANCE = BELOW_NORMAL);
     END
     ```
@@ -158,7 +160,7 @@ Users should avoid a workload management solution that configures 100% workload 
     start_time ,s.session_id FROM sys.dm_pdw_exec_sessions s
     JOIN sys.dm_pdw_exec_requests r ON s.session_id = r.session_id
     WHERE s.login_name IN ('asa.sql.workload02') and Importance
-    is  not NULL AND r.[status] in ('Running','Suspended')
+    is not NULL AND r.[status] in ('Running','Suspended')
     ORDER BY submit_time, status
     ```
 
@@ -171,7 +173,7 @@ Users should avoid a workload management solution that configures 100% workload 
     start_time ,s.session_id FROM sys.dm_pdw_exec_sessions s
     JOIN sys.dm_pdw_exec_requests r ON s.session_id = r.session_id
     WHERE s.login_name IN ('asa.sql.workload02') and Importance
-    is  not NULL AND r.[status] in ('Running','Suspended')
+    is not NULL AND r.[status] in ('Running','Suspended')
     ORDER BY submit_time, status
     ```
 
