@@ -226,6 +226,10 @@ Issues include invalid characters in the revenue currency data, and misaligned c
 
     ![New dataset form is displayed with the described configuration.](media/new-dataset-campaign-analytics-asa.png "New dataset")
 
+7. Select **Publish all** to save your new resources.
+
+    ![Publish all is highlighted.](media/publish-all-1.png "Publish all")
+
 ### Task 4: Create user profile datasets
 
 User profile data comes from two different data sources. In lab 1, you created datasets for these sources: `asal400_ecommerce_userprofiles_source` and `asal400_customerprofile_cosmosdb`. The customer profile data from an e-commerce system that provides top product purchases for each visitor of the site (customer) over the past 12 months is stored within JSON files in the data lake. User profile data containing, among other things, product preferences and product reviews is stored as JSON documents in Cosmos DB.
