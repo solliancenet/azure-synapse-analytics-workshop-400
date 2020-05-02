@@ -262,8 +262,8 @@ Write-Information "Create data sets for Lab 08"
 
 # refresh the token, just in case
 $result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
-        -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
-$synapseSQLToken = $result.access_token
+                -Method POST -Body $ropcBodySynapse -ContentType "application/x-www-form-urlencoded"
+$synapseToken = $result.access_token
 
 $datasets = @{
         wwi02_sale_small_workload_01_asa = "$($sqlPoolName.ToLower())_workload01"
@@ -290,20 +290,6 @@ foreach ($pipeline in $workloadPipelines.Keys) {
         Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 }
 
-Write-Information "Create SQL scripts for Lab 05"
-
-$sqlScripts = [ordered]@{
-        "Lab 05 - Exercise 3 - Column Level Security" = ".\artifacts\day-02\lab-05-security"
-        "Lab 05 - Exercise 3 - Dynamic Data Masking" = ".\artifacts\day-02\lab-05-security"
-        "Lab 05 - Exercise 3 - Row Level Security" = ".\artifacts\day-02\lab-05-security"
-}
-
-foreach ($sqlScriptName in $sqlScripts.Keys) {
-        $sqlScriptFileName = "$($sqlScripts[$sqlScriptName])\$($sqlScriptName).sql"
-        Write-Information "Creating SQL script $($sqlScriptName) from $($sqlScriptFileName)"
-        $result = Create-SQLScript -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $sqlScriptName -TemplateFileName "sql_script" -ScriptFileName $sqlScriptFileName -Token $synapseToken
-        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
-}
 
 
 
