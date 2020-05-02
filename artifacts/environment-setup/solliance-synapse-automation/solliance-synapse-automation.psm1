@@ -849,6 +849,36 @@ function Create-SQLScript {
     return $result
 }
 
+function Assign-SynapseRole {
+
+    param(    
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $RoleId,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $PrincipalId,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $Token
+    )
+
+    $uri = "https://$($WorkspaceName).dev.azuresynapse.net/rbac/roleAssignments?api-version=2020-02-01-preview"
+    $method = "POST"
+
+    $id = $RoleId + "-" + $PrincipalId
+    $body = "{ id: ""$id"", roleId: ""$RoleId"", principalId: ""$PrincipalId"" }"
+
+    $result = Invoke-RestMethod  -Uri $uri -Method $method -Body $body -Headers @{ Authorization="Bearer $Token" } -ContentType "application/json"
+    return $result
+}
+
 Export-ModuleMember -Function List-StorageAccountKeys
 Export-ModuleMember -Function List-CosmosDBKeys
 Export-ModuleMember -Function Create-KeyVaultLinkedService
@@ -872,3 +902,4 @@ Export-ModuleMember -Function Execute-SQLQuery
 Export-ModuleMember -Function Execute-SQLScriptFile
 Export-ModuleMember -Function Wait-ForSQLQuery
 Export-ModuleMember -Function Create-SQLScript
+Export-ModuleMember -Function Assign-SynapseRole
