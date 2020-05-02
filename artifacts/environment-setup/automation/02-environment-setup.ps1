@@ -59,8 +59,6 @@ $result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs
 $managementToken = $result.access_token
 
 
-
-
 Write-Information "Create SQL scripts for Lab 05"
 
 $sqlScripts = [ordered]@{

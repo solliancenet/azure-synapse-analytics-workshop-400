@@ -44,94 +44,93 @@ $integrationRuntimeName = "AzureIntegrationRuntime01"
 
 
 $ropcBodyCore = "client_id=$($clientId)&username=$($userName)&password=$($password)&grant_type=password"
-$ropcBodySynapse = "$($ropcBodyCore)&scope=https://dev.azuresynapse.net/.default"
-$ropcBodyManagement = "$($ropcBodyCore)&scope=https://management.azure.com/.default"
-$ropcBodySynapseSQL = "$($ropcBodyCore)&scope=https://sql.azuresynapse.net/.default"
+$global:ropcBodySynapse = "$($ropcBodyCore)&scope=https://dev.azuresynapse.net/.default"
+$global:ropcBodyManagement = "$($ropcBodyCore)&scope=https://management.azure.com/.default"
+$global:ropcBodySynapseSQL = "$($ropcBodyCore)&scope=https://sql.azuresynapse.net/.default"
 
-$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
-                -Method POST -Body $ropcBodySynapse -ContentType "application/x-www-form-urlencoded"
-$synapseToken = $result.access_token
-$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
-                -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
-$synapseSQLToken = $result.access_token
-$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
-                -Method POST -Body $ropcBodyManagement -ContentType "application/x-www-form-urlencoded"
-$managementToken = $result.access_token
+$global:synapseToken = ""
+$global:synapseSQLToken = ""
+$global:managementToken = ""
+
+$global:tokenTimes = [ordered]@{
+        Synapse = (Get-Date -Year 1)
+        SynapseSQL = (Get-Date -Year 1)
+        Management = (Get-Date -Year 1)
+}
 
 Write-Information "Assign Ownership to L400 Proctors on Synapse Workspace"
-Assign-SynapseRole -WorkspaceName $workspaceName -RoleId "6e4bf58a-b8e1-4cc3-bbf9-d73143322b78" -PrincipalId "37548b2e-e5ab-4d2b-b0da-4d812f56c30e" -Token $synapseToken  # Workspace Admin
-Assign-SynapseRole -WorkspaceName $workspaceName -RoleId "7af0c69a-a548-47d6-aea3-d00e69bd83aa" -PrincipalId "37548b2e-e5ab-4d2b-b0da-4d812f56c30e" -Token $synapseToken  # SQL Admin
-Assign-SynapseRole -WorkspaceName $workspaceName -RoleId "c3a6d2f1-a26f-4810-9b0f-591308d5cbf1" -PrincipalId "37548b2e-e5ab-4d2b-b0da-4d812f56c30e" -Token $synapseToken  # Apache Spark Admin
-
+Assign-SynapseRole -WorkspaceName $workspaceName -RoleId "6e4bf58a-b8e1-4cc3-bbf9-d73143322b78" -PrincipalId "37548b2e-e5ab-4d2b-b0da-4d812f56c30e"  # Workspace Admin
+Assign-SynapseRole -WorkspaceName $workspaceName -RoleId "7af0c69a-a548-47d6-aea3-d00e69bd83aa" -PrincipalId "37548b2e-e5ab-4d2b-b0da-4d812f56c30e"  # SQL Admin
+Assign-SynapseRole -WorkspaceName $workspaceName -RoleId "c3a6d2f1-a26f-4810-9b0f-591308d5cbf1" -PrincipalId "37548b2e-e5ab-4d2b-b0da-4d812f56c30e"  # Apache Spark Admin
 
 Write-Information "Create KeyVault linked service $($keyVaultName)"
 
-$result = Create-KeyVaultLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $keyVaultName -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+$result = Create-KeyVaultLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $keyVaultName
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
 Write-Information "Create Integration Runtime $($integrationRuntimeName)"
 
-$result = Create-IntegrationRuntime -TemplatesPath $templatesPath -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -Name $integrationRuntimeName -CoreCount 16 -TimeToLive 60 -Token $managementToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+$result = Create-IntegrationRuntime -TemplatesPath $templatesPath -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -Name $integrationRuntimeName -CoreCount 16 -TimeToLive 60
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
 Write-Information "Create Data Lake linked service $($dataLakeAccountName)"
 
-$dataLakeAccountKey = List-StorageAccountKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $dataLakeAccountName -Token $managementToken
-$result = Create-DataLakeLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $dataLakeAccountName  -Key $dataLakeAccountKey -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+$dataLakeAccountKey = List-StorageAccountKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $dataLakeAccountName
+$result = Create-DataLakeLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $dataLakeAccountName  -Key $dataLakeAccountKey
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
 Write-Information "Create Blob Storage linked service $($blobStorageAccountName)"
 
-$blobStorageAccountKey = List-StorageAccountKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $blobStorageAccountName -Token $managementToken
-$result = Create-BlobStorageLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $blobStorageAccountName  -Key $blobStorageAccountKey -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+$blobStorageAccountKey = List-StorageAccountKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $blobStorageAccountName
+$result = Create-BlobStorageLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $blobStorageAccountName  -Key $blobStorageAccountKey
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
 Write-Information "Start the $($sqlPoolName) SQL pool if needed."
 
-$result = Get-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Token $managementToken
+$result = Get-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName
 if ($result.properties.status -ne "Online") {
-    Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action resume -Token $managementToken
-    Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online -Token $managementToken
+    Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action resume
+    Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online
 }
 
 Write-Information "Scale up the $($sqlPoolName) SQL pool to DW3000c to prepare for baby MOADs import."
 
-Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action scale -SKU DW3000c -Token $managementToken
-Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online -Token $managementToken
+Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action scale -SKU DW3000c
+Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online
 
 Write-Information "Create SQL logins in master SQL pool"
 
 $params = @{ PASSWORD = $sqlPassword }
-$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName "master" -FileName "01-create-logins" -Parameters $params -Token $synapseSQLToken
+$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName "master" -FileName "01-create-logins" -Parameters $params
 $result
 
 Write-Information "Create SQL users and role assignments in $($sqlPoolName)"
 
 $params = @{ USER_NAME = $userName }
-$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "02-create-users" -Parameters $params -Token $synapseSQLToken
+$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "02-create-users" -Parameters $params
 $result
 
 Write-Information "Create schemas in $($sqlPoolName)"
 
 $params = @{}
-$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "03-create-schemas" -Parameters $params -Token $synapseSQLToken
+$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "03-create-schemas" -Parameters $params
 $result
 
 Write-Information "Create tables in the [wwi] schema in $($sqlPoolName)"
 
 $params = @{}
-$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "04-create-tables-in-wwi-schema" -Parameters $params -Token $synapseSQLToken
+$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "04-create-tables-in-wwi-schema" -Parameters $params
 $result
 
 
 Write-Information "Create tables in the [wwi_ml] schema in $($sqlPoolName)"
 
-$dataLakeAccountKey = List-StorageAccountKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $dataLakeAccountName -Token $managementToken
+$dataLakeAccountKey = List-StorageAccountKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $dataLakeAccountName
 $params = @{ 
         DATA_LAKE_ACCOUNT_NAME = $dataLakeAccountName  
         DATA_LAKE_ACCOUNT_KEY = $dataLakeAccountKey 
 }
-$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "05-create-tables-in-wwi-ml-schema" -Parameters $params -Token $synapseSQLToken
+$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "05-create-tables-in-wwi-ml-schema" -Parameters $params
 $result
 
 
@@ -140,7 +139,7 @@ Write-Information "Create tables in the [wwi_security] schema in $($sqlPoolName)
 $params = @{ 
         DATA_LAKE_ACCOUNT_NAME = $dataLakeAccountName  
 }
-$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "06-create-tables-in-wwi-security-schema" -Parameters $params -Token $synapseSQLToken
+$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "06-create-tables-in-wwi-security-schema" -Parameters $params
 $result
 
 
@@ -148,15 +147,15 @@ Write-Information "Create linked service for SQL pool $($sqlPoolName) with user 
 
 $linkedServiceName = $sqlPoolName.ToLower()
 $result = Create-SQLPoolKeyVaultLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $linkedServiceName -DatabaseName $sqlPoolName `
-                 -UserName "asa.sql.admin" -KeyVaultLinkedServiceName $keyVaultName -SecretName $keyVaultSQLUserSecretName -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+                 -UserName "asa.sql.admin" -KeyVaultLinkedServiceName $keyVaultName -SecretName $keyVaultSQLUserSecretName
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
 Write-Information "Create linked service for SQL pool $($sqlPoolName) with user asa.sql.highperf"
 
 $linkedServiceName = "$($sqlPoolName.ToLower())_highperf"
 $result = Create-SQLPoolKeyVaultLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $linkedServiceName -DatabaseName $sqlPoolName `
-                 -UserName "asa.sql.highperf" -KeyVaultLinkedServiceName $keyVaultName -SecretName $keyVaultSQLUserSecretName -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+                 -UserName "asa.sql.highperf" -KeyVaultLinkedServiceName $keyVaultName -SecretName $keyVaultSQLUserSecretName
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
 Write-Information "Create data sets for data load in SQL pool $($sqlPoolName)"
 
@@ -171,8 +170,8 @@ $loadingDatasets = @{
 
 foreach ($dataset in $loadingDatasets.Keys) {
         Write-Information "Creating dataset $($dataset)"
-        $result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $dataset -LinkedServiceName $loadingDatasets[$dataset] -Token $synapseToken
-        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+        $result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $dataset -LinkedServiceName $loadingDatasets[$dataset]
+        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 }
 
 Write-Information "Create pipeline to load the SQL pool"
@@ -185,24 +184,24 @@ $fileName = "load_sql_pool_from_data_lake"
 
 Write-Information "Creating pipeline $($loadingPipelineName)"
 
-$result = Create-Pipeline -PipelinesPath $pipelinesPath -WorkspaceName $workspaceName -Name $loadingPipelineName -FileName $fileName -Parameters $params -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+$result = Create-Pipeline -PipelinesPath $pipelinesPath -WorkspaceName $workspaceName -Name $loadingPipelineName -FileName $fileName -Parameters $params
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
 Write-Information "Running pipeline $($loadingPipelineName)"
 
-$result = Run-Pipeline -WorkspaceName $workspaceName -Name $loadingPipelineName -Token $synapseToken
-$result = Wait-ForPipelineRun -WorkspaceName $workspaceName -RunId $result.runId -Token $synapseToken
+$result = Run-Pipeline -WorkspaceName $workspaceName -Name $loadingPipelineName
+$result = Wait-ForPipelineRun -WorkspaceName $workspaceName -RunId $result.runId
 $result
 
 Write-Information "Deleting pipeline $($loadingPipelineName)"
 
-$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "pipelines" -Name $loadingPipelineName -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "pipelines" -Name $loadingPipelineName
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
 foreach ($dataset in $loadingDatasets.Keys) {
         Write-Information "Deleting dataset $($dataset)"
-        $result = Delete-ASAObject -WorkspaceName $workspaceName -Category "datasets" -Name $dataset -Token $synapseToken
-        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+        $result = Delete-ASAObject -WorkspaceName $workspaceName -Category "datasets" -Name $dataset
+        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 }
 
 
@@ -227,55 +226,42 @@ foreach ($script in $scripts.Keys) {
         Write-Information "Starting $($script) with label $($scripts[$script])"
 
         # refresh the token, just in case
-        $result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
-                -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
-        $synapseSQLToken = $result.access_token
+        Refresh-Token -TokenType "SynapseSQL"
         
         # initiate the script and wait until it finishes
-        Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -ForceReturn $true -Token $synapseSQLToken
-        Wait-ForSQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Label $scripts[$script] -ReferenceTime $refTime -Token $synapseSQLToken
+        Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -ForceReturn $true
+        Wait-ForSQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Label $scripts[$script] -ReferenceTime $refTime
 }
 
 Write-Information "Scale down the $($sqlPoolName) SQL pool to DW1000c after baby MOADs import."
 
-$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
-                -Method POST -Body $ropcBodyManagement -ContentType "application/x-www-form-urlencoded"
-$managementToken = $result.access_token
-Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action scale -SKU DW1000c -Token $managementToken
-Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online -Token $managementToken
+Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action scale -SKU DW1000c
+Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online
 
 
 Write-Information "Create linked service for SQL pool $($sqlPoolName) with user asa.sql.import01"
 
-$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
-                -Method POST -Body $ropcBodySynapse -ContentType "application/x-www-form-urlencoded"
-$synapseToken = $result.access_token
 $linkedServiceName = "$($sqlPoolName.ToLower())_import01"
 $result = Create-SQLPoolKeyVaultLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $linkedServiceName -DatabaseName $sqlPoolName `
-                 -UserName "asa.sql.import01" -KeyVaultLinkedServiceName $keyVaultName -SecretName $keyVaultSQLUserSecretName -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+                 -UserName "asa.sql.import01" -KeyVaultLinkedServiceName $keyVaultName -SecretName $keyVaultSQLUserSecretName
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
 Write-Information "Create linked service for SQL pool $($sqlPoolName) with user asa.sql.workload01"
 
 $linkedServiceName = "$($sqlPoolName.ToLower())_workload01"
 $result = Create-SQLPoolKeyVaultLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $linkedServiceName -DatabaseName $sqlPoolName `
-                 -UserName "asa.sql.workload01" -KeyVaultLinkedServiceName $keyVaultName -SecretName $keyVaultSQLUserSecretName -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+                 -UserName "asa.sql.workload01" -KeyVaultLinkedServiceName $keyVaultName -SecretName $keyVaultSQLUserSecretName
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
 Write-Information "Create linked service for SQL pool $($sqlPoolName) with user asa.sql.workload02"
 
 $linkedServiceName = "$($sqlPoolName.ToLower())_workload02"
 $result = Create-SQLPoolKeyVaultLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $linkedServiceName -DatabaseName $sqlPoolName `
-                 -UserName "asa.sql.workload02" -KeyVaultLinkedServiceName $keyVaultName -SecretName $keyVaultSQLUserSecretName -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+                 -UserName "asa.sql.workload02" -KeyVaultLinkedServiceName $keyVaultName -SecretName $keyVaultSQLUserSecretName
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
 
 Write-Information "Create data sets for Lab 08"
-
-# refresh the token, just in case
-$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
-                -Method POST -Body $ropcBodySynapse -ContentType "application/x-www-form-urlencoded"
-$synapseToken = $result.access_token
 
 $datasets = @{
         wwi02_sale_small_workload_01_asa = "$($sqlPoolName.ToLower())_workload01"
@@ -284,8 +270,8 @@ $datasets = @{
 
 foreach ($dataset in $datasets.Keys) {
         Write-Information "Creating dataset $($dataset)"
-        $result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $dataset -LinkedServiceName $datasets[$dataset] -Token $synapseToken
-        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+        $result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $dataset -LinkedServiceName $datasets[$dataset]
+        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 }
 
 Write-Information "Create pipelines for Lab 08"
@@ -298,8 +284,8 @@ $workloadPipelines = [ordered]@{
 
 foreach ($pipeline in $workloadPipelines.Keys) {
         Write-Information "Creating workload pipeline $($workloadPipelines[$pipeline])"
-        $result = Create-Pipeline -PipelinesPath $pipelinesPath -WorkspaceName $workspaceName -Name $workloadPipelines[$pipeline] -FileName $pipeline -Parameters $params -Token $synapseToken
-        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+        $result = Create-Pipeline -PipelinesPath $pipelinesPath -WorkspaceName $workspaceName -Name $workloadPipelines[$pipeline] -FileName $pipeline -Parameters $params
+        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 }
 
 
@@ -322,24 +308,24 @@ Set-AzCosmosDBSqlContainer -ResourceGroupName $resourceGroupName `
         -PartitionKeyPath $container.Resource.PartitionKey.Paths
 
 $name = "wwi02_online_user_profiles_01_adal"
-$result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $name -LinkedServiceName $dataLakeAccountName -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+$result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $name -LinkedServiceName $dataLakeAccountName
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
-$cosmosDbAccountKey = List-CosmosDBKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $cosmosDbAccountName -Token $managementToken
-$result = Create-CosmosDBLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $cosmosDbAccountName -Database $cosmosDbDatabase -Key $cosmosDbAccountKey -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+$cosmosDbAccountKey = List-CosmosDBKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $cosmosDbAccountName
+$result = Create-CosmosDBLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $cosmosDbAccountName -Database $cosmosDbDatabase -Key $cosmosDbAccountKey
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
 $name = "customer_profile_cosmosdb"
-$result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $name -LinkedServiceName $cosmosDbAccountName -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+$result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $name -LinkedServiceName $cosmosDbAccountName
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
 $name = "Setup - Import User Profile Data into Cosmos DB"
 $fileName = "import_customer_profiles_into_cosmosdb"
-$result = Create-Pipeline -PipelinesPath $pipelinesPath -WorkspaceName $workspaceName -Name $name -FileName $fileName -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+$result = Create-Pipeline -PipelinesPath $pipelinesPath -WorkspaceName $workspaceName -Name $name -FileName $fileName
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
-$result = Run-Pipeline -WorkspaceName $workspaceName -Name $name -Token $synapseToken
-$result = Wait-ForPipelineRun -WorkspaceName $workspaceName -RunId $result.runId -Token $synapseToken
+$pipelineRunResult = Run-Pipeline -WorkspaceName $workspaceName -Name $name
+$result = Wait-ForPipelineRun -WorkspaceName $workspaceName -RunId $pipelineRunResult.runId
 $result
 
 #
@@ -359,22 +345,18 @@ Set-AzCosmosDBSqlContainer -ResourceGroupName $resourceGroupName `
         -PartitionKeyKind $container.Resource.PartitionKey.Kind `
         -PartitionKeyPath $container.Resource.PartitionKey.Paths
 
-$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
-        -Method POST -Body $ropcBodySynapse -ContentType "application/x-www-form-urlencoded"
-$synapseToken = $result.access_token
-
 $name = "Setup - Import User Profile Data into Cosmos DB"
-$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "pipelines" -Name $name -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "pipelines" -Name $name
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
 $name = "customer_profile_cosmosdb"
-$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "datasets" -Name $name -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "datasets" -Name $name
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
 $name = "wwi02_online_user_profiles_01_adal"
-$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "datasets" -Name $name -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "datasets" -Name $name
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
 $name = $cosmosDbAccountName
-$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "linkedServices" -Name $name -Token $synapseToken
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "linkedServices" -Name $name
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
