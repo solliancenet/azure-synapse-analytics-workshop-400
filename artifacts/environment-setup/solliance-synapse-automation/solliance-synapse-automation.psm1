@@ -491,7 +491,11 @@ function Wait-ForOperation {
 
     while ($result.status -ne $null) {
         
-        Write-Information "Waiting for operation to complete..."
+        if ($result.status -eq "Failed") {
+            throw $result.error
+        }
+
+        Write-Information "Waiting for operation to complete (status is $($result.status))..."
         Start-Sleep -Seconds 10
         $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $Token" }
     }
@@ -730,11 +734,7 @@ function Execute-SQLQuery {
     $uri = "https://$($WorkspaceName).sql.azuresynapse.net:1443/databases/$($SQLPoolName)/query?api-version=2018-08-01-preview&application=ArcadiaSqlEditor&topRows=5000&queryTimeoutInMinutes=59&allResultSets=true"
 
     $headers = @{ 
-        Authorization="Bearer $($Token)" 
-        Connection="keep-alive" 
-        "User-Agent"="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36"
-        Origin = "https://web.azuresynapse.net"
-
+        Authorization="Bearer $($Token)"
     }
 
     if ($ForceReturn) {
@@ -806,6 +806,47 @@ function Execute-SQLScriptFile {
     return Execute-SQLQuery -WorkspaceName $WorkspaceName -SQLPoolName $SQLPoolName -SQLQuery $sqlQuery -ForceReturn $ForceReturn -Token $Token
 }
 
+function Create-SQLScript {
+    
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $TemplatesPath,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $Name,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $TemplateFileName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $ScriptFileName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $Token 
+    )
+
+    $item = Get-Content -Raw -Path "$($TemplatesPath)/$($TemplateFileName).json"
+    $query = Get-Content -Raw -Path $ScriptFileName
+    $query = (ConvertTo-Json $query.ToString())
+
+    $item = $item.Replace("#SQL_SCRIPT_NAME#", $Name).Replace("#SQL_SCRIPT_QUERY#", $query)
+
+    $uri = "https://$($WorkspaceName).dev.azuresynapse.net/sqlscripts/$($Name)?api-version=2019-06-01-preview"
+
+    $result = Invoke-RestMethod  -Uri $uri -Method PUT -Body $item -Headers @{ Authorization="Bearer $Token" } -ContentType "application/json"
+    
+    return $result
+}
+
 Export-ModuleMember -Function List-StorageAccountKeys
 Export-ModuleMember -Function List-CosmosDBKeys
 Export-ModuleMember -Function Create-KeyVaultLinkedService
@@ -828,3 +869,4 @@ Export-ModuleMember -Function Wait-ForSQLPool
 Export-ModuleMember -Function Execute-SQLQuery
 Export-ModuleMember -Function Execute-SQLScriptFile
 Export-ModuleMember -Function Wait-ForSQLQuery
+Export-ModuleMember -Function Create-SQLScript
