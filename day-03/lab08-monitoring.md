@@ -62,7 +62,8 @@ Setting importance in Synapse SQL for Azure Synapse allows you to influence the 
 
     ```sql
     SELECT s.login_name, r.[Status], r.Importance, submit_time, start_time ,s.session_id FROM sys.dm_pdw_exec_sessions s 
-    JOIN sys.dm_pdw_exec_requests r ON s.session_id = r.session_id   WHERE s.login_name IN ('asa.sql.workload01','asa.sql.workload02') and Importance
+    JOIN sys.dm_pdw_exec_requests r ON s.session_id = r.session_id
+    WHERE s.login_name IN ('asa.sql.workload01','asa.sql.workload02') and Importance
     is not NULL AND r.[status] in ('Running','Suspended') and submit_time>dateadd(minute,-2,getdate())
     ORDER BY submit_time ,status
     ```
@@ -91,7 +92,8 @@ Setting importance in Synapse SQL for Azure Synapse allows you to influence the 
 
     ```sql
     SELECT s.login_name, r.[Status], r.Importance, submit_time, start_time ,s.session_id FROM sys.dm_pdw_exec_sessions s 
-    JOIN sys.dm_pdw_exec_requests r ON s.session_id = r.session_id   WHERE s.login_name IN ('asa.sql.workload01','asa.sql.workload02') and Importance
+    JOIN sys.dm_pdw_exec_requests r ON s.session_id = r.session_id
+    WHERE s.login_name IN ('asa.sql.workload01','asa.sql.workload02') and Importance
     is not NULL AND r.[status] in ('Running','Suspended') and submit_time>dateadd(minute,-2,getdate())
     ORDER BY submit_time ,status desc
     ```
@@ -125,11 +127,11 @@ Users should avoid a workload management solution that configures 100% workload 
 4. In the query window, replace the script with the following:
 
     ```sql
-    IF NOT EXISTS (SELECT * FROM sys.workload_management_workload_classifiers where group_name = 'CEODemo')
+    IF NOT EXISTS (SELECT * FROM sys.workload_management_workload_groups where name = 'CEODemo')
     BEGIN
-          Create  WORKLOAD GROUP CEODemo WITH  
+        Create WORKLOAD GROUP CEODemo WITH  
         ( MIN_PERCENTAGE_RESOURCE = 50        -- integer value
-          ,REQUEST_MIN_RESOURCE_GRANT_PERCENT = 25 --  
+        ,REQUEST_MIN_RESOURCE_GRANT_PERCENT = 25 --  
         ,CAP_PERCENTAGE_RESOURCE = 100
         )
     END
@@ -144,7 +146,7 @@ Users should avoid a workload management solution that configures 100% workload 
     ```sql
     IF NOT EXISTS (SELECT * FROM sys.workload_management_workload_classifiers where  name = 'CEODreamDemo')
     BEGIN
-            Create Workload Classifier CEODreamDemo with
+        Create Workload Classifier CEODreamDemo with
         ( Workload_Group ='CEODemo',MemberName='asa.sql.workload02',IMPORTANCE = BELOW_NORMAL);
     END
     ```
@@ -158,7 +160,7 @@ Users should avoid a workload management solution that configures 100% workload 
     start_time ,s.session_id FROM sys.dm_pdw_exec_sessions s
     JOIN sys.dm_pdw_exec_requests r ON s.session_id = r.session_id
     WHERE s.login_name IN ('asa.sql.workload02') and Importance
-    is  not NULL AND r.[status] in ('Running','Suspended')
+    is not NULL AND r.[status] in ('Running','Suspended')
     ORDER BY submit_time, status
     ```
 
@@ -171,7 +173,7 @@ Users should avoid a workload management solution that configures 100% workload 
     start_time ,s.session_id FROM sys.dm_pdw_exec_sessions s
     JOIN sys.dm_pdw_exec_requests r ON s.session_id = r.session_id
     WHERE s.login_name IN ('asa.sql.workload02') and Importance
-    is  not NULL AND r.[status] in ('Running','Suspended')
+    is not NULL AND r.[status] in ('Running','Suspended')
     ORDER BY submit_time, status
     ```
 
@@ -184,17 +186,17 @@ Users should avoid a workload management solution that configures 100% workload 
     ```sql
     IF  EXISTS (SELECT * FROM sys.workload_management_workload_classifiers where group_name = 'CEODemo')
     BEGIN
-    Drop Workload Classifier CEODreamDemo
-    DROP WORKLOAD GROUP CEODemo
-    --- Creates a workload group 'CEODemo'.
-        Create  WORKLOAD GROUP CEODemo WITH  
-    (MIN_PERCENTAGE_RESOURCE = 26 -- integer value
-        ,REQUEST_MIN_RESOURCE_GRANT_PERCENT = 3.25 -- factor of 26 (guaranteed more than 4 concurrencies)
-    ,CAP_PERCENTAGE_RESOURCE = 100
-    )
-    --- Creates a workload Classifier 'CEODreamDemo'.
-    Create Workload Classifier CEODreamDemo with
-    (Workload_Group ='CEODemo',MemberName='asa.sql.workload02',IMPORTANCE = BELOW_NORMAL);
+        Drop Workload Classifier CEODreamDemo
+        DROP WORKLOAD GROUP CEODemo
+        --- Creates a workload group 'CEODemo'.
+            Create  WORKLOAD GROUP CEODemo WITH  
+        (MIN_PERCENTAGE_RESOURCE = 26 -- integer value
+            ,REQUEST_MIN_RESOURCE_GRANT_PERCENT = 3.25 -- factor of 26 (guaranteed more than 4 concurrencies)
+        ,CAP_PERCENTAGE_RESOURCE = 100
+        )
+        --- Creates a workload Classifier 'CEODreamDemo'.
+        Create Workload Classifier CEODreamDemo with
+        (Workload_Group ='CEODemo',MemberName='asa.sql.workload02',IMPORTANCE = BELOW_NORMAL);
     END
     ```
 
@@ -329,11 +331,13 @@ All logins to your data warehouse are logged to `sys.dm_pdw_exec_sessions`. This
 
     ![The add trigger and trigger now menu items are highlighted.](media/ex02-task03-01.png "Add trigger")
 
-2. Navigate to the `Monitor` hub. Then select **SQL requests** to get a list of SQL requests that ran during the last 24 hours. Observe the `Request Submitter`, `Submit Time`, `Duration`, and `Queued Duration` values.
+2. Navigate to the `Monitor` hub. Then select **SQL requests** to get a list of SQL requests that ran during the last 24 hours.
+
+3. Select the **Pool** filter and select your SQL Pool. Observe the `Request Submitter`, `Submit Time`, `Duration`, and `Queued Duration` values.
 
     ![The SQL requests blade is displayed within the Monitor hub.](media/ex02-task03-02.png "Monitor - SQL requests")
 
-3. Hover onto a SQL Request log and select `Request Content` to access the actual T-SQL command executed as part of the SQL Request.
+4. Hover onto a SQL Request log and select `Request Content` to access the actual T-SQL command executed as part of the SQL Request.
 
     ![The request content link is displayed over a SQL request.](media/ex02-task03-03.png "SQL requests")
 
