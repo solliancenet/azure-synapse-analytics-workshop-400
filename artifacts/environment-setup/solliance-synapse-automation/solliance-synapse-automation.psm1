@@ -821,9 +821,52 @@ function Create-SQLScript {
     [String]
     $Name,
 
+    [parameter(Mandatory=$false)]
+    [String]
+    $TemplateFileName = "sql_script",
+
     [parameter(Mandatory=$true)]
     [String]
-    $TemplateFileName,
+    $ScriptFileName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $Token 
+    )
+
+    $item = Get-Content -Raw -Path "$($TemplatesPath)/$($TemplateFileName).json"
+    $query = Get-Content -Raw -Path $ScriptFileName -Encoding utf8
+    $query = (ConvertTo-Json $query.ToString())
+
+    $item = $item.Replace("#SQL_SCRIPT_NAME#", $Name).Replace("#SQL_SCRIPT_QUERY#", $query)
+
+    Write-Information $item
+
+    $uri = "https://$($WorkspaceName).dev.azuresynapse.net/sqlscripts/$($Name)?api-version=2019-06-01-preview"
+
+    $result = Invoke-RestMethod  -Uri $uri -Method PUT -Body $item -Headers @{ Authorization="Bearer $Token" } -ContentType "application/json"
+    
+    return $result
+}
+
+function Create-SparkNotebook {
+    
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $TemplatesPath,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $Name,
+
+    [parameter(Mandatory=$false)]
+    [String]
+    $TemplateFileName = "spark_notebook",
 
     [parameter(Mandatory=$true)]
     [String]
@@ -902,4 +945,5 @@ Export-ModuleMember -Function Execute-SQLQuery
 Export-ModuleMember -Function Execute-SQLScriptFile
 Export-ModuleMember -Function Wait-ForSQLQuery
 Export-ModuleMember -Function Create-SQLScript
+Export-ModuleMember -Function Create-SparkNotebook
 Export-ModuleMember -Function Assign-SynapseRole

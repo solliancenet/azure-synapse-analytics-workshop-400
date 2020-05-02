@@ -22,7 +22,7 @@
              "id":"/subscriptions/#SUBSCRIPTION_ID#/resourceGroups/#RESOURCE_GROUP_NAME#/providers/Microsoft.Synapse/workspaces/#WORKSPACE_NAME#/bigDataPools/#SPARK_POOL_NAME#",
              "name":"#SPARK_POOL_NAME#",
              "type":"Spark",
-             "endpoint":"https://asaworkspace176496.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/SparkPool01",
+             "endpoint":"https://#WORKSPACE_NAME#.dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/#SPARK_POOL_NAME#",
              "auth":{
                 "type":"AAD",
                 "authResource":"https://dev.azuresynapse.net"
@@ -38,23 +38,6 @@
           "sessionKeepAliveTimeout":60
        },
        "cells":[
-          {
-             "cell_type":"code",
-             "metadata":{
- 
-             },
-             "source":[
-                "import pip\n",
-                "display(pip.get_installed_distributions())"
-             ],
-             "attachments":{
- 
-             },
-             "outputs":[
- 
-             ],
-             "execution_count":null
-          }
        ]
     }
  }
