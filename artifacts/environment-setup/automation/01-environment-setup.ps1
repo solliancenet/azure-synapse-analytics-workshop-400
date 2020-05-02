@@ -238,12 +238,18 @@ foreach ($script in $scripts.Keys) {
 
 Write-Information "Scale down the $($sqlPoolName) SQL pool to DW1000c after baby MOADs import."
 
+$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
+                -Method POST -Body $ropcBodyManagement -ContentType "application/x-www-form-urlencoded"
+$managementToken = $result.access_token
 Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action scale -SKU DW1000c -Token $managementToken
 Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online -Token $managementToken
 
 
 Write-Information "Create linked service for SQL pool $($sqlPoolName) with user asa.sql.import01"
 
+$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
+                -Method POST -Body $ropcBodySynapse -ContentType "application/x-www-form-urlencoded"
+$synapseToken = $result.access_token
 $linkedServiceName = "$($sqlPoolName.ToLower())_import01"
 $result = Create-SQLPoolKeyVaultLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $linkedServiceName -DatabaseName $sqlPoolName `
                  -UserName "asa.sql.import01" -KeyVaultLinkedServiceName $keyVaultName -SecretName $keyVaultSQLUserSecretName -Token $synapseToken
@@ -295,23 +301,6 @@ foreach ($pipeline in $workloadPipelines.Keys) {
         $result = Create-Pipeline -PipelinesPath $pipelinesPath -WorkspaceName $workspaceName -Name $workloadPipelines[$pipeline] -FileName $pipeline -Parameters $params -Token $synapseToken
         Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 }
-
-
-Write-Information "Create SQL scripts for Lab 05"
-
-$sqlScripts = [ordered]@{
-        "Lab 05 - Exercise 3 - Column Level Security" = ".\artifacts\day-02\lab-05-security"
-        "Lab 05 - Exercise 3 - Dynamic Data Masking" = ".\artifacts\day-02\lab-05-security"
-        "Lab 05 - Exercise 3 - Row Level Security" = ".\artifacts\day-02\lab-05-security"
-}
-
-foreach ($sqlScriptName in $sqlScripts.Keys) {
-        $sqlScriptFileName = "$($sqlScripts[$sqlScriptName])\$($sqlScriptName).sql"
-        #Write-Information "Creating SQL script $($sqlScriptName) from $($sqlScriptFileName)"
-        #$result = Create-SQLScript -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $sqlScriptName -TemplateFileName "sql_script" -ScriptFileName $sqlScriptFileName -Token $synapseToken
-        #Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
-}
-
 
 
 #
@@ -369,6 +358,10 @@ Set-AzCosmosDBSqlContainer -ResourceGroupName $resourceGroupName `
         -Name $cosmosDbContainer -Throughput 400 `
         -PartitionKeyKind $container.Resource.PartitionKey.Kind `
         -PartitionKeyPath $container.Resource.PartitionKey.Paths
+
+$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
+        -Method POST -Body $ropcBodySynapse -ContentType "application/x-www-form-urlencoded"
+$synapseToken = $result.access_token
 
 $name = "Setup - Import User Profile Data into Cosmos DB"
 $result = Delete-ASAObject -WorkspaceName $workspaceName -Category "pipelines" -Name $name -Token $synapseToken
