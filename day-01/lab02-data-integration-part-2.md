@@ -672,24 +672,24 @@ The query results output includes the standard Table view, as well as a Chart vi
     - **Output stream name**: Enter `UserPreferredProducts`.
     - **Incoming stream**: Select `UserProfiles`.
     - **Unroll by**: Select `[] preferredProducts`.
-    - **Input columns**: Provide the following information:
+    - **Input columns**: Provide the following information. Be sure to **delete** `cartId` and `[] productReviews`:
 
         | UserProfiles's column | Name as |
         | --- | --- |
         | userId | `userId` |
-        | preferredProducts | `preferredProductId` |
+        | [] preferredProducts | `preferredProductId` |
 
     ![The flatten settings are configured as described.](media/data-flow-user-profiles-flatten2-settings.png "Flatten settings")
 
-21. Select **Data preview** and select **Refresh** to display the data. You should now see a flattened view of the data source with one or more rows per `userId`.
+    These settings provide a flattened view of the data source with one or more rows per `userId`. Using data preview requires you to enable Debug mode, which we are not enabling for this lab. *The following screenshot is for illustration only*:
 
     ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-flatten2-data-preview.png "Data preview")
 
-22. Now it is time to join the two data sources. Select the **+** to the right of the `DeriveProductColumns` step, then select the **Join** option from the context menu.
+21. Now it is time to join the two data sources. Select the **+** to the right of the `DeriveProductColumns` step, then select the **Join** option from the context menu.
 
     ![The plus sign and new Join menu item are highlighted.](media/data-flow-user-profiles-new-join.png "New Join")
 
-23. Under **Join settings**, configure the following:
+22. Under **Join settings**, configure the following:
 
     - **Output stream name**: Enter `JoinTopProductsWithPreferredProducts`.
     - **Left stream**: Select `DeriveProductColumns`.
@@ -703,9 +703,10 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The join settings are configured as described.](media/data-flow-user-profiles-join-settings.png "Join settings")
 
-24. Select **Optimize** and configure the following:
+23. Select **Optimize** and configure the following:
 
-    - **Broadcast**: Check `Left: 'DeriveProductColumns'`.
+    - **Broadcast**: Select `Fixed`.
+    - **Broadcast options**: Check `Left: 'DeriveProductColumns'`.
     - **Partition option**: Select `Set partitioning`.
     - **Partition type**: Select `Hash`.
     - **Number of partitions**: Enter `30`.
@@ -715,19 +716,19 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     <!-- **TODO**: Add optimization description. -->
 
-25. Select the **Inspect** tab to see the join mapping, including the column feed source and whether the column is used in a join.
+24. Select the **Inspect** tab to see the join mapping, including the column feed source and whether the column is used in a join.
 
     ![The inspect blade is displayed.](media/data-flow-user-profiles-join-inspect.png "Inspect")
 
-26. Select **Data preview** and select **Refresh** to display the data. In this small sample of data, likely the `userId` and `preferredProductId` columns will only show null values. If you want to get a sense of how many records contain values for these fields, select a column, such as `preferredProductId`, then select **Statistics** in the toolbar above. This displays a chart for the column showing the ratio of values.
+    **For illustrative purposes of data preview only:** Since we are not turning on data flow debugging, do not perform this step. In this small sample of data, likely the `userId` and `preferredProductId` columns will only show null values. If you want to get a sense of how many records contain values for these fields, select a column, such as `preferredProductId`, then select **Statistics** in the toolbar above. This displays a chart for the column showing the ratio of values.
 
     ![The data preview results are shown and the statistics for the preferredProductId column is displayed as a pie chart to the right.](media/data-flow-user-profiles-join-preview.png "Data preview")
 
-27. Select the **+** to the right of the `JoinTopProductsWithPreferredProducts` step, then select the **Derived Column** schema modifier from the context menu.
+25. Select the **+** to the right of the `JoinTopProductsWithPreferredProducts` step, then select the **Derived Column** schema modifier from the context menu.
 
     ![The plus sign and Derived Column schema modifier are highlighted.](media/data-flow-user-profiles-new-derived-column3.png "New Derived Column")
 
-28. Under **Derived column's settings**, configure the following:
+26. Under **Derived column's settings**, configure the following:
 
     - **Output stream name**: Enter `DerivedColumnsForMerge`.
     - **Incoming stream**: Select `JoinTopProductsWithPreferredProducts`.
@@ -742,15 +743,15 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The derived column's settings are configured as described.](media/data-flow-user-profiles-derived-column3-settings.png "Derived column's settings")
 
-29. Select **Data preview** and select **Refresh** to display the data and verify the derived column settings.
+    The derived column settings provide the following result:
 
     ![The data preview is displayed.](media/data-flow-user-profiles-derived-column3-preview.png "Data preview")
 
-30. Select the **+** to the right of the `DerivedColumnsForMerge` step, then select the **Sink** destination from the context menu.
+27. Select the **+** to the right of the `DerivedColumnsForMerge` step, then select the **Sink** destination from the context menu.
 
     ![The new Sink destination is highlighted.](media/data-flow-user-profiles-new-sink.png "New sink")
 
-31. Under **Sink**, configure the following:
+28. Under **Sink**, configure the following:
 
     - **Output stream name**: Enter `UserTopProductPurchasesASA`.
     - **Incoming stream**: Select `DerivedColumnsForMerge`.
@@ -759,7 +760,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The sink settings are shown.](media/data-flow-user-profiles-new-sink-settings.png "Sink settings")
 
-32. Select **Settings**, then configure the following:
+29. Select **Settings**, then configure the following:
 
     - **Update method**: Check `Allow insert` and leave the rest unchecked.
     - **Table action**: Select `Truncate table`.
@@ -767,7 +768,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The settings are shown.](media/data-flow-user-profiles-new-sink-settings-options.png "Settings")
 
-33. Select **Mapping**, then configure the following:
+30. Select **Mapping**, then configure the following:
 
     - **Auto mapping**: `Uncheck` this option.
     - **Columns**: Provide the following information:
@@ -775,18 +776,18 @@ The query results output includes the standard Table view, as well as a Chart vi
         | Input columns | Output columns |
         | --- | --- |
         | userId | UserId |
-        | productId | ProductId |
+        | DerivedColumnsForMerge@productId | ProductId |
         | itemsPurchasedLast12Months | ItemsPurchasedLast12Months |
         | isTopProduct | IsTopProduct |
         | isPreferredProduct | IsPreferredProduct |
 
     ![The mapping settings are configured as described.](media/data-flow-user-profiles-new-sink-settings-mapping.png "Mapping")
 
-34. Your completed data flow should look similar to the following:
+31. Your completed data flow should look similar to the following:
 
     ![The completed data flow is displayed.](media/data-flow-user-profiles-complete.png "Completed data flow")
 
-35. Select **Publish all** to save your new data flow.
+32. Select **Publish all** to save your new data flow.
 
     ![Publish all is highlighted.](media/publish-all-1.png "Publish all")
 
