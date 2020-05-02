@@ -300,7 +300,7 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
 
     ![The script link is highlighted above the canvas.](media/data-flow-script.png "Script")
 
-7. Replace the list of columns (`output`) with the following, then select **OK**:
+7. Replace the script with the following to provide the column mappings (`output`), then select **OK**:
 
     ```json
     source(output(
