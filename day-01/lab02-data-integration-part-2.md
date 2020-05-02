@@ -284,7 +284,7 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
 
     ![The form is configured with the defined settings.](media/data-flow-campaign-analysis-source-settings.png "Source settings")
 
-6. Select the **Projection** tab, then select **Import projection**.
+<!-- 6. Select the **Projection** tab, then select **Import projection**.
 
     ![The import projection button is highlighted in the projection tab.](media/data-flow-import-projection.png "Import projection")
 
@@ -294,11 +294,38 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
 
     The projection should display the following schema:
 
+    ![The imported projection is displayed.](media/data-flow-campaign-analysis-source-projection.png "Projection") -->
+
+6. When you create data flows, certain features are enabled by turning on debug, such as previewing data and importing a schema (projection). Due to the amount of time it takes to enable this option, as well as environmental constraints of the lab environment, we will bypass these features. The data source has a schema we need to set. To do this, select **Script** above the design canvas.
+
+    ![The script link is highlighted above the canvas.](media/data-flow-script.png "Script")
+
+7. Replace the list of columns (`output`) with the following, then select **OK**:
+
+    ```json
+            {_col0_} as string,
+            {_col1_} as string,
+            {_col2_} as string,
+            {_col3_} as string,
+            {_col4_} as string,
+            {_col5_} as double,
+            {_col6_} as string,
+            {_col7_} as double,
+            {_col8_} as string,
+            {_col9_} as string
+    ```
+
+    Your script should match the following:
+
+    ![The script columns are highlighted.](media/data-flow-script-columns.png "Script")
+
+<!-- 8. Select the **Data preview** tab, then select **Refresh** to display data from the CSV file. If you scroll to the right, you should see that the City and State columns are now included.
+
+    ![The data preview is displayed.](media/data-flow-campaign-analysis-source-preview.png "Data preview") -->
+
+8. Select the **CampaignAnalytics** data source, then select **Projection**. The projection should display the following schema:
+
     ![The imported projection is displayed.](media/data-flow-campaign-analysis-source-projection.png "Projection")
-
-8. Select the **Data preview** tab, then select **Refresh** to display data from the CSV file. If you scroll to the right, you should see that the City and State columns are now included.
-
-    ![The data preview is displayed.](media/data-flow-campaign-analysis-source-preview.png "Data preview")
 
 9. Select the **+** to the right of the `CampaignAnalytics` source, then select the **Select** schema modifier from the context menu.
 
@@ -340,15 +367,15 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
 
     ![The derived column's settings are displayed as described.](media/data-flow-campaign-analysis-derived-column-settings.png "Derived column's settings")
 
-13. Select **Data preview** and select **Refresh** to verify the expressions work as expected.
+<!-- 13. Select **Data preview** and select **Refresh** to verify the expressions work as expected.
 
-    ![The data preview is displayed.](media/data-flow-campaign-analysis-derived-column-preview.png "Data preview")
+    ![The data preview is displayed.](media/data-flow-campaign-analysis-derived-column-preview.png "Data preview") -->
 
-14. Select the **+** to the right of the `ConvertColumnTypesAndValues` step, then select the **Select** schema modifier from the context menu.
+13. Select the **+** to the right of the `ConvertColumnTypesAndValues` step, then select the **Select** schema modifier from the context menu.
 
     ![The new Select schema modifier is highlighted.](media/data-flow-campaign-analysis-new-select2.png "New Select schema modifier")
 
-15. Under **Select settings**, configure the following:
+14. Under **Select settings**, configure the following:
 
     - **Output stream name**: Enter `SelectCampaignAnalyticsColumns`.
     - **Incoming stream**: Select `ConvertColumnTypesAndValues`.
@@ -357,11 +384,11 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
 
     ![The select settings are displayed as described.](media/data-flow-campaign-analysis-select-settings2.png "Select settings")
 
-16. Select the **+** to the right of the `SelectCampaignAnalyticsColumns` step, then select the **Sink** destination from the context menu.
+15. Select the **+** to the right of the `SelectCampaignAnalyticsColumns` step, then select the **Sink** destination from the context menu.
 
     ![The new Sink destination is highlighted.](media/data-flow-campaign-analysis-new-sink.png "New sink")
 
-17. Under **Sink**, configure the following:
+16. Under **Sink**, configure the following:
 
     - **Output stream name**: Enter `CampaignAnalyticsASA`.
     - **Incoming stream**: Select `SelectCampaignAnalyticsColumns`.
@@ -370,7 +397,7 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
 
     ![The sink settings are shown.](media/data-flow-campaign-analysis-new-sink-settings.png "Sink settings")
 
-18. Select **Settings**, then configure the following:
+17. Select **Settings**, then configure the following:
 
     - **Update method**: Check `Allow insert` and leave the rest unchecked.
     - **Table action**: Select `Truncate table`.
@@ -378,11 +405,11 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
 
     ![The settings are shown.](media/data-flow-campaign-analysis-new-sink-settings-options.png "Settings")
 
-19. Your completed data flow should look similar to the following:
+18. Your completed data flow should look similar to the following:
 
     ![The completed data flow is displayed.](media/data-flow-campaign-analysis-complete.png "Completed data flow")
 
-20. Select **Publish all** to save your new data flow.
+19. Select **Publish all** to save your new data flow.
 
     ![Publish all is highlighted.](media/publish-all-1.png "Publish all")
 
