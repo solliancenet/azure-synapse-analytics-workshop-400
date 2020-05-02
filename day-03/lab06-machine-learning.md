@@ -37,11 +37,11 @@ Open the `Lab 06 - Machine Learning` notebook (located in the `Develop` hub, und
 
 Please note that each of these tasks will be addressed through several cells in the notebook.
 
-## Exercise 2 - Registering and using models in Syanpse Analytics
+## Exercise 2 - Registering and using models in Synapse Analytics
 
 ### Task 1 - Registering the models with Azure Synapse Analytics
 
-In this task, you will register the models in Azure Synapse Analytics so that they are availble for use from T-SQL. This task picks up where you left off, with the ONNX model being made available in Azure Storage. 
+In this task, you will register the models in Azure Synapse Analytics so that they are available for use from T-SQL. This task picks up where you left off, with the ONNX model being made available in Azure Storage. 
 
 1.  One step that is not shown by the notebook is an offline step that converts the ONNX model to hexadecimal. The resulting hex encoded model is also upload to Azure Storage. This conversion is currently performed with [this PowerShell script](./../artifacts/day-03/lab-06-machine-learning/convert-to-hex.ps1), but could be automated using any scripting platform.
 
@@ -153,4 +153,3 @@ In this task, you will author a T-SQL query that uses the previously trained mod
 5. View the results, notice that the `Prediction` column is the model's prediction of how many items of the kind represented by `StockItemKey` that the customer identified by `CustomerKey` will purchase.
 
    ![Viewing the prediction results in the query result pane](media/lab06-view-prediction-results.png "View prediction results")
-
