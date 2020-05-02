@@ -486,6 +486,31 @@ function Delete-ASAObject {
     return $result
 }
 
+function Get-ASAObject {
+    
+    param(
+   
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $Category,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $Name
+    )
+
+    $uri = "https://$($WorkspaceName).dev.azuresynapse.net/$($Category)/$($Name)?api-version=2019-06-01-preview"
+
+    Ensure-ValidTokens
+    $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $synapseToken" }
+    
+    return $result
+}
+
 function Control-SQLPool {
 
     param(
@@ -911,6 +936,7 @@ Export-ModuleMember -Function Wait-ForPipelineRun
 Export-ModuleMember -Function Get-OperationResult
 Export-ModuleMember -Function Wait-ForOperation
 Export-ModuleMember -Function Delete-ASAObject
+Export-ModuleMember -Function Get-ASAObject
 Export-ModuleMember -Function Control-SQLPool
 Export-ModuleMember -Function Get-SQLPool
 Export-ModuleMember -Function Wait-ForSQLPool
