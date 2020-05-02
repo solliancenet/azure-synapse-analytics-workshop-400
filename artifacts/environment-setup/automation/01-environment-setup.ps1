@@ -154,7 +154,7 @@ Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
 Write-Information "Create data sets for data load in SQL pool $($sqlPoolName)"
 
-$datasets = @{
+$loadingDatasets = @{
         wwi02_date_adls = $dataLakeAccountName
         wwi02_product_adls = $dataLakeAccountName
         wwi02_sale_small_adls = $dataLakeAccountName
@@ -163,26 +163,42 @@ $datasets = @{
         wwi02_sale_small_asa = "$($sqlPoolName.ToLower())_highperf"
 }
 
-foreach ($dataset in $datasets.Keys) {
+foreach ($dataset in $loadingDatasets.Keys) {
         Write-Information "Creating dataset $($dataset)"
-        $result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $dataset -LinkedServiceName $datasets[$dataset] -Token $synapseToken
+        $result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $dataset -LinkedServiceName $loadingDatasets[$dataset] -Token $synapseToken
         Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 }
 
-
-Write-Information "Create Setup - Load SQL Pool pipeline"
+Write-Information "Create pipeline to load the SQL pool"
 
 $params = @{
         BLOB_STORAGE_LINKED_SERVICE_NAME = $blobStorageAccountName
 }
-$name = "Setup - Load SQL Pool"
+$loadingPipelineName = "Setup - Load SQL Pool"
 $fileName = "load_sql_pool_from_data_lake"
-$result = Create-Pipeline -PipelinesPath $pipelinesPath -WorkspaceName $workspaceName -Name $name -FileName $fileName -Parameters $params -Token $synapseToken
+
+Write-Information "Creating pipeline $($loadingPipelineName)"
+
+$result = Create-Pipeline -PipelinesPath $pipelinesPath -WorkspaceName $workspaceName -Name $loadingPipelineName -FileName $fileName -Parameters $params -Token $synapseToken
 Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 
-$result = Run-Pipeline -WorkspaceName $workspaceName -Name $name -Token $synapseToken
+Write-Information "Running pipeline $($loadingPipelineName)"
+
+$result = Run-Pipeline -WorkspaceName $workspaceName -Name $loadingPipelineName -Token $synapseToken
 $result = Wait-ForPipelineRun -WorkspaceName $workspaceName -RunId $result.runId -Token $synapseToken
 $result
+
+Write-Information "Deleting pipeline $($loadingPipelineName)"
+
+$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "pipelines" -Name $loadingPipelineName -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+
+foreach ($dataset in $loadingDatasets.Keys) {
+        Write-Information "Deleting dataset $($dataset)"
+        $result = Delete-ASAObject -WorkspaceName $workspaceName -Category "datasets" -Name $dataset -Token $synapseToken
+        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+}
+
 
 Write-Information "Create tables in wwi_perf schema in SQL pool $($sqlPoolName)"
 
@@ -220,7 +236,59 @@ Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGrou
 Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online -Token $managementToken
 
 
+Write-Information "Create linked service for SQL pool $($sqlPoolName) with user asa.sql.import01"
 
+$linkedServiceName = "$($sqlPoolName.ToLower())_import01"
+$result = Create-SQLPoolKeyVaultLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $linkedServiceName -DatabaseName $sqlPoolName `
+                 -UserName "asa.sql.import01" -KeyVaultLinkedServiceName $keyVaultName -SecretName $keyVaultSQLUserSecretName -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+
+Write-Information "Create linked service for SQL pool $($sqlPoolName) with user asa.sql.workload01"
+
+$linkedServiceName = "$($sqlPoolName.ToLower())_workload01"
+$result = Create-SQLPoolKeyVaultLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $linkedServiceName -DatabaseName $sqlPoolName `
+                 -UserName "asa.sql.workload01" -KeyVaultLinkedServiceName $keyVaultName -SecretName $keyVaultSQLUserSecretName -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+
+Write-Information "Create linked service for SQL pool $($sqlPoolName) with user asa.sql.workload02"
+
+$linkedServiceName = "$($sqlPoolName.ToLower())_workload02"
+$result = Create-SQLPoolKeyVaultLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $linkedServiceName -DatabaseName $sqlPoolName `
+                 -UserName "asa.sql.workload02" -KeyVaultLinkedServiceName $keyVaultName -SecretName $keyVaultSQLUserSecretName -Token $synapseToken
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+
+
+Write-Information "Create data sets for Lab 08"
+
+# refresh the token, just in case
+$result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
+        -Method POST -Body $ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
+$synapseSQLToken = $result.access_token
+
+$datasets = @{
+        wwi02_sale_small_workload_01_asa = "$($sqlPoolName.ToLower())_workload01"
+        wwi02_sale_small_workload_02_asa = "$($sqlPoolName.ToLower())_workload02"
+}
+
+foreach ($dataset in $datasets.Keys) {
+        Write-Information "Creating dataset $($dataset)"
+        $result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $dataset -LinkedServiceName $datasets[$dataset] -Token $synapseToken
+        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+}
+
+Write-Information "Create pipelines for Lab 08"
+
+$params = @{}
+$workloadPipelines = [ordered]@{
+        execute_business_analyst_queries = "Lab 08 - Execute Business Analyst Queries"
+        execute_data_analyst_and_ceo_queries = "Lab 08 - Execute Data Analyst and CEO Queries"
+}
+
+foreach ($pipeline in $workloadPipelines.Keys) {
+        Write-Information "Creating workload pipeline $($workloadPipelines[$pipeline])"
+        $result = Create-Pipeline -PipelinesPath $pipelinesPath -WorkspaceName $workspaceName -Name $workloadPipelines[$pipeline] -FileName $pipeline -Parameters $params -Token $synapseToken
+        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+}
 
 
 
