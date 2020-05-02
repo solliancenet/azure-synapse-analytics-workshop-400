@@ -303,6 +303,7 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
 7. Replace the list of columns (`output`) with the following, then select **OK**:
 
     ```json
+    source(output(
             {_col0_} as string,
             {_col1_} as string,
             {_col2_} as string,
@@ -313,6 +314,10 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
             {_col7_} as double,
             {_col8_} as string,
             {_col9_} as string
+        ),
+        allowSchemaDrift: true,
+        validateSchema: false,
+        skipLines: 1) ~> CampaignAnalytics
     ```
 
     Your script should match the following:
