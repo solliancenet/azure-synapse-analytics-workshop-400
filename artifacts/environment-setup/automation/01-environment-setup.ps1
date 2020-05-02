@@ -290,7 +290,20 @@ foreach ($pipeline in $workloadPipelines.Keys) {
         Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
 }
 
+Write-Information "Create SQL scripts for Lab 05"
 
+$sqlScripts = [ordered]@{
+        "Lab 05 - Exercise 3 - Column Level Security" = ".\artifacts\day-02\lab-05-security"
+        "Lab 05 - Exercise 3 - Dynamic Data Masking" = ".\artifacts\day-02\lab-05-security"
+        "Lab 05 - Exercise 3 - Row Level Security" = ".\artifacts\day-02\lab-05-security"
+}
+
+foreach ($sqlScriptName in $sqlScripts.Keys) {
+        $sqlScriptFileName = "$($sqlScripts[$sqlScriptName])\$($sqlScriptName).sql"
+        Write-Information "Creating SQL script $($sqlScriptName) from $($sqlScriptFileName)"
+        $result = Create-SQLScript -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $sqlScriptName -TemplateFileName "sql_script" -ScriptFileName $sqlScriptFileName -Token $synapseToken
+        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+}
 
 
 
