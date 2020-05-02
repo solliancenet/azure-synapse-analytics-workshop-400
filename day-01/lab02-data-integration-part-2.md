@@ -447,15 +447,21 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
 ### Task 3: Run the campaign analytics data pipeline
 
-1. Select **Debug** in the toolbar at the top of the pipeline canvas to start running the pipeline in debug mode.
+1. Select **Add trigger**, and then select **Trigger now** in the toolbar at the top of the pipeline canvas.
 
-    ![The debug button is highlighted.](media/pipeline-debug.png "Debug pipeline")
+    ![The add trigger button is highlighted.](media/pipeline-trigger.png "Pipeline trigger")
 
-2. The pipeline run displays below the pipeline canvas when you execute the debug session. Wait for the **Status** to change to `Succeeded`. You may need to refresh the view a few times.
+2. In the `Pipeline run` blade, select **OK** to start the pipeline run.
 
-    ![The debug status shows as succeeded.](media/pipeline-campaign-analysis-debug-succeeded.png "Debug succeeded")
+    ![The pipeline run blade is displayed.](media/pipeline-trigger-run.png "Pipeline run")
 
-> Please note, if this is the first time you have executed a pipeline after turning on debugging, it will take longer for this initial run to complete (~6 minutes). Each subsequent run will be much shorter since the cluster provisioning step only needs to happen once (~1:20).
+3. Navigate to the **Monitor** hub.
+
+    ![The Monitor hub menu item is selected.](media/monitor-hub.png "Monitor hub")
+
+4. Wait for the pipeline run to successfully complete. You may need to refresh the view.
+
+    ![The pipeline run succeeded.](media/pipeline-user-profiles-run-complete.png "Pipeline runs")
 
 ### Task 4: View campaign analytics table contents
 
