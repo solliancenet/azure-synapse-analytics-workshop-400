@@ -564,15 +564,15 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The source options are configured as described.](media/data-flow-user-profiles-source-options.png "Source options")
 
-7. Select **Data preview** and select **Refresh** to display the data. Select a row under the `topProductPurchases` column to see an expanded view of the array.
+<!-- 7. Select **Data preview** and select **Refresh** to display the data. Select a row under the `topProductPurchases` column to see an expanded view of the array.
 
-    ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-data-preview.png "Data preview")
+    ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-data-preview.png "Data preview") -->
 
-8. Select the **+** to the right of the `CampaignAnalytics` source, then select the **Derived Column** schema modifier from the context menu.
+7. Select the **+** to the right of the `CampaignAnalytics` source, then select the **Derived Column** schema modifier from the context menu.
 
     ![The plus sign and Derived Column schema modifier are highlighted.](media/data-flow-user-profiles-new-derived-column.png "New Derived Column")
 
-9. Under **Derived column's settings**, configure the following:
+8. Under **Derived column's settings**, configure the following:
 
     - **Output stream name**: Enter `userId`.
     - **Incoming stream**: Select `EcommerceUserProfiles`.
@@ -584,11 +584,11 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The derived column's settings are configured as described.](media/data-flow-user-profiles-derived-column-settings.png "Derived column's settings")
 
-10. Select the **+** to the right of the `userId` step, then select the **Flatten** schema modifier from the context menu.
+9. Select the **+** to the right of the `userId` step, then select the **Flatten** schema modifier from the context menu.
 
     ![The plus sign and the Flatten schema modifier are highlighted.](media/data-flow-user-profiles-new-flatten.png "New Flatten schema modifier")
 
-11. Under **Flatten settings**, configure the following:
+10. Under **Flatten settings**, configure the following:
 
     - **Output stream name**: Enter `UserTopProducts`.
     - **Incoming stream**: Select `userId`.
@@ -603,15 +603,15 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The flatten settings are configured as described.](media/data-flow-user-profiles-flatten-settings.png "Flatten settings")
 
-12. Select **Data preview** and select **Refresh** to display the data. You should now see a flattened view of the data source with one or more rows per `visitorId`, similar to when you explored the data within the Spark notebook in lab 1.
+    These settings provide a flattened view of the data source with one or more rows per `visitorId`, similar to when you explored the data within the Spark notebook in lab 1. Using data preview requires you to enable Debug mode, which we are not enabling for this lab. *The following screenshot is for illustration only*:
 
     ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-flatten-data-preview.png "Data preview")
 
-13. Select the **+** to the right of the `UserTopProducts` step, then select the **Derived Column** schema modifier from the context menu.
+11. Select the **+** to the right of the `UserTopProducts` step, then select the **Derived Column** schema modifier from the context menu.
 
     ![The plus sign and Derived Column schema modifier are highlighted.](media/data-flow-user-profiles-new-derived-column2.png "New Derived Column")
 
-14. Under **Derived column's settings**, configure the following:
+12. Under **Derived column's settings**, configure the following:
 
     - **Output stream name**: Enter `DeriveProductColumns`.
     - **Incoming stream**: Select `UserTopProducts`.
@@ -624,22 +624,42 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The derived column's settings are configured as described.](media/data-flow-user-profiles-derived-column2-settings.png "Derived column's settings")
 
-15. Select **Add Source** on the data flow canvas beneath the `EcommerceUserProfiles` source.
+13. Select **Add Source** on the data flow canvas beneath the `EcommerceUserProfiles` source.
 
     ![Select Add Source on the data flow canvas.](media/data-flow-user-profiles-add-source.png "Add Source")
 
-16. Under **Source settings**, configure the following:
+14. Under **Source settings**, configure the following:
 
     - **Output stream name**: Enter `UserProfiles`.
     - **Dataset**: Select `asal400_customerprofile_cosmosdb`.
 
     ![The source settings are configured as described.](media/data-flow-user-profiles-source2-settings.png "Source settings")
 
-17. Select **Projection** and inspect the inferred schema. If the `preferredProducts` type is not identified as an integer array (`[] integer`), select **Import projection**.
+15. Since we are not using the data flow debugger, we need to enter the data flow's Script view to update the source projection. Select **Script** in the toolbar above the canvas.
 
-    ![The import projection button and preferredProducts row are highlighted.](media/data-flow-user-profiles-source2-projection.png "Projection")
+    ![The Script link is highlighted above the canvas.](media/data-flow-user-profiles-script-link.png "Data flow canvas")
 
-18. Select **Data preview** and select **Refresh** to display the data. Select a row under the `preferredProducts` column to see an expanded view of the array.
+16. Locate the **UserProfiles** `source` in the script and replace its script block with the following to set `preferredProducts` as an `integer[]` array and ensure the data types within the `productReviews` array are correctly defined:
+
+    ```json
+    source(output(
+            cartId as string,
+            preferredProducts as integer[],
+            productReviews as (productId as integer, reviewDate as string, reviewText as string)[],
+            userId as integer
+        ),
+        allowSchemaDrift: true,
+        validateSchema: false,
+        format: 'document') ~> UserProfiles
+    ```
+
+    ![The script view is displayed.](media/data-flow-user-profiles-script.png "Script view")
+
+<!-- 15. Select **Projection** and inspect the inferred schema. If the `preferredProducts` type is not identified as an integer array (`[] integer`), select **Import projection**.
+
+    ![The import projection button and preferredProducts row are highlighted.](media/data-flow-user-profiles-source2-projection.png "Projection") -->
+
+17. Select **OK** to apply the script changes. The data source has now been updated with the new schema. The following screenshot shows what the source data looks like if you are able to view it with the data preview option. Using data preview requires you to enable Debug mode, which we are not enabling for this lab. *The following screenshot is for illustration only*:
 
     ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-data-preview2.png "Data preview")
 
