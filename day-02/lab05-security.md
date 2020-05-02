@@ -142,9 +142,9 @@ It is recommended to store any secrets that are part of your pipeline in Azure K
 
 11. Select the **Set variable1** activity and select the **Variables** tab. Fill out the form as follows:
 
-    1. **Name**: Select **SecretValue** (the variable that we just created on our pipeline).
+    1. **Name**: Select `SecretValue` (the variable that we just created on our pipeline).
 
-    2. **Value**: Enter  **@activity('Web1').output.value**
+    2. **Value**: Enter `@activity('Web1').output.value`
 
     ![On the pipeline designer, the Set Variable1 activity is selected. Below the designer, the Variables tab is selected with the form set the previously specified values.](media/lab5_pipelineconfigsetvaractivity.png)
 
