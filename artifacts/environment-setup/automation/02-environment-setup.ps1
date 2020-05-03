@@ -59,13 +59,23 @@ $global:tokenTimes = [ordered]@{
         Management = (Get-Date -Year 1)
 }
 
+Write-Information "Creating Spark notebooks..."
 
-$notebookName = "Setup - Probe"
-$notebookFileName = ".\artifacts\environment-setup\notebooks\Setup - Probe.ipynb"
+$notebooks = [ordered]@{
+        "Setup - Probe" = ".\artifacts\environment-setup\notebooks\Setup - Probe.ipynb"
+        "Activity 05 - Model Training" = ".\artifacts\day-03\Activity 05 - Model Training.ipynb"
+        "Lab 06 - Machine Learning" = ".\artifacts\day-03\lab-06-machine-learning\Lab 06 - Machine Learning.ipynb"
+        "Lab 07 - Spark ML" = ".\artifacts\day-03\lab-07-spark-ml\Lab 07 - Spark ML.ipynb"
+}
 
-$result = Create-SparkNotebook -TemplatesPath $templatesPath -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName `
-                -WorkspaceName $workspaceName -SparkPoolName $sparkPoolName -Name $notebookName -NotebookFileName $notebookFileName
-$result = Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
+foreach ($notebookName in $notebooks.Keys) {
+        Write-Information "Creating notebook $($notebookName)"
+        
+        $result = Create-SparkNotebook -TemplatesPath $templatesPath -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName `
+                -WorkspaceName $workspaceName -SparkPoolName $sparkPoolName -Name $notebookName -NotebookFileName $notebooks[$notebookName]
+        $result = Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
+        $result
+}
 
 $result = Start-SparkNotebookSession -TemplatesPath $templatesPath -WorkspaceName $workspaceName -SparkPoolName $sparkPoolName -NotebookName $notebookName
 $result2 = Get-SparkNotebookSession -WorkspaceName $workspaceName -SparkPoolName $sparkPoolName -SessionId $result.id
