@@ -55,7 +55,25 @@ In this task, you will register the models in Azure Synapse Analytics so that th
 
 ``` sql
 -- Use polybase to load model into the model table
-CREATE MASTER KEY ENCRYPTION BY PASSWORD = 'fQv2fKq#FN7ra'
+IF NOT EXISTS(SELECT * FROM sys.symmetric_keys WHERE symmetric_key_id = 101)
+    CREATE MASTER KEY ENCRYPTION BY PASSWORD = 'fQv2fKq#FN7ra'
+
+-- Cleanup
+IF EXISTS (select * from sys.external_tables where object_id = OBJECT_ID('[wwi_ml].[MLModelExt]'))
+    DROP EXTERNAL TABLE [wwi_ml].[MLModelExt];
+GO
+IF EXISTS(select * from sys.external_file_formats where name = 'csv')
+    DROP EXTERNAL FILE FORMAT csv;
+GO
+IF EXISTS(select * from sys.external_data_sources where name = 'ModelStorage')
+    DROP EXTERNAL DATA SOURCE ModelStorage;
+GO
+IF EXISTS(select * from sys.database_scoped_credentials where name = 'StorageCredential')
+    DROP DATABASE SCOPED CREDENTIAL StorageCredential;
+GO
+IF EXISTS (select * from sys.tables where object_id = OBJECT_ID('[wwi_ml].[MLModel]'))
+    DROP TABLE [wwi_ml].[MLModel];
+GO
 
 -- Create a database scoped credential with Azure storage account key (not a Shared Access Signature) as the secret. 
 -- Replace <blob_storage_account_key> with your storage account key.
