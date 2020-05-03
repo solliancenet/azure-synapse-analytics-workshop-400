@@ -577,6 +577,7 @@ PolyBase requires the following elements:
     GO
 
     CREATE SCHEMA [external];
+    GO
 
     CREATE EXTERNAL TABLE [external].Sales
         (
