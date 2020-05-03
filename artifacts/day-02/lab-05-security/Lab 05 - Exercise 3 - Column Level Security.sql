@@ -14,7 +14,7 @@
         A CEO, who is an authorized  personnel with access to all the information in the database
         and a Data Analyst, to whom only required information should be presented.*/
 
-    -- Step:2 Verify the existence of the “CEO” and “DataAnalystMiami” users in the Datawarehouse.
+    -- Step:2 Verify the existence of the 'CEO' and 'DataAnalystMiami' users in the Datawarehouse.
     SELECT Name as [User1] FROM sys.sysusers WHERE name = N'CEO';
     SELECT Name as [User2] FROM sys.sysusers WHERE name = N'DataAnalystMiami';
 
