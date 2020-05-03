@@ -78,7 +78,15 @@ $asaArtifacts = [ordered]@{
                 Category = "pipelines"
                 Valid = $false
         }
-        "Setup - Probe" = @{
+        "Lab 06 - Machine Learning" = @{
+                Category = "notebooks"
+                Valid = $false
+        }
+        "Lab 07 - Spark ML" = @{
+                Category = "notebooks"
+                Valid = $false
+        }
+        "Activity 05 - Model Training" = @{
                 Category = "notebooks"
                 Valid = $false
         }
