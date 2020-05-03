@@ -66,7 +66,7 @@ $session = Start-SparkNotebookSession -TemplatesPath $templatesPath -WorkspaceNa
 $result2 = Wait-ForSparkNotebookSession -WorkspaceName $workspaceName -SparkPoolName $sparkPoolName -SessionId $session.id
 $result2
 
-for ($i = 0; $i -lt 50; $i++) {
+for ($i = 0; $i -lt 60; $i++) {
 
         Write-Information "Sending simple statement to keep session alive..."
 
@@ -75,6 +75,7 @@ for ($i = 0; $i -lt 50; $i++) {
         $result2 = Wait-ForSparkNotebookSessionStatement -WorkspaceName $workspaceName -SparkPoolName $sparkPoolName -SessionId $session.id -StatementId $statement.id
         $result2
 
-        Start-Sleep -Seconds 10
+        Start-Sleep -Seconds 15
 }
 
+Delete-SparkNotebookSession -WorkspaceName $workspaceName -SparkPoolName $sparkPoolName -SessionId $session.id

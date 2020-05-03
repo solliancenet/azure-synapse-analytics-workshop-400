@@ -972,6 +972,29 @@ function Wait-ForSparkNotebookSession {
     return $result
 }
 
+function Delete-SparkNotebookSession {
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $SparkPoolName,
+
+    [parameter(Mandatory=$true)]
+    [int]
+    $SessionId
+    )
+
+    $uri = "https://$($WorkspaceName).dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/$($SparkPoolName)/sessions/$($SessionId)"
+
+    Ensure-ValidTokens
+    $result = Invoke-RestMethod  -Uri $uri -Method DELETE -Headers @{ Authorization="Bearer $synapseToken" } -ContentType "application/json"
+    
+    return $result
+}
+
 function Start-SparkNotebookSessionStatement {
 
     param(
@@ -1164,6 +1187,7 @@ Export-ModuleMember -Function Create-SparkNotebook
 Export-ModuleMember -Function Start-SparkNotebookSession
 Export-ModuleMember -Function Get-SparkNotebookSession
 Export-ModuleMember -Function Wait-ForSparkNotebookSession
+Export-ModuleMember -Function Delete-SparkNotebookSession
 Export-ModuleMember -Function Start-SparkNotebookSessionStatement
 Export-ModuleMember -Function Get-SparkNotebookSessionStatement
 Export-ModuleMember -Function Wait-ForSparkNotebookSessionStatement
