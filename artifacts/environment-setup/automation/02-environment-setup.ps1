@@ -91,8 +91,9 @@ Write-Information "Create SQL scripts for Lab 05"
 
 $sqlScripts = [ordered]@{
         "Lab 05 - Exercise 3 - Column Level Security" = ".\artifacts\day-02\lab-05-security"
-        #"Lab 05 - Exercise 3 - Dynamic Data Masking" = ".\artifacts\day-02\lab-05-security"
-        #"Lab 05 - Exercise 3 - Row Level Security" = ".\artifacts\day-02\lab-05-security"
+        "Lab 05 - Exercise 3 - Dynamic Data Masking" = ".\artifacts\day-02\lab-05-security"
+        "Lab 05 - Exercise 3 - Row Level Security" = ".\artifacts\day-02\lab-05-security"
+        "Activity 03 - Data Warehouse Optimization" = ".\artifacts\day-02"
 }
 
 foreach ($sqlScriptName in $sqlScripts.Keys) {
@@ -104,18 +105,3 @@ foreach ($sqlScriptName in $sqlScripts.Keys) {
         $result = Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
         $result
 }
-
-
-
-
-
-$ScriptFileName = ".\artifacts\day-02\lab-05-security\Lab 05 - Exercise 3 - Column Level Security.sql"
-$query = Get-Content -Raw -Path $ScriptFileName -Encoding utf8
-$query = (ConvertFrom-Json $query)
-
-$query.value
-
-$query.Contains([System.Environment]::NewLine)
-
-
-ConvertTo-Json ("abc"  + [System.Environment]::NewLine)
