@@ -43,7 +43,7 @@ Please note that each of these tasks will be addressed through several cells in 
 
 In this task, you will register the models in Azure Synapse Analytics so that they are available for use from T-SQL. This task picks up where you left off, with the ONNX model being made available in Azure Storage. 
 
-1.  One step that is not shown by the notebook is an offline step that converts the ONNX model to hexadecimal. The resulting hex encoded model is also upload to Azure Storage. This conversion is currently performed with [this PowerShell script](./../artifacts/day-03/lab-06-machine-learning/convert-to-hex.ps1), but could be automated using any scripting platform.
+1.  One step that is not shown by the notebook is an offline step that converts the ONNX model to hexadecimal. The resulting hex encoded model is also upload to Azure Storage. This conversion is currently performed with [this PowerShell script](https://github.com/solliancenet/azure-synapse-analytics-workshop-400/raw/master/artifacts/day-03/lab-06-machine-learning/convert-to-hex.ps1), but could be automated using any scripting platform.
 
 2. Open Synapse Analytics Studio, and then navigate to the `Data` hub.
 
