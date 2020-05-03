@@ -78,6 +78,10 @@ $asaArtifacts = [ordered]@{
                 Category = "pipelines"
                 Valid = $false
         }
+        "Setup - Probe" = @{
+                Category = "notebooks"
+                Valid = $false
+        }
 }
 
 foreach ($asaArtifactName in $asaArtifacts.Keys) {
