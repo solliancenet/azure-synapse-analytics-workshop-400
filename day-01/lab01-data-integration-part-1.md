@@ -482,7 +482,7 @@ You will also create a new `Sale` clustered columnstore table within the `wwi_st
 4. In the query window, replace the script with the following to create the `wwi_staging` schema:
 
     ```sql
-    CREATE SCHEMA [external]
+    CREATE SCHEMA [wwi_staging]
     ```
 
 5. Select **Run** from the toolbar menu to execute the SQL command.
@@ -557,9 +557,9 @@ PolyBase requires the following elements:
 
     ```sql
     -- Replace <PrimaryStorage> with the workspace default storage account name.
-    CREATE EXTERNAL DATA SOURCE ABSS 
-    WITH 
-    ( TYPE = HADOOP, 
+    CREATE EXTERNAL DATA SOURCE ABSS
+    WITH
+    ( TYPE = HADOOP,
         LOCATION = 'abfss://wwi-02@<PrimaryStorage>.dfs.core.windows.net'
     );
     ```
@@ -569,11 +569,14 @@ PolyBase requires the following elements:
 3. In the query window, replace the script with the following to create the external file format and external data table. Notice that we defined `TransactionId` as an `nvarchar(36)` field instead of `uniqueidentifier`. This is because external tables do not currently support `uniqueidentifier` columns:
 
     ```sql
-    CREATE EXTERNAL FILE FORMAT [ParquetFormat] 
+    CREATE EXTERNAL FILE FORMAT [ParquetFormat]
     WITH (
         FORMAT_TYPE = PARQUET, 
         DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'
     )
+    GO
+
+    CREATE SCHEMA [external];
     GO
 
     CREATE EXTERNAL TABLE [external].Sales
