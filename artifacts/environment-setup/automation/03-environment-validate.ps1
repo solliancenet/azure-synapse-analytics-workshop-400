@@ -70,10 +70,6 @@ $asaArtifacts = [ordered]@{
                 Category = "datasets"
                 Valid = $false
         }
-        "asal400_customer_profile_cosmosdb" = @{ 
-                Category = "datasets"
-                Valid = $false
-        }
         "Lab 08 - Execute Business Analyst Queries" = @{
                 Category = "pipelines"
                 Valid = $false
