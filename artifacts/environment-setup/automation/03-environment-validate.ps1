@@ -58,21 +58,75 @@ $global:tokenTimes = [ordered]@{
         Management = (Get-Date -Year 1)
 }
 
+$asaArtifacts = [ordered]@{
 
-
-
-
-Write-Information "Create SQL scripts for Lab 05"
-
-$sqlScripts = [ordered]@{
-        "Lab 05 - Exercise 3 - Column Level Security" = ".\artifacts\day-02\lab-05-security"
-        "Lab 05 - Exercise 3 - Dynamic Data Masking" = ".\artifacts\day-02\lab-05-security"
-        "Lab 05 - Exercise 3 - Row Level Security" = ".\artifacts\day-02\lab-05-security"
+        "wwi02_sale_small_workload_01_asa" = @{ 
+                Category = "datasets"
+                Valid = $false
+        }
+        "wwi02_sale_small_workload_02_asa" = @{ 
+                Category = "datasets"
+                Valid = $false
+         }
+         "Lab 08 - Execute Business Analyst Queries" = @{
+                Category = "pipelines"
+                Valid = $false
+        }
 }
 
-foreach ($sqlScriptName in $sqlScripts.Keys) {
-        $sqlScriptFileName = "$($sqlScripts[$sqlScriptName])\$($sqlScriptName).sql"
-        #Write-Information "Creating SQL script $($sqlScriptName) from $($sqlScriptFileName)"
-        #$result = Create-SQLScript -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $sqlScriptName -TemplateFileName "sql_script" -ScriptFileName $sqlScriptFileName -Token $synapseToken
-        #Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+foreach ($asaArtifactName in $asaArtifacts.Keys) {
+        try {
+                Write-Information "Checking $($asaArtifactName) in $($asaArtifacts[$asaArtifactName]["Category"])"
+                $result = Get-ASAObject -WorkspaceName $workspaceName -Category $asaArtifacts[$asaArtifactName]["Category"] -Name $asaArtifactName
+                $asaArtifacts[$asaArtifactName]["Valid"] = $true
+                Write-Information "OK"
+        }
+        catch { 
+                Write-Information "Not found!"
+        }
 }
+
+# the $asaArtifacts contains the current status of the workspace
+
+$tables = [ordered]@{
+        "wwi_perf.Sale_Index" = @{
+                Count = 2903451490
+                Valid = $false
+                ValidCount = $false
+        }
+}
+
+$query = @"
+SELECT
+        S.name as SchemaName
+        ,T.name as TableName
+FROM
+        sys.tables T
+        join sys.schemas S on
+                T.schema_id = S.schema_id
+"@
+$result = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $query
+
+
+foreach ($dataRow in $result.data) {
+        $schemaName = $dataRow[0]
+        $tableName = $dataRow[1]
+
+        $fullName = "$($schemaName).$($tableName)"
+
+        if ($tables[$fullName]) {
+                
+                $tables[$fullName]["Valid"] = $true
+
+                Write-Information "Counting table $($fullName)..."
+
+                $countQuery = "select count_big(*) from $($fullName)"
+                $countResult = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $countQuery
+
+                if ($countResult[0][0] -eq $tables[$fullName]["Count"]) {
+                        $tables[$fullName]["ValidCount"] = $true
+                }
+        }
+}
+
+# $tables contains the current status of the necessary tables
