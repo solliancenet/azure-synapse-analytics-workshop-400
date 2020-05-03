@@ -66,9 +66,15 @@ $session = Start-SparkNotebookSession -TemplatesPath $templatesPath -WorkspaceNa
 $result2 = Wait-ForSparkNotebookSession -WorkspaceName $workspaceName -SparkPoolName $sparkPoolName -SessionId $session.id
 $result2
 
-$pySparkStatement = "{'code':'1 + 1','kind':'pyspark'}"
-$statement = Start-SparkNotebookSessionStatement -WorkspaceName $workspaceName -SparkPoolName $sparkPoolName -SessionId $session.id -Statement $pySparkStatement
-$result2 = Wait-ForSparkNotebookSessionStatement -WorkspaceName $workspaceName -SparkPoolName $sparkPoolName -SessionId $session.id -StatementId $statement.id
-$result2
+for ($i = 0; $i -lt 50; $i++) {
 
-$result2.output.data
+        Write-Information "Sending simple statement to keep session alive..."
+
+        $pySparkStatement = "{'code':'1 + 1','kind':'pyspark'}"
+        $statement = Start-SparkNotebookSessionStatement -WorkspaceName $workspaceName -SparkPoolName $sparkPoolName -SessionId $session.id -Statement $pySparkStatement
+        $result2 = Wait-ForSparkNotebookSessionStatement -WorkspaceName $workspaceName -SparkPoolName $sparkPoolName -SessionId $session.id -StatementId $statement.id
+        $result2
+
+        Start-Sleep -Seconds 10
+}
+
