@@ -41,6 +41,7 @@ $keyVaultName = "asakeyvault$($uniqueId)"
 $keyVaultSQLUserSecretName = "SQL-USER-ASA"
 $sqlPoolName = "SQLPool01"
 $integrationRuntimeName = "AzureIntegrationRuntime01"
+$sparkPoolName = "SparkPool01"
 
 
 $ropcBodyCore = "client_id=$($clientId)&username=$($userName)&password=$($password)&grant_type=password"
@@ -59,8 +60,16 @@ $global:tokenTimes = [ordered]@{
 }
 
 
+$notebookName = "Setup - Probe"
+$notebookFileName = ".\artifacts\environment-setup\notebooks\Setup - Probe.ipynb"
 
+$result = Create-SparkNotebook -TemplatesPath $templatesPath -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName `
+                -WorkspaceName $workspaceName -SparkPoolName $sparkPoolName -Name $notebookName -NotebookFileName $notebookFileName
+$result = Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
+$result = Start-SparkNotebookSession -TemplatesPath $templatesPath -WorkspaceName $workspaceName -SparkPoolName $sparkPoolName -NotebookName $notebookName
+$result2 = Get-SparkNotebookSession -WorkspaceName $workspaceName -SparkPoolName $sparkPoolName -SessionId $result.id
+$result2
 
 Write-Information "Create SQL scripts for Lab 05"
 

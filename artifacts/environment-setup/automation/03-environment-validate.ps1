@@ -67,8 +67,16 @@ $asaArtifacts = [ordered]@{
         "wwi02_sale_small_workload_02_asa" = @{ 
                 Category = "datasets"
                 Valid = $false
-         }
-         "Lab 08 - Execute Business Analyst Queries" = @{
+        }
+        "asal400_customer_profile_cosmosdb" = @{ 
+                Category = "datasets"
+                Valid = $false
+        }
+        "Lab 08 - Execute Business Analyst Queries" = @{
+                Category = "pipelines"
+                Valid = $false
+        }
+        "Lab 08 - Execute Data Analyst and CEO Queries" = @{
                 Category = "pipelines"
                 Valid = $false
         }
@@ -89,8 +97,58 @@ foreach ($asaArtifactName in $asaArtifacts.Keys) {
 # the $asaArtifacts contains the current status of the workspace
 
 $tables = [ordered]@{
+        "wwi.Date" = @{
+                Count = 3652
+                Valid = $false
+                ValidCount = $false
+        }
+        "wwi.Product" = @{
+                Count = 5000
+                Valid = $false
+                ValidCount = $false
+        }
+        "wwi.SaleSmall" = @{
+                Count = 2903451490
+                Valid = $false
+                ValidCount = $false
+        }
+        "wwi_perf.Sale_Hash_Ordered" = @{
+                Count = 2903451490
+                Valid = $false
+                ValidCount = $false
+        }
+        "wwi_perf.Sale_Heap" = @{
+                Count = 2903451490
+                Valid = $false
+                ValidCount = $false
+        }
         "wwi_perf.Sale_Index" = @{
                 Count = 2903451490
+                Valid = $false
+                ValidCount = $false
+        }
+        "wwi_perf.Sale_Partition01" = @{
+                Count = 2903451490
+                Valid = $false
+                ValidCount = $false
+        }
+        "wwi_perf.Sale_Partition02" = @{
+                Count = 2903451490
+                Valid = $false
+                ValidCount = $false
+        }
+        "wwi_security.CustomerInfo" = @{
+                Count = 110
+                Valid = $false
+                ValidCount = $false
+        }
+        "wwi_security.Sale" = @{
+                Count = 52
+                Valid = $false
+                ValidCount = $false
+        }
+        "wwi_ml.MLModelExt" = @{
+                Count = 0
                 Valid = $false
                 ValidCount = $false
         }
