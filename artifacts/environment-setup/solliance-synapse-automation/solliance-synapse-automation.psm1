@@ -815,7 +815,19 @@ function Create-SparkNotebook {
 
     [parameter(Mandatory=$true)]
     [String]
+    $SubscriptionId,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $ResourceGroupName,
+
+    [parameter(Mandatory=$true)]
+    [String]
     $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $SparkPoolName,
 
     [parameter(Mandatory=$true)]
     [String]
@@ -827,21 +839,91 @@ function Create-SparkNotebook {
 
     [parameter(Mandatory=$true)]
     [String]
-    $ScriptFileName
+    $NotebookFileName
     )
 
+
     $item = Get-Content -Raw -Path "$($TemplatesPath)/$($TemplateFileName).json"
-    $query = Get-Content -Raw -Path $ScriptFileName -Encoding utf8
-    $query = (ConvertTo-Json $query.ToString())
+    $params = @{
+        "#NOTEBOOK_NAME#" = $Name
+        "#SPARK_POOL_NAME#" = $SparkPoolName
+        "#SUBSCRIPTION_ID#" = $SubscriptionId
+        "#RESOURCE_GROUP_NAME#" = $ResourceGroupName
+        "#WORKSPACE_NAME#" = $WorkspaceName
+    }
+    foreach ($paramName in $params.Keys) {
+        $item = $item.Replace($paramName, $params[$paramName])
+    }
+    $jsonItem = ConvertFrom-Json $item
+    
+    $notebook = Get-Content -Raw -Path $NotebookFileName
+    $jsonNotebook = ConvertFrom-Json $notebook
+    
+    $jsonItem.properties.cells = $jsonNotebook.cells
+    
+    $item = ConvertTo-Json $jsonItem -Depth 100
 
-    $item = $item.Replace("#SQL_SCRIPT_NAME#", $Name).Replace("#SQL_SCRIPT_QUERY#", $query)
-
-    Write-Information $item
-
-    $uri = "https://$($WorkspaceName).dev.azuresynapse.net/sqlscripts/$($Name)?api-version=2019-06-01-preview"
+    $uri = "https://$($WorkspaceName).dev.azuresynapse.net/notebooks/$($Name)?api-version=2019-06-01-preview"
 
     Ensure-ValidTokens
     $result = Invoke-RestMethod  -Uri $uri -Method PUT -Body $item -Headers @{ Authorization="Bearer $synapseToken" } -ContentType "application/json"
+    
+    return $result
+}
+
+function Start-SparkNotebookSession {
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $TemplatesPath,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $SparkPoolName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $NotebookName,
+
+    [parameter(Mandatory=$false)]
+    [String]
+    $TemplateFileName = "spark_notebook_session"
+    )
+    
+    $item = Get-Content -Raw -Path "$($TemplatesPath)/$($TemplateFileName).json"
+    $item = $item.Replace("#SPARK_SESSION_NAME#", "$($NotebookName)_$($SparkPoolName)_1111111111111")
+
+    $uri = "https://$($WorkspaceName).dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/$($SparkPoolName)/sessions"
+
+    Ensure-ValidTokens
+    $result = Invoke-RestMethod  -Uri $uri -Method POST -Body $item -Headers @{ Authorization="Bearer $synapseToken" } -ContentType "application/json"
+    
+    return $result
+}
+
+function Get-SparkNotebookSession {
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $SparkPoolName,
+
+    [parameter(Mandatory=$true)]
+    [int]
+    $SessionId
+    )
+
+    $uri = "https://$($WorkspaceName).dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/$($SparkPoolName)/sessions/$($SessionId)?detailed=true"
+
+    Ensure-ValidTokens
+    $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $synapseToken" } -ContentType "application/json"
     
     return $result
 }
@@ -945,5 +1027,7 @@ Export-ModuleMember -Function Execute-SQLScriptFile
 Export-ModuleMember -Function Wait-ForSQLQuery
 Export-ModuleMember -Function Create-SQLScript
 Export-ModuleMember -Function Create-SparkNotebook
+Export-ModuleMember -Function Start-SparkNotebookSession
+Export-ModuleMember -Function Get-SparkNotebookSession
 Export-ModuleMember -Function Assign-SynapseRole
 Export-ModuleMember -Function Refresh-Token
