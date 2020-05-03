@@ -909,7 +909,7 @@ function Start-SparkNotebookSession {
     )
     
     $item = Get-Content -Raw -Path "$($TemplatesPath)/$($TemplateFileName).json"
-    $item = $item.Replace("#SPARK_SESSION_NAME#", "$($NotebookName)_$($SparkPoolName)_1111111111111")
+    $item = $item.Replace("#SPARK_SESSION_NAME#", "$($NotebookName)_$($SparkPoolName)_1")
 
     $uri = "https://$($WorkspaceName).dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/$($SparkPoolName)/sessions"
 
@@ -939,6 +939,126 @@ function Get-SparkNotebookSession {
     Ensure-ValidTokens
     $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $synapseToken" } -ContentType "application/json"
     
+    return $result
+}
+
+function Wait-ForSparkNotebookSession {
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $SparkPoolName,
+
+    [parameter(Mandatory=$true)]
+    [int]
+    $SessionId
+    )
+
+    Write-Information "Waiting for any pending operation to be properly triggered..."
+    Start-Sleep -Seconds 20
+
+    $result = Get-SparkNotebookSession -WorkspaceName $WorkspaceName -SparkPoolName $SparkPoolName -SessionId $SessionId
+
+    while (($result.state -eq "not_started") -or ($result.state -eq "starting")) {
+        Write-Information "Current status is $($result.state). Waiting for idle, busy, shutting_down, error, dead, or success."
+        Start-Sleep -Seconds 10
+        $result = Get-SparkNotebookSession -WorkspaceName $WorkspaceName -SparkPoolName $SparkPoolName -SessionId $SessionId
+    }
+
+    Write-Information "The Spark notebook session has now the $($result.state) status."
+    return $result
+}
+
+function Start-SparkNotebookSessionStatement {
+
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $SparkPoolName,
+
+    [parameter(Mandatory=$true)]
+    [int]
+    $SessionId,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $Statement
+    )
+
+    $uri = "https://$($WorkspaceName).dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/$($SparkPoolName)/sessions/$($SessionId)/statements"
+
+    Ensure-ValidTokens
+    $result = Invoke-RestMethod  -Uri $uri -Method POST -Body $Statement -Headers @{ Authorization="Bearer $synapseToken" } -ContentType "application/json"
+    
+    return $result
+}
+
+function Get-SparkNotebookSessionStatement {
+
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $SparkPoolName,
+
+    [parameter(Mandatory=$true)]
+    [int]
+    $SessionId,
+
+    [parameter(Mandatory=$true)]
+    [int]
+    $StatementId
+    )
+
+    $uri = "https://$($WorkspaceName).dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/$($SparkPoolName)/sessions/$($SessionId)/statements/$($StatementId)"
+
+    Ensure-ValidTokens
+    $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $synapseToken" } -ContentType "application/json"
+    
+    return $result
+}
+
+function Wait-ForSparkNotebookSessionStatement {
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $SparkPoolName,
+
+    [parameter(Mandatory=$true)]
+    [int]
+    $SessionId,
+
+    [parameter(Mandatory=$true)]
+    [int]
+    $StatementId
+    )
+
+    Write-Information "Waiting for any pending operation to be properly triggered..."
+    Start-Sleep -Seconds 10
+
+    $result = Get-SparkNotebookSessionStatement -WorkspaceName $WorkspaceName -SparkPoolName $SparkPoolName -SessionId $SessionId -StatementId $StatementId
+
+    while (($result.state -eq "waiting") -or ($result.state -eq "running")) {
+        Write-Information "Current status is $($result.state). Waiting for available, error, cancelling, or cancelled."
+        Start-Sleep -Seconds 10
+        $result = Get-SparkNotebookSessionStatement -WorkspaceName $WorkspaceName -SparkPoolName $SparkPoolName -SessionId $SessionId -StatementId $StatementId
+    }
+
+    Write-Information "The Spark notebook session statement has now the $($result.state) status."
     return $result
 }
 
@@ -1043,5 +1163,9 @@ Export-ModuleMember -Function Create-SQLScript
 Export-ModuleMember -Function Create-SparkNotebook
 Export-ModuleMember -Function Start-SparkNotebookSession
 Export-ModuleMember -Function Get-SparkNotebookSession
+Export-ModuleMember -Function Wait-ForSparkNotebookSession
+Export-ModuleMember -Function Start-SparkNotebookSessionStatement
+Export-ModuleMember -Function Get-SparkNotebookSessionStatement
+Export-ModuleMember -Function Wait-ForSparkNotebookSessionStatement
 Export-ModuleMember -Function Assign-SynapseRole
 Export-ModuleMember -Function Refresh-Token
