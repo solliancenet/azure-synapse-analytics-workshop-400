@@ -78,6 +78,34 @@ $asaArtifacts = [ordered]@{
                 Category = "pipelines"
                 Valid = $false
         }
+        "Lab 06 - Machine Learning" = @{
+                Category = "notebooks"
+                Valid = $false
+        }
+        "Lab 07 - Spark ML" = @{
+                Category = "notebooks"
+                Valid = $false
+        }
+        "Activity 05 - Model Training" = @{
+                Category = "notebooks"
+                Valid = $false
+        }
+        "Lab 05 - Exercise 3 - Column Level Security" = @{
+                Category = "sqlscripts"
+                Valid = $false
+        }
+        "Lab 05 - Exercise 3 - Dynamic Data Masking" = @{
+                Category = "sqlscripts"
+                Valid = $false
+        }
+        "Lab 05 - Exercise 3 - Row Level Security" = @{
+                Category = "sqlscripts"
+                Valid = $false
+        }
+        "Activity 03 - Data Warehouse Optimization" = @{
+                Category = "sqlscripts"
+                Valid = $false
+        }
 }
 
 foreach ($asaArtifactName in $asaArtifacts.Keys) {
@@ -197,9 +225,19 @@ foreach ($dataRow in $result.data) {
 
 # $tables contains the current status of the necessary tables
 
+$documentCount = Count-CosmosDbDocuments -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -CosmosDbAccountName $cosmosDbAccountName `
+                -CosmosDbDatabase $cosmosDbDatabase -CosmosDbContainer $cosmosDbContainer
+
+if ($documentCount -lt 722647) {
+        Write-Warning "    Invalid number of CosmosDb documents. Expected at least 722647 but found $($documentCount)."
+        $overallStateIsValid = $false
+}            
+
 if ($overallStateIsValid -eq $true) {
     Write-Information "Validation Passed"
 }
 else {
     Write-Warning "Validation Failed - see log output"
 }
+
+
