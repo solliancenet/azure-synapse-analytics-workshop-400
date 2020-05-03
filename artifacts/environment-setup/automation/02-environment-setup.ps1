@@ -42,6 +42,7 @@ $keyVaultSQLUserSecretName = "SQL-USER-ASA"
 $sqlPoolName = "SQLPool01"
 $integrationRuntimeName = "AzureIntegrationRuntime01"
 $sparkPoolName = "SparkPool01"
+$amlWorkspaceName = "amlworkspace$($uniqueId)"
 
 
 $ropcBodyCore = "client_id=$($clientId)&username=$($userName)&password=$($password)&grant_type=password"
@@ -68,11 +69,18 @@ $notebooks = [ordered]@{
         "Lab 07 - Spark ML" = ".\artifacts\day-03\lab-07-spark-ml\Lab 07 - Spark ML.ipynb"
 }
 
+$cellParams = [ordered]@{
+        "#SQL_POOL_NAME#" = $sqlPoolName
+        "#SUBSCRIPTION_ID#" = $subscriptionId
+        "#RESOURCE_GROUP_NAME#" = $resourceGroupName
+        "#AML_WORKSPACE_NAME#" = $amlWorkspaceName
+}
+
 foreach ($notebookName in $notebooks.Keys) {
         Write-Information "Creating notebook $($notebookName)"
         
         $result = Create-SparkNotebook -TemplatesPath $templatesPath -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName `
-                -WorkspaceName $workspaceName -SparkPoolName $sparkPoolName -Name $notebookName -NotebookFileName $notebooks[$notebookName]
+                -WorkspaceName $workspaceName -SparkPoolName $sparkPoolName -Name $notebookName -NotebookFileName $notebooks[$notebookName] -CellParams $cellParams
         $result = Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
         $result
 }

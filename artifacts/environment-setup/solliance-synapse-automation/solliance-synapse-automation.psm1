@@ -833,13 +833,17 @@ function Create-SparkNotebook {
     [String]
     $Name,
 
+    [parameter(Mandatory=$true)]
+    [String]
+    $NotebookFileName,
+
     [parameter(Mandatory=$false)]
     [String]
     $TemplateFileName = "spark_notebook",
 
-    [parameter(Mandatory=$true)]
-    [String]
-    $NotebookFileName
+    [parameter(Mandatory=$false)]
+    [Hashtable]
+    $CellParams
     )
 
 
@@ -860,6 +864,16 @@ function Create-SparkNotebook {
     $jsonNotebook = ConvertFrom-Json $notebook
     
     $jsonItem.properties.cells = $jsonNotebook.cells
+
+    if ($CellParams) {
+        foreach ($cellParamName in $cellParams.Keys) {
+            foreach ($cell in $jsonItem.properties.cells) {
+                for ($i = 0; $i -lt $cell.source.Count; $i++) {
+                    $cell.source[$i] = $cell.source[$i].Replace($cellParamName, $CellParams[$cellParamName])
+                }
+            }
+        }
+    }
     
     $item = ConvertTo-Json $jsonItem -Depth 100
 
