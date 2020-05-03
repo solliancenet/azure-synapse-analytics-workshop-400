@@ -19,7 +19,7 @@
     SELECT Name as [User2] FROM sys.sysusers WHERE name = N'DataAnalystMiami';
 
 
-    -- Step:3 Now let us enforcing column level security for the DataAnalystMiami.
+    -- Step:3 Now let us enforce column level security for the DataAnalystMiami.
     /*  The Sales table in the warehouse has information like ProductID, Analyst, Product, CampaignName, Quantity, Region, State, City, RevenueTarget and Revenue.
         The Revenue generated from every campaign is classified and should be hidden from DataAnalystMiami.
     */
