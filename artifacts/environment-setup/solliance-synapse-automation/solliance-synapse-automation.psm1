@@ -781,22 +781,22 @@ function Create-SQLScript {
     [String]
     $Name,
 
-    [parameter(Mandatory=$false)]
-    [String]
-    $TemplateFileName = "sql_script",
-
     [parameter(Mandatory=$true)]
     [String]
     $ScriptFileName
     )
 
-    $item = Get-Content -Raw -Path "$($TemplatesPath)/$($TemplateFileName).json"
+    $item = Get-Content -Raw -Path "$($TemplatesPath)/sql_script.json"
+    $item = $item.Replace("#SQL_SCRIPT_NAME#", $Name)
+    $jsonItem = ConvertFrom-Json $item
+
     $query = Get-Content -Raw -Path $ScriptFileName -Encoding utf8
-    $query = (ConvertTo-Json $query.ToString())
+    $query = ConvertFrom-Json (ConvertTo-Json $query)
 
-    $item = $item.Replace("#SQL_SCRIPT_NAME#", $Name).Replace("#SQL_SCRIPT_QUERY#", $query)
+    $jsonItem.properties.content.query = $query.value
+    $item = ConvertTo-Json $jsonItem -Depth 100
 
-    Write-Information $item
+    Set-Content -Value $item -Path "D:\Temp\Solliance\x.json"
 
     $uri = "https://$($WorkspaceName).dev.azuresynapse.net/sqlscripts/$($Name)?api-version=2019-06-01-preview"
 
