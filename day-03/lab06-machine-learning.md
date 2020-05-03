@@ -43,7 +43,7 @@ Please note that each of these tasks will be addressed through several cells in 
 
 In this task, you will register the models in Azure Synapse Analytics so that they are available for use from T-SQL. This task picks up where you left off, with the ONNX model being made available in Azure Storage. 
 
-1.  One step that is not shown by the notebook is an offline step that converts the ONNX model to hexadecimal. The resulting hex encoded model is also upload to Azure Storage. This conversion is currently performed with [this PowerShell script](./../artifacts/day-03/lab-06-machine-learning/convert-to-hex.ps1), but could be automated using any scripting platform.
+1.  One step that is not shown by the notebook is an offline step that converts the ONNX model to hexadecimal. The resulting hex encoded model is also upload to Azure Storage. This conversion is currently performed with [this PowerShell script](https://github.com/solliancenet/azure-synapse-analytics-workshop-400/raw/master/artifacts/day-03/lab-06-machine-learning/convert-to-hex.ps1), but could be automated using any scripting platform.
 
 2. Open Synapse Analytics Studio, and then navigate to the `Data` hub.
 
@@ -55,7 +55,25 @@ In this task, you will register the models in Azure Synapse Analytics so that th
 
 ``` sql
 -- Use polybase to load model into the model table
-CREATE MASTER KEY ENCRYPTION BY PASSWORD = 'fQv2fKq#FN7ra'
+IF NOT EXISTS(SELECT * FROM sys.symmetric_keys WHERE symmetric_key_id = 101)
+    CREATE MASTER KEY ENCRYPTION BY PASSWORD = 'fQv2fKq#FN7ra'
+
+-- Cleanup
+IF EXISTS (select * from sys.external_tables where object_id = OBJECT_ID('[wwi_ml].[MLModelExt]'))
+    DROP EXTERNAL TABLE [wwi_ml].[MLModelExt];
+GO
+IF EXISTS(select * from sys.external_file_formats where name = 'csv')
+    DROP EXTERNAL FILE FORMAT csv;
+GO
+IF EXISTS(select * from sys.external_data_sources where name = 'ModelStorage')
+    DROP EXTERNAL DATA SOURCE ModelStorage;
+GO
+IF EXISTS(select * from sys.database_scoped_credentials where name = 'StorageCredential')
+    DROP DATABASE SCOPED CREDENTIAL StorageCredential;
+GO
+IF EXISTS (select * from sys.tables where object_id = OBJECT_ID('[wwi_ml].[MLModel]'))
+    DROP TABLE [wwi_ml].[MLModel];
+GO
 
 -- Create a database scoped credential with Azure storage account key (not a Shared Access Signature) as the secret. 
 -- Replace <blob_storage_account_key> with your storage account key.

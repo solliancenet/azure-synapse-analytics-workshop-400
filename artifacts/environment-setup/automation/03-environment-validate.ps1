@@ -58,6 +58,8 @@ $global:tokenTimes = [ordered]@{
         Management = (Get-Date -Year 1)
 }
 
+$overallStateIsValid = $true
+
 $asaArtifacts = [ordered]@{
 
         "wwi02_sale_small_workload_01_asa" = @{ 
@@ -67,8 +69,12 @@ $asaArtifacts = [ordered]@{
         "wwi02_sale_small_workload_02_asa" = @{ 
                 Category = "datasets"
                 Valid = $false
-         }
-         "Lab 08 - Execute Business Analyst Queries" = @{
+        }
+        "Lab 08 - Execute Business Analyst Queries" = @{
+                Category = "pipelines"
+                Valid = $false
+        }
+        "Lab 08 - Execute Data Analyst and CEO Queries" = @{
                 Category = "pipelines"
                 Valid = $false
         }
@@ -82,15 +88,61 @@ foreach ($asaArtifactName in $asaArtifacts.Keys) {
                 Write-Information "OK"
         }
         catch { 
-                Write-Information "Not found!"
+                Write-Warning "Not found!"
+                $overallStateIsValid = $false
         }
 }
 
 # the $asaArtifacts contains the current status of the workspace
 
 $tables = [ordered]@{
+        "wwi.Date" = @{
+                Count = 3652
+                Valid = $false
+                ValidCount = $false
+        }
+        "wwi.Product" = @{
+                Count = 5000
+                Valid = $false
+                ValidCount = $false
+        }
+        "wwi.SaleSmall" = @{
+                Count = 2903451490
+                Valid = $false
+                ValidCount = $false
+        }
+        "wwi_perf.Sale_Hash_Ordered" = @{
+                Count = 2903451490
+                Valid = $false
+                ValidCount = $false
+        }
+        "wwi_perf.Sale_Heap" = @{
+                Count = 2903451490
+                Valid = $false
+                ValidCount = $false
+        }
         "wwi_perf.Sale_Index" = @{
                 Count = 2903451490
+                Valid = $false
+                ValidCount = $false
+        }
+        "wwi_perf.Sale_Partition01" = @{
+                Count = 2903451490
+                Valid = $false
+                ValidCount = $false
+        }
+        "wwi_perf.Sale_Partition02" = @{
+                Count = 2903451490
+                Valid = $false
+                ValidCount = $false
+        }
+        "wwi_security.CustomerInfo" = @{
+                Count = 110
+                Valid = $false
+                ValidCount = $false
+        }
+        "wwi_security.Sale" = @{
+                Count = 52
                 Valid = $false
                 ValidCount = $false
         }
@@ -120,13 +172,34 @@ foreach ($dataRow in $result.data) {
 
                 Write-Information "Counting table $($fullName)..."
 
-                $countQuery = "select count_big(*) from $($fullName)"
-                $countResult = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $countQuery
+                try {
+                    $countQuery = "select count_big(*) from $($fullName)"
+                    $countResult = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $countQuery
 
-                if ($countResult[0][0] -eq $tables[$fullName]["Count"]) {
-                        $tables[$fullName]["ValidCount"] = $true
+                    Write-Information "    Count result $([int64]$countResult[0][0].data[0].Get(0))"
+
+                    if ([int64]$countResult[0][0].data[0].Get(0) -eq $tables[$fullName]["Count"]) {
+                            Write-Information "    Records counted is correct."
+                            $tables[$fullName]["ValidCount"] = $true
+                    }
+                    else {
+                        Write-Warning "    Records counted is NOT correct."
+                        $overallStateIsValid = $false
+                    }
                 }
+                catch { 
+                    Write-Warning "    Error while querying table."
+                    $overallStateIsValid = $false
+                }
+
         }
 }
 
 # $tables contains the current status of the necessary tables
+
+if ($overallStateIsValid -eq $true) {
+    Write-Information "Validation Passed"
+}
+else {
+    Write-Warning "Validation Failed - see log output"
+}
