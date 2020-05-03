@@ -58,6 +58,8 @@ $global:tokenTimes = [ordered]@{
         Management = (Get-Date -Year 1)
 }
 
+$overallStateIsValid = $true
+
 $asaArtifacts = [ordered]@{
 
         "wwi02_sale_small_workload_01_asa" = @{ 
@@ -90,7 +92,8 @@ foreach ($asaArtifactName in $asaArtifacts.Keys) {
                 Write-Information "OK"
         }
         catch { 
-                Write-Information "Not found!"
+                Write-Warning "Not found!"
+                $overallStateIsValid = $false
         }
 }
 
@@ -147,11 +150,6 @@ $tables = [ordered]@{
                 Valid = $false
                 ValidCount = $false
         }
-        "wwi_ml.MLModelExt" = @{
-                Count = 0
-                Valid = $false
-                ValidCount = $false
-        }
 }
 
 $query = @"
@@ -178,13 +176,34 @@ foreach ($dataRow in $result.data) {
 
                 Write-Information "Counting table $($fullName)..."
 
-                $countQuery = "select count_big(*) from $($fullName)"
-                $countResult = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $countQuery
+                try {
+                    $countQuery = "select count_big(*) from $($fullName)"
+                    $countResult = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $countQuery
 
-                if ($countResult[0][0] -eq $tables[$fullName]["Count"]) {
-                        $tables[$fullName]["ValidCount"] = $true
+                    Write-Information "    Count result $([int64]$countResult[0][0].data[0].Get(0))"
+
+                    if ([int64]$countResult[0][0].data[0].Get(0) -eq $tables[$fullName]["Count"]) {
+                            Write-Information "    Records counted is correct."
+                            $tables[$fullName]["ValidCount"] = $true
+                    }
+                    else {
+                        Write-Warning "    Records counted is NOT correct."
+                        $overallStateIsValid = $false
+                    }
                 }
+                catch { 
+                    Write-Warning "    Error while querying table."
+                    $overallStateIsValid = $false
+                }
+
         }
 }
 
 # $tables contains the current status of the necessary tables
+
+if ($overallStateIsValid -eq $true) {
+    Write-Information "Validation Passed"
+}
+else {
+    Write-Warning "Validation Failed - see log output"
+}
