@@ -960,7 +960,7 @@ AS
 
 top5Products = sqlContext.table("top_5_products")
 
-display(top5Products.limit(100))
+top5Products.show(100)
 ```
 
 You should see an output similar to the following, which displays the top five preferred products per user:
@@ -1105,7 +1105,7 @@ We can use the following method like we did earlier to create and display a new 
 
 top5Products = sqlContext.table("top_5_products")
 
-display(top5Products.limit(100))
+top5Products.show(100)
 ```
 
 This results in the following output, which displays the top five preferred products per user:
