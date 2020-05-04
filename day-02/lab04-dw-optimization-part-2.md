@@ -1,9 +1,5 @@
 # DW Optimization Part 2
 
-`<TBA>`
-Explicit instructions on scaling up to DW1500 before the lab and scaling back after Lab 04 is completed.
-`</TBA>`
-
 ## Exercise 1 - Check for skewed data and space usage
 
 ### Task 1 - Analyze the space used by tables
