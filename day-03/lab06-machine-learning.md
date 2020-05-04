@@ -41,9 +41,9 @@ Please note that each of these tasks will be addressed through several cells in 
 
 ### Task 1 - Registering the models with Azure Synapse Analytics
 
-In this task, you will register the models in Azure Synapse Analytics so that they are available for use from T-SQL. This task picks up where you left off, with the ONNX model being made available in Azure Storage. 
+In this task, you will explore the model registration process in Azure Synapse Analytics that enables trained model for use from T-SQL. This task picks up where you left off, with the ONNX model being made available in Azure Storage.
 
-1.  One step that is not shown by the notebook is an offline step that converts the ONNX model to hexadecimal. The resulting hex encoded model is also upload to Azure Storage. This conversion is currently performed with [this PowerShell script](https://github.com/solliancenet/azure-synapse-analytics-workshop-400/raw/master/artifacts/day-03/lab-06-machine-learning/convert-to-hex.ps1), but could be automated using any scripting platform.
+1. One step that is not shown by the notebook is an offline step that converts the ONNX model to hexadecimal. The resulting hex encoded model is also upload to Azure Storage. This conversion is currently performed with [this PowerShell script](https://github.com/solliancenet/azure-synapse-analytics-workshop-400/raw/master/artifacts/day-03/lab-06-machine-learning/convert-to-hex.ps1), but could be automated using any scripting platform.
 
 2. Open Synapse Analytics Studio, and then navigate to the `Data` hub.
 
@@ -51,100 +51,98 @@ In this task, you will register the models in Azure Synapse Analytics so that th
 
    ![Showing the context menu, selecting New SQL Script, Empty Script](media/lab06-new-sql-script.png "Create new script")
 
-4. Replace the contents of this script with following. Be sure to replace the place holder values identified by the comments with the appropriate values from your environment.
+4. Replace the contents of this script with following:
 
-``` sql
--- Use polybase to load model into the model table
-IF NOT EXISTS(SELECT * FROM sys.symmetric_keys WHERE symmetric_key_id = 101)
-    CREATE MASTER KEY ENCRYPTION BY PASSWORD = 'fQv2fKq#FN7ra'
+    ```sql
+    SELECT
+        *
+    FROM
+        [wwi_ml].[MLModelExt]
+    ```
 
--- Cleanup
-IF EXISTS (select * from sys.external_tables where object_id = OBJECT_ID('[wwi_ml].[MLModelExt]'))
-    DROP EXTERNAL TABLE [wwi_ml].[MLModelExt];
-GO
-IF EXISTS(select * from sys.external_file_formats where name = 'csv')
-    DROP EXTERNAL FILE FORMAT csv;
-GO
-IF EXISTS(select * from sys.external_data_sources where name = 'ModelStorage')
-    DROP EXTERNAL DATA SOURCE ModelStorage;
-GO
-IF EXISTS(select * from sys.database_scoped_credentials where name = 'StorageCredential')
-    DROP DATABASE SCOPED CREDENTIAL StorageCredential;
-GO
-IF EXISTS (select * from sys.tables where object_id = OBJECT_ID('[wwi_ml].[MLModel]'))
-    DROP TABLE [wwi_ml].[MLModel];
-GO
+    The result shows your persisted ONNX model in hexadecimal format:
 
--- Create a database scoped credential with Azure storage account key (not a Shared Access Signature) as the secret. 
--- Replace <blob_storage_account_key> with your storage account key.
-CREATE DATABASE SCOPED CREDENTIAL StorageCredential
-WITH
-IDENTITY = 'SHARED ACCESS SIGNATURE'
-, SECRET = '<blob_storage_account_key>'
-;
+    ![Persisted ONNX model in hexadecimal format](./media/lab06-persisted-model.png)
 
--- Create an external data source with CREDENTIAL option.
--- Replace <blob_storage> with the name of your Azure Storage Account.
-CREATE EXTERNAL DATA SOURCE ModelStorage
-WITH
-( LOCATION = 'wasbs://models@<blob_storage>.blob.core.windows.net'
-, CREDENTIAL = StorageCredential
-, TYPE = HADOOP
-)
-;
-CREATE EXTERNAL FILE FORMAT csv
-WITH (
-FORMAT_TYPE = DELIMITEDTEXT,
-FORMAT_OPTIONS (
-FIELD_TERMINATOR = ',',
-STRING_DELIMITER = '',
-DATE_FORMAT = '',
-USE_TYPE_DEFAULT = False
-)
-);
+5. `MLModelExt` is an external table that maps to the data lake location where the trained model was persisted (and then converted to hexadecimal format). Take a moment to read through the code that was used to create the external table (you don't need to run this code as it was already run during the deployment of your environment):
 
+    ``` sql
+    CREATE MASTER KEY
+    GO
 
-CREATE EXTERNAL TABLE [wwi_ml].[MLModelExt]
-(
-[Model] [varbinary](max) NULL
-)
-WITH
-(
-LOCATION='/hex' ,
-DATA_SOURCE = ModelStorage ,
-FILE_FORMAT = csv ,
-REJECT_TYPE = VALUE ,
-REJECT_VALUE = 0
-)
-GO
+    -- Replace <data_lake_account_key> with the key of the primary data lake account
 
-CREATE TABLE [wwi_ml].[MLModel]
-(
-[Id] [int] IDENTITY(1,1) NOT NULL,
-[Model] [varbinary](max) NULL,
-[Description] [varchar](200) NULL
-)
-WITH
-(
-DISTRIBUTION = REPLICATE,
-heap
-)
-GO
+    CREATE DATABASE SCOPED CREDENTIAL StorageCredential
+    WITH
+    IDENTITY = 'SHARED ACCESS SIGNATURE'
+    ,SECRET = '<data_lake_account_key>'
 
--- Register the model by inserting it into the table.
--- Replace <Model description> with your user friendly description of the model.
-INSERT INTO [wwi_ml].[MLModel]
-SELECT Model, '<Model description>'
-FROM [wwi_ml].[MLModelExt]
+    -- Create an external data source with CREDENTIAL option.
+    -- Replace <data_lake_account_name> with the actual name of the primary data lake account
 
-```
+    CREATE EXTERNAL DATA SOURCE ModelStorage
+    WITH
+    ( 
+        LOCATION = 'wasbs://wwi-02@<data_lake_account_name>.blob.core.windows.net'
+        ,CREDENTIAL = StorageCredential
+        ,TYPE = HADOOP
+    )
 
-4. This script uses PolyBase to load the hex encoded model from Azure Storage into a table within the SQL Pool database. Once the model is inserted into the table in this way, it is available for use by the Predict statement as you will see next.
+    CREATE EXTERNAL FILE FORMAT csv
+    WITH (
+        FORMAT_TYPE = DELIMITEDTEXT,
+        FORMAT_OPTIONS (
+            FIELD_TERMINATOR = ',',
+            STRING_DELIMITER = '',
+            DATE_FORMAT = '',
+            USE_TYPE_DEFAULT = False
+        )
+    );
 
+    CREATE EXTERNAL TABLE [wwi_ml].[MLModelExt]
+    (
+    [Model] [varbinary](max) NULL
+    )
+    WITH
+    (
+        LOCATION='/ml/onnx-hex' ,
+        DATA_SOURCE = ModelStorage ,
+        FILE_FORMAT = csv ,
+        REJECT_TYPE = VALUE ,
+        REJECT_VALUE = 0
+    )
+    GO
+
+    CREATE TABLE [wwi_ml].[MLModel]
+    (
+        [Id] [int] IDENTITY(1,1) NOT NULL,
+        [Model] [varbinary](max) NULL,
+        [Description] [varchar](200) NULL
+    )
+    WITH
+    (
+        DISTRIBUTION = REPLICATE,
+        HEAP
+    )
+    GO
+    ```
+
+6. Import the persisted ONNX model in hexadecimal format into the main models table (to be later used with the `PREDICT` function):
+
+    ```sql
+    -- Register the model by inserting it into the table.
+
+    INSERT INTO
+        [wwi_ml].[MLModel]
+    SELECT
+        Model, 'Product Seasonality Classifier'
+    FROM
+        [wwi_ml].[MLModelExt]
+    ```
 
 ## Task 2 - Making predictions with the registered models
 
-In this task, you will author a T-SQL query that uses the previously trained models to make predictions.
+In this task, you will author a T-SQL query that uses the previously trained model to make predictions.
 
 1. Open Synapse Analytics Studio, and then navigate to the `Data` hub.
 
@@ -152,8 +150,24 @@ In this task, you will author a T-SQL query that uses the previously trained mod
 
    ![Showing the context menu, selecting New SQL Script, Empty Script](media/lab06-new-sql-script.png "Create new script")
 
-
 3. Replace the contents of this script with following:
+
+    ```sql
+    SELECT TOP 100
+        *
+    FROM
+        [wwi_ml].[ProductPCA]
+    WHERE
+        ProductId > 4500
+    ```
+
+    This is the input data you will use to make the predictions.
+
+4. Select **Run** from the menubar.
+
+   ![The Run button](media/lab06-select-run.png "Select Run")
+
+5. Create another new SQL script and replace the contents with the following:
 
    ```sql
    -- Retrieve the latest hex encoded ONNX model from the table
@@ -161,13 +175,9 @@ In this task, you will author a T-SQL query that uses the previously trained mod
 
    -- Run a prediction query
    SELECT d.*, p.*
-   FROM PREDICT(MODEL = @model, DATA = [wwi_ml].[SampleData] AS d) WITH (prediction real) AS p;
+   FROM PREDICT(MODEL = @model, DATA = [wwi_ml].[ProductPCA] AS d) WITH (prediction real) AS p;
    ```
 
-4. Select **Run** from the menubar.
-
-   ![The Run button](media/lab06-select-run.png "Select Run")
-
-5. View the results, notice that the `Prediction` column is the model's prediction of how many items of the kind represented by `StockItemKey` that the customer identified by `CustomerKey` will purchase.
+6. Run the script and view the results, notice that the `Prediction` column is the model's prediction of the `Seasonality` property of each product.
 
    ![Viewing the prediction results in the query result pane](media/lab06-view-prediction-results.png "View prediction results")
