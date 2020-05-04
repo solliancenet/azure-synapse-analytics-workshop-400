@@ -2,7 +2,7 @@
     "name": "#SQL_SCRIPT_NAME#",
     "properties": {
         "content": {
-            "query": #SQL_SCRIPT_QUERY#,
+            "query": "",
             "metadata": {
                 "language":"sql"
             },

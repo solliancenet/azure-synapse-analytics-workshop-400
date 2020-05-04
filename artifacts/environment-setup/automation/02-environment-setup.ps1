@@ -42,6 +42,7 @@ $keyVaultSQLUserSecretName = "SQL-USER-ASA"
 $sqlPoolName = "SQLPool01"
 $integrationRuntimeName = "AzureIntegrationRuntime01"
 $sparkPoolName = "SparkPool01"
+$amlWorkspaceName = "amlworkspace$($uniqueId)"
 
 
 $ropcBodyCore = "client_id=$($clientId)&username=$($userName)&password=$($password)&grant_type=password"
@@ -59,17 +60,32 @@ $global:tokenTimes = [ordered]@{
         Management = (Get-Date -Year 1)
 }
 
+Write-Information "Creating Spark notebooks..."
 
-$notebookName = "Setup - Probe"
-$notebookFileName = ".\artifacts\environment-setup\notebooks\Setup - Probe.ipynb"
+$notebooks = [ordered]@{
+        "Setup - Probe" = ".\artifacts\environment-setup\notebooks"
+        "Activity 05 - Model Training" = ".\artifacts\day-03"
+        "Lab 06 - Machine Learning" = ".\artifacts\day-03\lab-06-machine-learning"
+        "Lab 07 - Spark ML" = ".\artifacts\day-03\lab-07-spark-ml"
+}
 
-$result = Create-SparkNotebook -TemplatesPath $templatesPath -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName `
-                -WorkspaceName $workspaceName -SparkPoolName $sparkPoolName -Name $notebookName -NotebookFileName $notebookFileName
-$result = Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
+$cellParams = [ordered]@{
+        "#SQL_POOL_NAME#" = $sqlPoolName
+        "#SUBSCRIPTION_ID#" = $subscriptionId
+        "#RESOURCE_GROUP_NAME#" = $resourceGroupName
+        "#AML_WORKSPACE_NAME#" = $amlWorkspaceName
+}
 
-$result = Start-SparkNotebookSession -TemplatesPath $templatesPath -WorkspaceName $workspaceName -SparkPoolName $sparkPoolName -NotebookName $notebookName
-$result2 = Get-SparkNotebookSession -WorkspaceName $workspaceName -SparkPoolName $sparkPoolName -SessionId $result.id
-$result2
+foreach ($notebookName in $notebooks.Keys) {
+
+        $notebookFileName = "$($notebooks[$notebookName])\$($notebookName).ipynb"
+        Write-Information "Creating notebook $($notebookName) from $($notebookFileName)"
+        
+        $result = Create-SparkNotebook -TemplatesPath $templatesPath -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName `
+                -WorkspaceName $workspaceName -SparkPoolName $sparkPoolName -Name $notebookName -NotebookFileName $notebookFileName -CellParams $cellParams
+        $result = Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
+        $result
+}
 
 Write-Information "Create SQL scripts for Lab 05"
 
@@ -77,11 +93,15 @@ $sqlScripts = [ordered]@{
         "Lab 05 - Exercise 3 - Column Level Security" = ".\artifacts\day-02\lab-05-security"
         "Lab 05 - Exercise 3 - Dynamic Data Masking" = ".\artifacts\day-02\lab-05-security"
         "Lab 05 - Exercise 3 - Row Level Security" = ".\artifacts\day-02\lab-05-security"
+        "Activity 03 - Data Warehouse Optimization" = ".\artifacts\day-02"
 }
 
 foreach ($sqlScriptName in $sqlScripts.Keys) {
+        
         $sqlScriptFileName = "$($sqlScripts[$sqlScriptName])\$($sqlScriptName).sql"
-        #Write-Information "Creating SQL script $($sqlScriptName) from $($sqlScriptFileName)"
-        #$result = Create-SQLScript -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $sqlScriptName -TemplateFileName "sql_script" -ScriptFileName $sqlScriptFileName -Token $synapseToken
-        #Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId -Token $synapseToken
+        Write-Information "Creating SQL script $($sqlScriptName) from $($sqlScriptFileName)"
+        
+        $result = Create-SQLScript -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $sqlScriptName -ScriptFileName $sqlScriptFileName
+        $result = Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
+        $result
 }

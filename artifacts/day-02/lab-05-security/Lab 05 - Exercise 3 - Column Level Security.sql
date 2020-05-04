@@ -14,12 +14,12 @@
         A CEO, who is an authorized  personnel with access to all the information in the database
         and a Data Analyst, to whom only required information should be presented.*/
 
-    -- Step:2 Verify the existence of the “CEO” and “DataAnalystMiami” users in the Datawarehouse.
+    -- Step:2 Verify the existence of the 'CEO' and 'DataAnalystMiami' users in the Datawarehouse.
     SELECT Name as [User1] FROM sys.sysusers WHERE name = N'CEO';
     SELECT Name as [User2] FROM sys.sysusers WHERE name = N'DataAnalystMiami';
 
 
-    -- Step:3 Now let us enforcing column level security for the DataAnalystMiami.
+    -- Step:3 Now let us enforce column level security for the DataAnalystMiami.
     /*  The Sales table in the warehouse has information like ProductID, Analyst, Product, CampaignName, Quantity, Region, State, City, RevenueTarget and Revenue.
         The Revenue generated from every campaign is classified and should be hidden from DataAnalystMiami.
     */

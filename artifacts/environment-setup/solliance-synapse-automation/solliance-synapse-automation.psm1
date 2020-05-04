@@ -781,22 +781,20 @@ function Create-SQLScript {
     [String]
     $Name,
 
-    [parameter(Mandatory=$false)]
-    [String]
-    $TemplateFileName = "sql_script",
-
     [parameter(Mandatory=$true)]
     [String]
     $ScriptFileName
     )
 
-    $item = Get-Content -Raw -Path "$($TemplatesPath)/$($TemplateFileName).json"
+    $item = Get-Content -Raw -Path "$($TemplatesPath)/sql_script.json"
+    $item = $item.Replace("#SQL_SCRIPT_NAME#", $Name)
+    $jsonItem = ConvertFrom-Json $item
+
     $query = Get-Content -Raw -Path $ScriptFileName -Encoding utf8
-    $query = (ConvertTo-Json $query.ToString())
+    $query = ConvertFrom-Json (ConvertTo-Json $query)
 
-    $item = $item.Replace("#SQL_SCRIPT_NAME#", $Name).Replace("#SQL_SCRIPT_QUERY#", $query)
-
-    Write-Information $item
+    $jsonItem.properties.content.query = $query.value
+    $item = ConvertTo-Json $jsonItem -Depth 100
 
     $uri = "https://$($WorkspaceName).dev.azuresynapse.net/sqlscripts/$($Name)?api-version=2019-06-01-preview"
 
@@ -833,13 +831,17 @@ function Create-SparkNotebook {
     [String]
     $Name,
 
+    [parameter(Mandatory=$true)]
+    [String]
+    $NotebookFileName,
+
     [parameter(Mandatory=$false)]
     [String]
     $TemplateFileName = "spark_notebook",
 
-    [parameter(Mandatory=$true)]
-    [String]
-    $NotebookFileName
+    [parameter(Mandatory=$false)]
+    [Hashtable]
+    $CellParams
     )
 
 
@@ -860,6 +862,16 @@ function Create-SparkNotebook {
     $jsonNotebook = ConvertFrom-Json $notebook
     
     $jsonItem.properties.cells = $jsonNotebook.cells
+
+    if ($CellParams) {
+        foreach ($cellParamName in $cellParams.Keys) {
+            foreach ($cell in $jsonItem.properties.cells) {
+                for ($i = 0; $i -lt $cell.source.Count; $i++) {
+                    $cell.source[$i] = $cell.source[$i].Replace($cellParamName, $CellParams[$cellParamName])
+                }
+            }
+        }
+    }
     
     $item = ConvertTo-Json $jsonItem -Depth 100
 
@@ -895,7 +907,7 @@ function Start-SparkNotebookSession {
     )
     
     $item = Get-Content -Raw -Path "$($TemplatesPath)/$($TemplateFileName).json"
-    $item = $item.Replace("#SPARK_SESSION_NAME#", "$($NotebookName)_$($SparkPoolName)_1111111111111")
+    $item = $item.Replace("#SPARK_SESSION_NAME#", "$($NotebookName)_$($SparkPoolName)_1")
 
     $uri = "https://$($WorkspaceName).dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/$($SparkPoolName)/sessions"
 
@@ -926,6 +938,243 @@ function Get-SparkNotebookSession {
     $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $synapseToken" } -ContentType "application/json"
     
     return $result
+}
+
+function Wait-ForSparkNotebookSession {
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $SparkPoolName,
+
+    [parameter(Mandatory=$true)]
+    [int]
+    $SessionId
+    )
+
+    Write-Information "Waiting for any pending operation to be properly triggered..."
+    Start-Sleep -Seconds 20
+
+    $result = Get-SparkNotebookSession -WorkspaceName $WorkspaceName -SparkPoolName $SparkPoolName -SessionId $SessionId
+
+    while (($result.state -eq "not_started") -or ($result.state -eq "starting")) {
+        Write-Information "Current status is $($result.state). Waiting for idle, busy, shutting_down, error, dead, or success."
+        Start-Sleep -Seconds 10
+        $result = Get-SparkNotebookSession -WorkspaceName $WorkspaceName -SparkPoolName $SparkPoolName -SessionId $SessionId
+    }
+
+    Write-Information "The Spark notebook session has now the $($result.state) status."
+    return $result
+}
+
+function Delete-SparkNotebookSession {
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $SparkPoolName,
+
+    [parameter(Mandatory=$true)]
+    [int]
+    $SessionId
+    )
+
+    $uri = "https://$($WorkspaceName).dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/$($SparkPoolName)/sessions/$($SessionId)"
+
+    Ensure-ValidTokens
+    $result = Invoke-RestMethod  -Uri $uri -Method DELETE -Headers @{ Authorization="Bearer $synapseToken" } -ContentType "application/json"
+    
+    return $result
+}
+
+function Start-SparkNotebookSessionStatement {
+
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $SparkPoolName,
+
+    [parameter(Mandatory=$true)]
+    [int]
+    $SessionId,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $Statement
+    )
+
+    $uri = "https://$($WorkspaceName).dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/$($SparkPoolName)/sessions/$($SessionId)/statements"
+
+    Ensure-ValidTokens
+    $result = Invoke-RestMethod  -Uri $uri -Method POST -Body $Statement -Headers @{ Authorization="Bearer $synapseToken" } -ContentType "application/json"
+    
+    return $result
+}
+
+function Get-SparkNotebookSessionStatement {
+
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $SparkPoolName,
+
+    [parameter(Mandatory=$true)]
+    [int]
+    $SessionId,
+
+    [parameter(Mandatory=$true)]
+    [int]
+    $StatementId
+    )
+
+    $uri = "https://$($WorkspaceName).dev.azuresynapse.net/livyApi/versions/2019-11-01-preview/sparkPools/$($SparkPoolName)/sessions/$($SessionId)/statements/$($StatementId)"
+
+    Ensure-ValidTokens
+    $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $synapseToken" } -ContentType "application/json"
+    
+    return $result
+}
+
+function Wait-ForSparkNotebookSessionStatement {
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $SparkPoolName,
+
+    [parameter(Mandatory=$true)]
+    [int]
+    $SessionId,
+
+    [parameter(Mandatory=$true)]
+    [int]
+    $StatementId
+    )
+
+    Write-Information "Waiting for any pending operation to be properly triggered..."
+    Start-Sleep -Seconds 10
+
+    $result = Get-SparkNotebookSessionStatement -WorkspaceName $WorkspaceName -SparkPoolName $SparkPoolName -SessionId $SessionId -StatementId $StatementId
+
+    while (($result.state -eq "waiting") -or ($result.state -eq "running")) {
+        Write-Information "Current status is $($result.state). Waiting for available, error, cancelling, or cancelled."
+        Start-Sleep -Seconds 10
+        $result = Get-SparkNotebookSessionStatement -WorkspaceName $WorkspaceName -SparkPoolName $SparkPoolName -SessionId $SessionId -StatementId $StatementId
+    }
+
+    Write-Information "The Spark notebook session statement has now the $($result.state) status."
+    return $result
+}
+
+function Count-CosmosDbDocuments {
+
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $SubscriptionId,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $ResourceGroupName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $CosmosDbAccountName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $CosmosDbDatabase,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $CosmosDbContainer
+    )
+        
+    $cosmosDbAccountKey = List-CosmosDBKeys -SubscriptionId $SubscriptionId -ResourceGroupName $ResourceGroupName -Name $CosmosDbAccountName
+    Write-Information "Successfully retrieved Cosmos DB master key"
+
+    $resourceLink = "dbs/$($CosmosDbDatabase)/colls/$($CosmosDbContainer)"
+    $uri = "https://$($CosmosDbAccountName).documents.azure.com/$($resourceLink)/docs"
+    $refTime = [DateTime]::UtcNow.ToString("r")
+    $authHeader = Generate-CosmosDbMasterKeyAuthorizationSignature -verb POST -resourceLink $resourceLink -resourceType "docs" -key $cosmosDbAccountKey -keyType "master" -tokenVersion "1.0" -dateTime $refTime
+    $headers = @{ 
+            Authorization=$authHeader
+            "Content-Type"="application/query+json"
+            "x-ms-cosmos-allow-tentative-writes"="True"
+            "x-ms-cosmos-is-query-plan-request"="True"
+            "x-ms-cosmos-query-version"="1.4"
+            "x-ms-cosmos-supported-query-features"="NonValueAggregate, Aggregate, Distinct, MultipleOrderBy, OffsetAndLimit, OrderBy, Top, CompositeAggregate, GroupBy, MultipleAggregates"
+            "x-ms-date"=$refTime
+            "x-ms-documentdb-populatequerymetrics"="True"
+            "x-ms-documentdb-query-enable-scan"="True"
+            "x-ms-documentdb-query-enablecrosspartition"="True"
+            "x-ms-documentdb-query-parallelizecrosspartitionquery"="True"
+            "x-ms-documentdb-responsecontinuationtokenlimitinkb"=1
+            "x-ms-max-item-count"=100
+            "x-ms-version"="2018-12-31"
+    }
+    $query = "{'query':'SELECT VALUE COUNT(1) FROM c'}"
+
+    Write-Information "Requesting query plan from $($uri)"
+    $result = Invoke-RestMethod -Uri $uri -Method POST -Body $query -Headers $headers
+
+    Write-Information "Successfully retrieved query plan"
+
+    $pkUri = "https://$($CosmosDbAccountName).documents.azure.com/$($resourceLink)/pkranges"
+    $pkAuthHeader = Generate-CosmosDbMasterKeyAuthorizationSignature -verb GET -resourceLink $resourceLink -resourceType "pkranges" -key $cosmosDbAccountKey -keyType "master" -tokenVersion "1.0" -dateTime $refTime
+    $pkHeaders = @{ 
+            Authorization=$pkAuthHeader
+            "x-ms-cosmos-allow-tentative-writes"="True"
+            "x-ms-date"=$refTime
+            "x-ms-documentdb-query-enablecrosspartition"="True"
+            "x-ms-documentdb-responsecontinuationtokenlimitinkb"=1
+            "x-ms-version"="2018-12-31"
+    }
+
+    Write-Information "Requesting PK ranges $($pkUri)"
+    $pkResult = Invoke-RestMethod -Uri $pkUri -Method GET -Headers $pkHeaders
+
+    Write-Information "Successfully retrieved PK ranges"
+
+    $headers = @{ 
+            Authorization=$authHeader
+            "Content-Type"="application/query+json"
+            "x-ms-cosmos-allow-tentative-writes"="True"
+            "x-ms-cosmos-is-query"="True"
+            "x-ms-date"=$refTime
+            "x-ms-documentdb-populatequerymetrics"="True"
+            "x-ms-documentdb-partitionkeyrangeid"=$pkResult.PartitionKeyRanges[0].id
+            "x-ms-documentdb-query-enable-scan"="True"
+            "x-ms-documentdb-query-enablecrosspartition"="True"
+            "x-ms-documentdb-query-parallelizecrosspartitionquery"="True"
+            "x-ms-documentdb-responsecontinuationtokenlimitinkb"=1
+            "x-ms-max-item-count"=100
+            "x-ms-version"="2018-12-31"
+    }
+    $query = "{""query"":$(ConvertTo-Json $result.queryInfo.rewrittenQuery)}"
+
+    Write-Information "Executing query..."
+    $queryResult = Invoke-RestMethod -Uri $uri -Method POST -Body $query -Headers $headers
+
+    Write-Information "The collection contains $($queryResult.Documents[0][0].item) documents."
+    return $queryResult.Documents[0][0].item
 }
 
 function Assign-SynapseRole {
@@ -1002,6 +1251,31 @@ function Ensure-ValidToken {
     }
 }
 
+Function Generate-CosmosDbMasterKeyAuthorizationSignature {
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory=$true)][String]$verb,
+        [Parameter(Mandatory=$true)][String]$resourceLink,
+        [Parameter(Mandatory=$true)][String]$resourceType,
+        [Parameter(Mandatory=$true)][String]$dateTime,
+        [Parameter(Mandatory=$true)][String]$key,
+        [Parameter(Mandatory=$true)][String]$keyType,
+        [Parameter(Mandatory=$true)][String]$tokenVersion
+    )
+    $hmacSha256 = New-Object System.Security.Cryptography.HMACSHA256
+    $hmacSha256.Key = [System.Convert]::FromBase64String($key)
+ 
+    If ($resourceLink -eq $resourceType) {
+        $resourceLink = ""
+    }
+ 
+    $payLoad = "$($verb.ToLowerInvariant())`n$($resourceType.ToLowerInvariant())`n$resourceLink`n$($dateTime.ToLowerInvariant())`n`n"
+    $hashPayLoad = $hmacSha256.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($payLoad))
+    $signature = [System.Convert]::ToBase64String($hashPayLoad)
+ 
+    [System.Web.HttpUtility]::UrlEncode("type=$keyType&ver=$tokenVersion&sig=$signature")
+}
+
 Export-ModuleMember -Function List-StorageAccountKeys
 Export-ModuleMember -Function List-CosmosDBKeys
 Export-ModuleMember -Function Create-KeyVaultLinkedService
@@ -1029,5 +1303,12 @@ Export-ModuleMember -Function Create-SQLScript
 Export-ModuleMember -Function Create-SparkNotebook
 Export-ModuleMember -Function Start-SparkNotebookSession
 Export-ModuleMember -Function Get-SparkNotebookSession
+Export-ModuleMember -Function Wait-ForSparkNotebookSession
+Export-ModuleMember -Function Delete-SparkNotebookSession
+Export-ModuleMember -Function Start-SparkNotebookSessionStatement
+Export-ModuleMember -Function Get-SparkNotebookSessionStatement
+Export-ModuleMember -Function Wait-ForSparkNotebookSessionStatement
 Export-ModuleMember -Function Assign-SynapseRole
 Export-ModuleMember -Function Refresh-Token
+Export-ModuleMember -Function Generate-CosmosDbMasterKeyAuthorizationSignature
+Export-ModuleMember -Function Count-CosmosDbDocuments
