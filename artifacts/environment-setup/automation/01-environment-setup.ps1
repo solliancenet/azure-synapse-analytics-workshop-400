@@ -233,9 +233,9 @@ foreach ($script in $scripts.Keys) {
         Wait-ForSQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Label $scripts[$script] -ReferenceTime $refTime
 }
 
-Write-Information "Scale down the $($sqlPoolName) SQL pool to DW1000c after baby MOADs import."
+Write-Information "Scale down the $($sqlPoolName) SQL pool to DW500c after baby MOADs import."
 
-Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action scale -SKU DW1000c
+Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action scale -SKU DW500c
 Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online
 
 
