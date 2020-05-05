@@ -8,11 +8,11 @@
           "type":"BigDataPoolReference"
        },
        "sessionProperties":{
-          "driverMemory":"56g",
-          "driverCores":8,
-          "executorMemory":"56g",
-          "executorCores":8,
-          "numExecutors":4
+          "driverMemory":"28g",
+          "driverCores":4,
+          "executorMemory":"28g",
+          "executorCores":4,
+          "numExecutors":2
        },
        "metadata":{
           "language_info":{
@@ -29,8 +29,8 @@
              },
              "sparkVersion":"2.4",
              "nodeCount":3,
-             "cores":8,
-             "memory":56,
+             "cores":4,
+             "memory":28,
              "extraHeader":{
  
              }
