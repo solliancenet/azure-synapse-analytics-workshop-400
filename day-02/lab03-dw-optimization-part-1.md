@@ -1,9 +1,5 @@
 # DW Optimization Part 1
 
-`<TBA>`
-Explicit instructions on scaling up to DW1500 before the lab and scaling back after Lab 04 is completed.
-`</TBA>`
-
 ## Exercise 1 - Explore query performance and improve table structure
 
 ### Task 1 - Identify performance issues related to tables
