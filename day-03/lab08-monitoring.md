@@ -102,6 +102,10 @@ Setting importance in Synapse SQL for Azure Synapse allows you to influence the 
 
     ![SQL query results.](media/sql-query-4-results.png "SQL script")
 
+14. Navigate to the **Monitor** hub, select **Pipeline runs**, and then select **Cancel recursive** for each running Lab 08 pipelines. This will help speed up the remaining tasks.
+
+    ![The cancel recursive option is shown.](media/cancel-recursive.png "Pipeline runs - Cancel recursive")
+
 ### Task 2 - Workload Isolation
 
 Workload isolation means resources are reserved, exclusively, for a workload group. Workload groups are containers for a set of requests and are the basis for how workload management, including workload isolation, is configured on a system. A simple workload management configuration can manage data loads and user queries.
@@ -181,7 +185,11 @@ Users should avoid a workload management solution that configures 100% workload 
 
     ![The script results show that each session was executed with below normal importance.](media/sql-result-below-normal.png "SQL script")
 
-12. In the query window, replace the script with the following to set 3.25% minimum resources per request:
+12. Navigate to the **Monitor** hub, select **Pipeline runs**, and then select **Cancel recursive** for each running Lab 08 pipelines. This will help speed up the remaining tasks.
+
+    ![The cancel recursive option is shown.](media/cancel-recursive-ba.png "Pipeline runs - Cancel recursive")
+
+13. In the query window, replace the script with the following to set 3.25% minimum resources per request:
 
     ```sql
     IF  EXISTS (SELECT * FROM sys.workload_management_workload_classifiers where group_name = 'CEODemo')
@@ -204,9 +212,9 @@ Users should avoid a workload management solution that configures 100% workload 
     > 
     > [Max Concurrency] = [CAP_PERCENTAGE_RESOURCE] / [REQUEST_MIN_RESOURCE_GRANT_PERCENT]
 
-13. Let's flood the system again and see what happens for `asa.sql.workload02`. To do this, we will run an Azure Synapse Pipeline which triggers queries. Select the `Orchestrate` Tab. **Run** the **Lab 08 - Execute Business Analyst Queries** Pipeline, which will run / trigger  `asa.sql.workload02` queries.
+14. Let's flood the system again and see what happens for `asa.sql.workload02`. To do this, we will run an Azure Synapse Pipeline which triggers queries. Select the `Orchestrate` Tab. **Run** the **Lab 08 - Execute Business Analyst Queries** Pipeline, which will run / trigger  `asa.sql.workload02` queries.
 
-14. In the query window, replace the script with the following to see what happened to all of the `asa.sql.workload02` queries we just triggered as they flood the system:
+15. In the query window, replace the script with the following to see what happened to all of the `asa.sql.workload02` queries we just triggered as they flood the system:
 
     ```sql
     SELECT s.login_name, r.[Status], r.Importance, submit_time,
@@ -217,7 +225,7 @@ Users should avoid a workload management solution that configures 100% workload 
     ORDER BY submit_time, status
     ```
 
-15. Select **Run** from the toolbar menu to execute the SQL command.
+16. Select **Run** from the toolbar menu to execute the SQL command.
 
 ## Exercise 2 - Workload Monitoring
 

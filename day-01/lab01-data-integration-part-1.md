@@ -193,19 +193,13 @@ When you query Parquet files using Synapse SQL Serverless, you can explore the d
 
     > **Note:** The first time you run a notebook in a Spark pool, Synapse creates a new session. This can take approximately 3 minutes.
 
-6. As you can see, the output is not formatted very well. To change this, replace the last line of code with the following and run the cell again to see the improved display:
+    > **Note:** To run just the cell, either hover over the cell and select the _Run cell_ icon to the left of the cell, or select the cell then type **Ctrl+Enter** on your keyboard.
 
-```python
-display(data_path.limit(100))
-```
-
-> **Note:** To run just the cell, either hover over the cell and select the _Run cell_ icon to the left of the cell, or select the cell then type **Ctrl+Enter** on your keyboard.
-
-7. Create a new cell underneath by selecting **{} Add code** when hovering over the blank space at the bottom of the notebook.
+6. Create a new cell underneath by selecting **{} Add code** when hovering over the blank space at the bottom of the notebook.
 
     ![The Add Code menu option is highlighted.](media/new-cell.png "Add code")
 
-8. The Spark engine can analyze the Parquet files and infer the schema. To do this, enter the following in the new cell:
+7. The Spark engine can analyze the Parquet files and infer the schema. To do this, enter the following in the new cell:
 
 ```python
 data_path.printSchema()
@@ -228,7 +222,7 @@ root
     |-- StoreId: short (nullable = true)
 ```
 
-9. Now let's use the dataframe to perform the same grouping and aggregate query we performed with the SQL Serverless pool. Create a new cell and enter the following:
+8. Now let's use the dataframe to perform the same grouping and aggregate query we performed with the SQL Serverless pool. Create a new cell and enter the following:
 
 ```python
 from pyspark.sql import SparkSession
@@ -241,7 +235,7 @@ profitByDateProduct = (data_path.groupBy("TransactionDate","ProductId")
         round(avg("Quantity"), 4).alias("(avg)Quantity"),
         sum("Quantity").alias("(sum)Quantity"))
     .orderBy("TransactionDate"))
-display(profitByDateProduct.limit(100))
+profitByDateProduct.show(100)
 ```
 
  > We import required Python libraries to use aggregation functions and types defined in the schema to successfully execute the query.
@@ -361,7 +355,7 @@ This makes analyzing the data a bit difficult. This is because the JSON file con
 from pyspark.sql.functions import udf, explode
 
 flat=df.select('visitorId',explode('topProductPurchases').alias('topProductPurchases_flat'))
-display(flat.limit(100))
+flat.show(100)
 ```
 
 In this cell, we created a new dataframe named `flat` that includes the `visitorId` field and a new aliased field named `topProductPurchases_flat`. As you can see, the output is a bit easier to read and, by extension, easier to query.
@@ -374,7 +368,7 @@ In this cell, we created a new dataframe named `flat` that includes the `visitor
 topPurchases = (flat.select('visitorId','topProductPurchases_flat.productId','topProductPurchases_flat.itemsPurchasedLast12Months')
     .orderBy('visitorId'))
 
-display(topPurchases.limit(100))
+topPurchases.show(100)
 ```
 
 In the output, notice that we now have multiple rows for each `visitorId`.
@@ -411,7 +405,7 @@ Why does this not work?
 sortedTopPurchases = (topPurchases
     .orderBy( col("itemsPurchasedLast12Months").desc() ))
 
-display(sortedTopPurchases.limit(100))
+sortedTopPurchases.show(100)
 ```
 
 9. How many *types* of products did each customer purchase? To figure this out, we need to group by `visitorId` and aggregate on the number of rows per customer. Execute the following code in a new cell:
@@ -422,7 +416,7 @@ groupedTopPurchases = (sortedTopPurchases.select("visitorId")
     .agg(count("*").alias("total"))
     .orderBy("visitorId") )
 
-display(groupedTopPurchases.limit(100))
+groupedTopPurchases.show(100)
 ```
 
 ![The query output is displayed.](media/spark-grouped-top-purchases.png "Grouped top purchases output")
@@ -435,7 +429,7 @@ groupedTopPurchases = (sortedTopPurchases.select("visitorId","itemsPurchasedLast
     .agg(sum("itemsPurchasedLast12Months").alias("totalItemsPurchased"))
     .orderBy("visitorId") )
 
-display(groupedTopPurchases.limit(100))
+groupedTopPurchases.show(100)
 ```
 
 ![The query output is displayed.](media/spark-grouped-top-purchases-total-items.png "Grouped top total items output")
