@@ -60,6 +60,13 @@ $global:tokenTimes = [ordered]@{
 
 $overallStateIsValid = $true
 
+Write-Information "Start the $($sqlPoolName) SQL pool if needed."
+
+$result = Get-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName
+if ($result.properties.status -ne "Online") {
+    Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action resume
+    Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online
+}
 
 $tables = [ordered]@{
         "wwi_poc.Date" = @{
@@ -73,7 +80,7 @@ $tables = [ordered]@{
                 ValidCount = $false
         }
         "wwi_poc.Sale" = @{
-                Count = 2903451490
+                Count = 981995895
                 Valid = $false
                 ValidCount = $false
         }
@@ -135,6 +142,11 @@ foreach ($dataRow in $result.data) {
 
 if ($overallStateIsValid -eq $true) {
     Write-Information "Validation Passed"
+
+    Write-Information "Pause the $($sqlPoolName) SQL pool to DW500c after PoC import."
+
+    Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action pause
+    Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Paused
 }
 else {
     Write-Warning "Validation Failed - see log output"
