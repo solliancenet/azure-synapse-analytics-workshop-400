@@ -873,7 +873,7 @@ To run loads with appropriate compute resources, create loading users designated
 
 8. Choose the **Parquet** format, then select **Continue**.
 
-9. In the properties, set the name to **asal400_december_sales** and select the **asadatalakeXX** linked service. Browse to the `wwi-02/campaign-analytics/large-sale-december2010-snappy.parquet` file location, select **From sample file** for schema import. [Download this sample file](https://github.com/solliancenet/azure-synapse-analytics-workshop-400/blob/master/day-01/media/sale-small-20100102-snappy.parquet?raw=true) to your computer, then browse to it in the **Select file** field. Select **OK**.
+9. In the properties, set the name to **asal400_december_sales** and select the **asadatalakeNNNNNN** linked service. Browse to the `wwi-02/campaign-analytics/sale-20161230-snappy.parquet` file location, select **From sample file** for schema import. [Download this sample file](https://github.com/solliancenet/azure-synapse-analytics-workshop-400/blob/master/day-01/media/sale-small-20100102-snappy.parquet?raw=true) to your computer, then browse to it in the **Select file** field. Select **OK**.
 
     ![The properties are displayed.](media/pipeline-copy-sales-source-dataset.png "Dataset properties")
 

@@ -15,6 +15,7 @@ Artifact Name | Artifact Type | Notes
 `wwi-02\sale-small\Year=2016\Quarter=Q4\Month=12\Day=20161231\sale-small-20161231-snappy.parquet` | File path in `asadatalakeNNNNNN`
 `wwi-02\sale-small\Year=2019` | Folder path in `asadatalakeNNNNNN` |
 `wwi-02\campaign-analytics\dailycounts.txt` | File path in `asadatalakeNNNNNN` |
+`sqlpool_import01` | Linked service (Azure Synapse Analytics) | Uses the `asa.sql.import01` user.
 
 Lab 01 creates the following artifacts that must be deleted when cleaning up the environment:
 
@@ -25,14 +26,17 @@ Artifact Name | Artifact Type | Notes
 `asal400_sales_adlsgen2` | Dataset (ADLS Gen2, Parquet)
 `asal400_ecommerce_userprofiles_source` | Dataset (ADSL Gen2, JSON)
 `wwi_staging` | SQL pool schema
+`wwi_external` | SQL Pool schema
 `wwi_staging.SaleHeap` | SQL pool table
 `wwi_staging.Sale` | SQL pool table
 `wwi_staging.DailySalesCounts` | SQL Pool table |
+`wwi_external.Sales` | SQL Pool external table |
+`wwi_external.DailySalesCounts | SQL Pool external table |
 `ABSS` | SQL pool external data source
 `ParquetFormat` | SQL pool external file format
 `csv_dailysales` | SQL pool external file format
-
-
+`BigDataLoad` | SQL pool workload group
+`HeavyLoader` | SQL pool workload classifier
 
 
 ## Lab 02
