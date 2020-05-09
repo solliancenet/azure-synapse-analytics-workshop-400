@@ -758,7 +758,7 @@ Let's try this same operation using PolyBase.
     );
     GO
 
-    CREATE EXTERNAL TABLE [external].DailySalesCounts
+    CREATE EXTERNAL TABLE [wwi_external].DailySalesCounts
         (
             [Date] [int]  NOT NULL,
             [NorthAmerica] [int]  NOT NULL,
@@ -776,7 +776,7 @@ Let's try this same operation using PolyBase.
     GO
     INSERT INTO [wwi_staging].[DailySalesCounts]
     SELECT *
-    FROM [external].[DailySalesCounts]
+    FROM [wwi_external].[DailySalesCounts]
     ```
 
 2. Select **Run** from the toolbar menu to execute the SQL command.
