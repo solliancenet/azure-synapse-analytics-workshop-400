@@ -605,7 +605,7 @@ PolyBase requires the following elements:
     ```sql
     INSERT INTO [wwi_staging].[SaleHeap]
     SELECT *
-    FROM [external].[Sales]
+    FROM [wwi_external].[Sales]
     ```
 
 6. Select **Run** from the toolbar menu to execute the SQL command. It will take a few minutes to execute this command. **Take note** of how long it took to execute this query.
