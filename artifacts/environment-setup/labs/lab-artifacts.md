@@ -34,13 +34,13 @@ Artifact Name | Artifact Type | Notes
 `wwi_staging.Sale` | SQL pool table |
 `wwi_staging.DailySalesCounts` | SQL Pool table |
 `wwi_external.Sales` | SQL Pool external table |
-`wwi_external.DailySalesCounts | SQL Pool external table |
+`wwi_external.DailySalesCounts` | SQL Pool external table |
 `ABSS` | SQL pool external data source |
 `ParquetFormat` | SQL pool external file format |
 `csv_dailysales` | SQL pool external file format |
 `BigDataLoad` | SQL pool workload group |
 `HeavyLoader` | SQL pool workload classifier |
-
+`ASAL400 - Copy December Sales` | Pipeline |
 
 ## Lab 02
 
@@ -48,11 +48,36 @@ Lab 02 depends on the following artifacts that must exist in the environment:
 
 Artifact Name | Artifact Type | Notes
 --- | --- | ---
+`wwi` | SQL pool schema |
+`wwi-02\campaign-analytics\campaignanalytics.csv` | Filepath in `asadatalakeNNNNNN` |
+`sqlpool01` | Linked service (Azure Synapse Analytics)
+`wwi-02\online-user-profiles-02` | Folder path in `asadatalakeNNNNNN` |
+`asadatalakeNNNNNN` | Linked service (ADLS Gen2) |
+
+Lab 02 depends on the following artifacts created by previous labs:
+
+Artifact Name | Artifact Type | Created by | Notes
+--- | --- | --- | ---
+`asal400_ecommerce_userprofiles_source` | Dataset (ADLS Gen2, JSON) | Lab 01 |
+`asal400_customerprofile_cosmosdb` | Dataset (Cosmos DB) | Lab 01 |
 
 Lab 02 creates the following artifacts that must be deleted when cleaning up the environment:
 
 Artifact Name | Artifact Type | Notes
 --- | --- | ----
+`AzureLargeComputeOptimizedIntegrationRuntime` | Integration runtime |
+`wwi.CampaignAnalytics` | SQL pool table }
+`wwi.Sale` | SQL pool table |
+`wwi.UserProductReviews` | SQL pool table |
+`wwi.UserTopProductPurchases` | SQL pool table |
+`asal400_campaign_analytics_source` | Dataset (ADLS Gen2, Delimited text) |
+`asal400_wwi_campaign_analytics_asa` | Dataset (Azure Synapse Analytics) |
+`asal400_wwi_userproductreviews_asa` | Dataset (Azure Synapse Analytics) |
+`asal400_wwi_usertopproductpurchases_asa` | Dataset (Azure Synapse Analytics) |
+`ASAL400 - Lab 2 - Write Campaign Analytics to ASA` | Data flow |
+`ASAL400 - Lab 2 - Write User Profile Data to ASA` | Data flow |
+`ASAL400 - Lab 2 - Write Campaign Analytics to ASA` | Pipeline |
+`ASAL400 - Lab 2 - Write User Profile Data to ASA` | Pipeline |
 
 ## Lab 03
 
