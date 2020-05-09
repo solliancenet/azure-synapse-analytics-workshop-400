@@ -22,6 +22,12 @@ Artifact Name | Artifact Type | Notes
 `asal400_customerprofile_cosmosdb` | Dataset (Cosmos DB)
 `asal400_sales_adlsgen2` | Dataset (ADLS Gen2, Parquet)
 `asal400_ecommerce_userprofiles_source` | Dataset (ADSL Gen2, JSON)
+`wwi_staging` | SQL pool schema
+`wwi_staging.SaleHeap` | SQL pool table
+`wwi_staging.Sale` | SQL pool table
+`ABSS` | SQL pool external data source
+`ParquetFormat` | SQL pool external file format
+
 
 
 ## Lab 02

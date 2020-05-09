@@ -244,12 +244,12 @@ profitByDateProduct.show(100)
 
 In addition to the sales data, we have customer profile data from an e-commerce system that provides top product purchases for each visitor of the site (customer) over the past 12 months. This data is stored within JSON files in the data lake. We will import this data in the next lab, but let's explore it while we're in the Spark notebook.
 
-1. Create a new cell in the Spark notebook, enter the following code, replace `[asadatalakeNNNNNN]` with your data lake name, and execute the cell:
+1. Create a new cell in the Spark notebook, enter the following code, replace `<asadatalakeNNNNNN>` with your data lake name, and execute the cell:
 
 ```python
 df = (spark.read \
         .option("inferSchema", "true") \
-        .json("abfss://wwi-02@[asadatalakeNNNNNN].dfs.core.windows.net/online-user-profiles-02/*.json", multiLine=True)
+        .json("abfss://wwi-02@<asadatalakeNNNNNN>.dfs.core.windows.net/online-user-profiles-02/*.json", multiLine=True)
     )
 
 df.printSchema()
@@ -570,10 +570,10 @@ PolyBase requires the following elements:
     )
     GO
 
-    CREATE SCHEMA [external];
+    CREATE SCHEMA [wwi_external];
     GO
 
-    CREATE EXTERNAL TABLE [external].Sales
+    CREATE EXTERNAL TABLE [wwi_external].Sales
         (
             [TransactionId] [nvarchar](36)  NOT NULL,
             [CustomerId] [int]  NOT NULL,
