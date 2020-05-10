@@ -16,7 +16,9 @@ Artifact Name | Artifact Type | Notes
 `wwi-02\sale-small\Year=2019` | Folder path in `asadatalakeNNNNNN` |
 `wwi-02\campaign-analytics\dailycounts.txt` | File path in `asadatalakeNNNNNN` |
 `wwi-02\campaign-analytics\sale-20161230-snappy.parquet` | File path in `asadatalakeNNNNNN` |
+`SQLPool01` | SQL pool |
 `sqlpool_import01` | Linked service (Azure Synapse Analytics) | Uses the `asa.sql.import01` user.
+`SparkPool01` | Spark pool |
 
 Lab 01 creates the following artifacts that must be deleted when cleaning up the environment:
 
@@ -48,6 +50,8 @@ Lab 02 depends on the following artifacts that must exist in the environment:
 
 Artifact Name | Artifact Type | Notes
 --- | --- | ---
+`SQLPool01` | SQL pool |
+`SparkPool01` | Spark pool |
 `wwi` | SQL pool schema |
 `wwi-02\campaign-analytics\campaignanalytics.csv` | Filepath in `asadatalakeNNNNNN` |
 `sqlpool01` | Linked service (Azure Synapse Analytics)
@@ -66,7 +70,7 @@ Lab 02 creates the following artifacts that must be deleted when cleaning up the
 Artifact Name | Artifact Type | Notes
 --- | --- | ----
 `AzureLargeComputeOptimizedIntegrationRuntime` | Integration runtime |
-`wwi.CampaignAnalytics` | SQL pool table }
+`wwi.CampaignAnalytics` | SQL pool table |
 `wwi.Sale` | SQL pool table |
 `wwi.UserProductReviews` | SQL pool table |
 `wwi.UserTopProductPurchases` | SQL pool table |
@@ -85,10 +89,14 @@ Lab 03 depends on the following artifacts that must exist in the environment:
 
 Artifact Name | Artifact Type | Notes
 --- | --- | ---
+`SQLPool01` | SQL pool |
 `wwi_perf` | SQL pool schema |
 `wwi_perf.Sale_Heap` | SQL pool table | Contains N records.
 `wwi_perf.Sale_Partition01` | SQL pool table | Contains N records.
-
+`wwi_perf.Sale_Partition02` | SQL pool table | Contains N records.
+`wwi.Date` | SQL pool table | Contains 3652 records.
+`wwi_perf.Sale_Index` | SQL pool table | Contains N records.
+`wwi_perf.Sale_Hash_Ordered` | SQL pool table | Contains N records.
 
 Lab 03 creates the following artifacts that must be deleted when cleaning up the environment:
 
@@ -98,7 +106,7 @@ Artifact Name | Artifact Type | Notes
 `wwi_perf.mvCustomerSales` | SQL pool materialized view |
 `RESULT_SET_CACHING ON` | SQL pool setting | Reset with `ALTER DATABASE [<sql_pool>] SET RESULT_SET_CACHING OFF`.
 `Sale_Hash_Customer_Id` | SQL pool statistics on `wwi_perf.Sale_Hash (CustomerId)` | Reset with `DROP STATISTICS Sale_Hash_Customer_Id`.
-`Store_Index` | SQL pool index on `
+`Store_Index` | SQL pool index on `wwi_perf.Sale_Index (StoreId)` |
 
 ## Lab 04
 
@@ -106,11 +114,32 @@ Lab 04 depends on the following artifacts that must exist in the environment:
 
 Artifact Name | Artifact Type | Notes
 --- | --- | ---
+`SQLPool01` | SQL pool |
+`wwi_perf` | SQL pool schema |
+`wwi_perf.Sale_Heap` | SQL pool table | Contains N records.
+`wwi_perf.Sale_Partition01` | SQL pool table | Contains N records.
+`wwi_perf.Sale_Partition02` | SQL pool table | Contains N records.
+`wwi_perf.Sale_Index` | SQL pool table | Contains N records.
+`wwi_perf.Sale_Hash_Ordered` | SQL pool table | Contains N records.
+
+Lab 04 depends on the following artifacts created by previous labs:
+
+Artifact Name | Artifact Type | Created by | Notes
+--- | --- | --- | ---
+`wwi_perf.Sale_Hash` | SQL pool table | Lab 03 |
 
 Lab 04 creates the following artifacts that must be deleted when cleaning up the environment:
 
 Artifact Name | Artifact Type | Notes
 --- | --- | ----
+`wwi_perf.vTableSizes` | SQL pool view |
+`wwi_perf.vColumnStoreRowGroupStats` | SQL pool view |
+`wwi_perf.Sale_Hash_Projection` | SQL pool table |
+`wwi_perf.Sale_Hash_Projectio2` | SQL pool table |
+`wwi_perf.Sale_Hash_Projection_Big` | SQL pool table |
+`wwi_perf.Sale_Hash_Projection_Big2` | SQL pool table |
+`wwi_perf.mvTransactionItemsCounts` | SQL pool materialized view |
+`wwi_perf.Sale_Heap_v2` | SQL pool table |
 
 ## Lab 05
 
@@ -118,11 +147,27 @@ Lab 05 depends on the following artifacts that must exist in the environment:
 
 Artifact Name | Artifact Type | Notes
 --- | --- | ---
+`asakeyvaultNNNNNN` | Azure Key Vault |
+`SQLPool01` | SQL pool |
+`Lab 05 - Exercise 3 - Column Level Security` | SQL script |
+`Lab 05 - Exercise 3 - Row Level Security` | SQL script |
+`Lab 05 - Exercise 3 - Dynamic Data Masking` | SQL script |
+`wwi_security` | SQL pool schema |
+`wwi_security.Sale` | SQL pool table | Contains 52 rows.
+`wwi_security.CustomerInfo` | SQL pool table | Contains 110 rows.
+`CEO` | SQL pool user
+`DataAnalystMiami` | SQL pool user |
+`DataAnalystSanDiego` | SQL pool user |
 
 Lab 05 creates the following artifacts that must be deleted when cleaning up the environment:
 
 Artifact Name | Artifact Type | Notes
 --- | --- | ----
+`PipelineSecret` | Azure Key Vault secret |
+`wwi_security.fn_securitypredicate_result` | SQL pool function |
+`SalesFilter` | SQL pool security policy |
+`MASKED` on `wwi_perf.CustomerInfo.CreditCard` | SQL pool data mask |
+`MASKED` on `wwi_perf.CustomerInfo.Email` | SQL pool data mask |
 
 ## Lab 06
 

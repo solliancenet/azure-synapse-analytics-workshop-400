@@ -135,7 +135,7 @@ $tables = [ordered]@{
                 ValidCount = $false
         }
         "wwi.SaleSmall" = @{
-                Count = 2903451490
+                Count = 1863080489
                 Valid = $false
                 ValidCount = $false
         }

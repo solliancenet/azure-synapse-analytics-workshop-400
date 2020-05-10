@@ -24,9 +24,8 @@ SELECT * FROM sys.security_predicates
 --Step:2 Create a new Schema to hold the security predicate, then define the predicate function. It returns 1 (or True) when
 --  a row should be returned in the parent query.
 GO
-CREATE SCHEMA Security
-GO
-CREATE FUNCTION Security.fn_securitypredicate(@Analyst AS sysname)  
+
+CREATE FUNCTION wwi_security.fn_securitypredicate(@Analyst AS sysname)  
     RETURNS TABLE  
 WITH SCHEMABINDING  
 AS  
@@ -35,7 +34,7 @@ AS
 GO
 -- Now we define security policy that adds the filter predicate to the Sale table. This will filter rows based on their login name.
 CREATE SECURITY POLICY SalesFilter  
-ADD FILTER PREDICATE Security.fn_securitypredicate(Analyst)
+ADD FILTER PREDICATE wwi_security.fn_securitypredicate(Analyst)
 ON wwi_security.Sale
 WITH (STATE = ON);
 
@@ -49,7 +48,7 @@ revert;
 -- As we can see, the query has returned rows here Login name is DataAnalystMiami
 
 -- Step:4 Let us test the same for  'DataAnalystSanDiego' user.
-EXECUTE AS USER = 'DataAnalystSanDiego'; 
+EXECUTE AS USER = 'DataAnalystSanDiego';
 SELECT * FROM wwi_security.Sale;
 revert;
 -- RLS is working indeed.
@@ -65,5 +64,4 @@ ALTER SECURITY POLICY SalesFilter
 WITH (STATE = OFF);
 
 DROP SECURITY POLICY SalesFilter;
-DROP FUNCTION Security.fn_securitypredicate;
-DROP SCHEMA Security;
+DROP FUNCTION wwi_security.fn_securitypredicate;
