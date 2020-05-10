@@ -875,7 +875,7 @@ Loading data into a non-empty table with a clustered index can often contain a m
     SELECT
         COUNT_BIG(*) as TransactionItemsCount
     FROM
-        [wwi_perf].[Sale_Heap]
+        [wwi_perf].[Sale_Hash]
     WHERE
         CustomerId < 900000
     ```
@@ -883,7 +883,7 @@ Loading data into a non-empty table with a clustered index can often contain a m
 2. Implement a minimal logging approach to delete transaction items for customers with ids lower than 900000. Use the following CTAS query to isolate the transaction items that should be kept:
 
     ```sql
-    CREATE TABLE [wwi_perf].[Sale_Heap_v2]
+    CREATE TABLE [wwi_perf].[Sale_Hash_v2]
     WITH
     (
         DISTRIBUTION = ROUND_ROBIN,
@@ -893,7 +893,7 @@ Loading data into a non-empty table with a clustered index can often contain a m
     SELECT
         *
     FROM
-        [wwi_perf].[Sale_Heap]
+        [wwi_perf].[Sale_Hash]
     WHERE
         CustomerId >= 900000
     ```
@@ -904,7 +904,7 @@ Loading data into a non-empty table with a clustered index can often contain a m
 
     ```sql
     DELETE
-        [wwi_perf].[Sale_Heap]
+        [wwi_perf].[Sale_Hash]
     WHERE
         CustomerId < 900000
     ```

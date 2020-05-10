@@ -143,7 +143,7 @@ Artifact Name | Artifact Type | Notes
 `wwi_perf.Sale_Hash_Projection_Big` | SQL pool table |
 `wwi_perf.Sale_Hash_Projection_Big2` | SQL pool table |
 `wwi_perf.mvTransactionItemsCounts` | SQL pool materialized view |
-`wwi_perf.Sale_Heap_v2` | SQL pool table |
+`wwi_perf.Sale_Hash_v2` | SQL pool table |
 
 ## Lab 05
 
@@ -169,7 +169,7 @@ Lab 05 creates the following artifacts that must be deleted when cleaning up the
 Artifact Name | Artifact Type | Notes
 --- | --- | ----
 `PipelineSecret` | Azure Key Vault secret |
-`wwi_security.fn_securitypredicate_result` | SQL pool function |
+`wwi_security.fn_securitypredicate` | SQL pool function |
 `SalesFilter` | SQL pool security policy |
 `MASKED` on `wwi_perf.CustomerInfo.CreditCard` | SQL pool data mask |
 `MASKED` on `wwi_perf.CustomerInfo.Email` | SQL pool data mask |
@@ -180,6 +180,8 @@ Lab 06 depends on the following artifacts that must exist in the environment:
 
 Artifact Name | Artifact Type | Notes
 --- | --- | ---
+`asadatalakeNNNNNN` | ADLS Gen2 storage account |
+`wwi-02` | ADLS Gen2 file system in `asadatalakeNNNNNN` |
 `Lab 06 - Machine Learning` | Spark notebook |
 `SQLPool01` | SQL pool |
 `SparkPool01` | Spark pool |
@@ -198,8 +200,6 @@ Lab 06 creates the following artifacts that must be deleted when cleaning up the
 Artifact Name | Artifact Type | Notes
 --- | --- | ----
 `wwi_ml.ProductPCA` | SQL pool table |
-`asadatalakeNNNNNN` | ADLS Gen2 storage account |
-`wwi-02` | ADLS Gen2 file system in `asadatalakeNNNNNN` |
 
 ## Lab 07
 
