@@ -72,10 +72,10 @@ IF OBJECT_ID(N'[wwi_external].[Sales]') IS NOT NULL
 drop external table [wwi_external].Sales
 
 IF OBJECT_ID(N'[external].[DailySalesCounts]') IS NOT NULL 
-drop external table [wwi_external].DailySalesCounts
+drop external table [external].DailySalesCounts
 
 IF OBJECT_ID(N'[external].[Sales]') IS NOT NULL 
-drop external table [wwi_external].Sales
+drop external table [external].Sales
 
 IF OBJECT_ID(N'[wwi_ml].[MLModel]') IS NOT NULL 
 truncate table [wwi_ml].[MLModel]
