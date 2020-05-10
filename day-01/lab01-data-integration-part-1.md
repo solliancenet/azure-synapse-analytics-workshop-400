@@ -130,7 +130,7 @@ When you query Parquet files using Synapse SQL Serverless, you can explore the d
 
 2. Expand **Storage accounts**. Expand the `asadatalakeXX` primary ADLS Gen2 account and select `wwi-02`.
 
-3. Navigate to the `sale-small/Year=2010/Quarter=Q4/Month=12/Day=20101231` folder. Right-click on the `sale-small-20101231-snappy.parquet` file, select **New SQL script**, then **Select TOP 100 rows**.
+3. Navigate to the `sale-small/Year=2016/Quarter=Q4/Month=12/Day=20161231` folder. Right-click on the `sale-small-20161231-snappy.parquet` file, select **New SQL script**, then **Select TOP 100 rows**.
 
     ![The Data hub is displayed with the options highlighted.](media/data-hub-parquet-select-rows.png "Select TOP 100 rows")
 
@@ -143,12 +143,12 @@ When you query Parquet files using Synapse SQL Serverless, you can explore the d
     ```sql
     SELECT
         TransactionDate, ProductId,
-        CAST(SUM(ProfitAmount) AS decimal(18,2)) AS [(sum) Profit],
-        CAST(AVG(ProfitAmount) AS decimal(18,2)) AS [(avg) Profit],
-        SUM(Quantity) AS [(sum) Quantity]
+            CAST(SUM(ProfitAmount) AS decimal(18,2)) AS [(sum) Profit],
+            CAST(AVG(ProfitAmount) AS decimal(18,2)) AS [(avg) Profit],
+            SUM(Quantity) AS [(sum) Quantity]
     FROM
         OPENROWSET(
-            BULK 'https://asadatalake01.dfs.core.windows.net/wwi-02/sale-small/Year=2010/Quarter=Q4/Month=12/Day=20101231/sale-small-20101231-snappy.parquet',
+            BULK 'https://asadatalake01.dfs.core.windows.net/wwi-02/sale-small/Year=2016/Quarter=Q4/Month=12/Day=20161231/sale-small-20161231-snappy.parquet',
             FORMAT='PARQUET'
         ) AS [r] GROUP BY r.TransactionDate, r.ProductId;
     ```
@@ -177,7 +177,7 @@ When you query Parquet files using Synapse SQL Serverless, you can explore the d
 
 ### Task 2: Query sales Parquet data with Azure Synapse Spark
 
-1. Navigate to the **Data** hub, browse to the data lake storage account folder `sale-small/Year=2010/Quarter=Q4/Month=12/Day=20101231` if needed, then right-click the Parquet file and select New notebook.
+1. Navigate to the **Data** hub, browse to the data lake storage account folder `sale-small/Year=2016/Quarter=Q4/Month=12/Day=20161231` if needed, then right-click the Parquet file and select New notebook.
 
     ![The Parquet file is displayed with the New notebook menu item highlighted.](media/new-spark-notebook-sales.png "New notebook")
 
@@ -893,7 +893,7 @@ To run loads with appropriate compute resources, create loading users designated
 
     ![The mapping is displayed.](media/pipeline-copy-sales-sink-mapping.png "Mapping")
 
-15. Select **Settings** and set the **Data integration unit** to `32`. This is required due to the large size of the source Parquet file.
+15. Select **Settings** and set the **Data integration unit** to `8`. This is required due to the large size of the source Parquet file.
 
     ![The data integration unit value is set to 32.](media/pipeline-copy-sales-settings.png "Settings")
 
