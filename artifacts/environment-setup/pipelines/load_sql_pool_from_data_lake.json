@@ -42,7 +42,6 @@
                                 },
                                 "sink": {
                                     "type": "SqlDWSink",
-                                    "preCopyScript": "truncate table wwi.SaleSmall",
                                     "allowPolyBase": true,
                                     "polyBaseSettings": {
                                         "rejectValue": 0,

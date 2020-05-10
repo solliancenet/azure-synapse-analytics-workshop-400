@@ -87,12 +87,18 @@ Artifact Name | Artifact Type | Notes
 --- | --- | ---
 `wwi_perf` | SQL pool schema |
 `wwi_perf.Sale_Heap` | SQL pool table | Contains N records.
+`wwi_perf.Sale_Partition01` | SQL pool table | Contains N records.
+
 
 Lab 03 creates the following artifacts that must be deleted when cleaning up the environment:
 
 Artifact Name | Artifact Type | Notes
 --- | --- | ----
 `wwi_perf.Sale_Hash` | SQL pool table |
+`wwi_perf.mvCustomerSales` | SQL pool materialized view |
+`RESULT_SET_CACHING ON` | SQL pool setting | Reset with `ALTER DATABASE [<sql_pool>] SET RESULT_SET_CACHING OFF`.
+`Sale_Hash_Customer_Id` | SQL pool statistics on `wwi_perf.Sale_Hash (CustomerId)` | Reset with `DROP STATISTICS Sale_Hash_Customer_Id`.
+`Store_Index` | SQL pool index on `
 
 ## Lab 04
 

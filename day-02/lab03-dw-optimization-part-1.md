@@ -339,8 +339,6 @@
             [wwi_perf].[Sale_Partition01] S
             join [wwi].[Date] D on 
                 D.DateId = S.TransactionDateId
-        WHERE
-            D.Year in (2010, 2011, 2012, 2013, 2014)
         GROUP BY
             S.CustomerId
             ,D.Year
