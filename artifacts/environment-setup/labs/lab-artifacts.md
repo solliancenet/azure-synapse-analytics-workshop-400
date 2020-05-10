@@ -152,6 +152,7 @@ Lab 05 depends on the following artifacts that must exist in the environment:
 Artifact Name | Artifact Type | Notes
 --- | --- | ---
 `asakeyvaultNNNNNN` | Azure Key Vault |
+`asakeyvaultNNNNNN` | Linked service |
 `SQLPool01` | SQL pool |
 `Lab 05 - Exercise 3 - Column Level Security` | SQL script |
 `Lab 05 - Exercise 3 - Row Level Security` | SQL script |

@@ -804,6 +804,34 @@ function Create-SQLScript {
     return $result
 }
 
+function Get-SparkPool {
+
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $SubscriptionId,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $ResourceGroupName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $SparkPoolName
+    )
+
+    $uri = "https://management.azure.com/subscriptions/$($SubscriptionId)/resourcegroups/$($ResourceGroupName)/providers/Microsoft.Synapse/workspaces/$($WorkspaceName)/bigDataPools/$($SparkPoolName)?api-version=2019-06-01-preview"
+
+    Ensure-ValidTokens
+    $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $managementToken" } -ContentType "application/json"
+
+    return $result
+}
+
 function Create-SparkNotebook {
     
     param(
@@ -1300,6 +1328,7 @@ Export-ModuleMember -Function Execute-SQLQuery
 Export-ModuleMember -Function Execute-SQLScriptFile
 Export-ModuleMember -Function Wait-ForSQLQuery
 Export-ModuleMember -Function Create-SQLScript
+Export-ModuleMember -Function Get-SparkPool
 Export-ModuleMember -Function Create-SparkNotebook
 Export-ModuleMember -Function Start-SparkNotebookSession
 Export-ModuleMember -Function Get-SparkNotebookSession

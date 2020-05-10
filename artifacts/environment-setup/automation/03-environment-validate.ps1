@@ -42,7 +42,7 @@ $keyVaultSQLUserSecretName = "SQL-USER-ASA"
 $sqlPoolName = "SQLPool01"
 $integrationRuntimeName = "AzureIntegrationRuntime01"
 $sparkPoolName = "SparkPool01"
-
+$amlWorkspaceName = "amlworkspace$($uniqueId)"
 
 $ropcBodyCore = "client_id=$($clientId)&username=$($userName)&password=$($password)&grant_type=password"
 $global:ropcBodySynapse = "$($ropcBodyCore)&scope=https://dev.azuresynapse.net/.default"
@@ -105,6 +105,38 @@ $asaArtifacts = [ordered]@{
         }
         "Activity 03 - Data Warehouse Optimization" = @{
                 Category = "sqlscripts"
+                Valid = $false
+        }
+        "sqlpool01_import01" = @{
+                Category = "linkedServices"
+                Valid = $false
+        }
+        "sqlpool01" = @{
+                Category = "linkedServices"
+                Valid = $false
+        }
+        "sqlpool01_highperf" = @{
+                Category = "linkedServices"
+                Valid = $false
+        }
+        "sqlpool01_workload01" = @{
+                Category = "linkedServices"
+                Valid = $false
+        }
+        "sqlpool01_workload02" = @{
+                Category = "linkedServices"
+                Valid = $false
+        }
+        "$($blobStorageAccountName)" = @{
+                Category = "linkedServices"
+                Valid = $false
+        }
+        "$($dataLakeAccountName)" = @{
+                Category = "linkedServices"
+                Valid = $false
+        }
+        "$($keyVaultName)" = @{
+                Category = "linkedServices"
                 Valid = $false
         }
 }
@@ -259,11 +291,57 @@ FROM
         }
         
         # $tables contains the current status of the necessary tables
+        foreach ($tableName in $tables.Keys) {
+                if (-not $tables[$tableName]["Valid"]) {
+                        Write-Warning "Table $($tableName) was not found."
+                        $overallStateIsValid = $false
+                }
+        }
+
+        $users = [ordered]@{
+                "CEO" = @{ Valid = $false }
+                "DataAnalystMiami" = @{ Valid = $false }
+                "DataAnalystSanDiego" = @{ Valid = $false }
+                "asa.sql.workload01" = @{ Valid = $false }
+                "asa.sql.workload02" = @{ Valid = $false }
+                "asa.sql.import01" = @{ Valid = $false }
+                "asa.sql.import02" = @{ Valid = $false }
+                "asa.sql.highperf" = @{ Valid = $false }
+                "$($userName)" = @{ Valid = $false }
+        }
+
+$query = @"
+select name from sys.sysusers
+"@
+        $result = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $query
+
+        foreach ($dataRow in $result.data) {
+                $name = $dataRow[0]
+
+                if ($users[$name]) {
+                        Write-Information "Found user $($name)."
+                        $users[$name]["Valid"] = $true
+                }
+        }
+
+        foreach ($name in $users.Keys) {
+                if (-not $users[$name]["Valid"]) {
+                        Write-Warning "User $($name) was not found."
+                        $overallStateIsValid = $false
+                }
+        }
 }
 
-Write-Information "Checking Spark pool $($sparkP)"
+Write-Information "Checking Spark pool $($sparkPoolName)"
+$sparkPool = Get-SparkPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SparkPoolName $sparkPoolName
+if ($sparkPool -eq $null) {
+        Write-Warning "    The Spark pool $($sparkPoolName) was not found"
+        $overallStateIsValid = $false
+} else {
+        Write-Information "OK"
+}
 
-
+Write-Information "Counting Cosmos DB item in database $($cosmosDbDatabase), container $($cosmosDbContainer)"
 $documentCount = Count-CosmosDbDocuments -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -CosmosDbAccountName $cosmosDbAccountName `
                 -CosmosDbDatabase $cosmosDbDatabase -CosmosDbContainer $cosmosDbContainer
 
