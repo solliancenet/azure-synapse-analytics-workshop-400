@@ -14,4 +14,6 @@ SELECT
 	*
 FROM	
 	[wwi].[SaleSmall]
+WHERE
+	TransactionDateId >= 20190101
 OPTION  (LABEL  = 'CTAS : Sale_Heap')
