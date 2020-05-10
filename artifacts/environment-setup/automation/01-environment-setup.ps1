@@ -222,9 +222,6 @@ foreach ($script in $scripts.Keys) {
 
         $refTime = (Get-Date).ToUniversalTime()
         Write-Information "Starting $($script) with label $($scripts[$script])"
-
-        # refresh the token, just in case
-        Refresh-Token -TokenType "SynapseSQL"
         
         # initiate the script and wait until it finishes
         Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -ForceReturn $true
