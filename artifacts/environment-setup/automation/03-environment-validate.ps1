@@ -123,69 +123,89 @@ foreach ($asaArtifactName in $asaArtifacts.Keys) {
 
 # the $asaArtifacts contains the current status of the workspace
 
-$tables = [ordered]@{
-        "wwi.Date" = @{
-                Count = 3652
-                Valid = $false
-                ValidCount = $false
-        }
-        "wwi.Product" = @{
-                Count = 5000
-                Valid = $false
-                ValidCount = $false
-        }
-        "wwi.SaleSmall" = @{
-                Count = 1863080489
-                Valid = $false
-                ValidCount = $false
-        }
-        "wwi_perf.Sale_Hash_Ordered" = @{
-                Count = 339507246
-                Valid = $false
-                ValidCount = $false
-        }
-        "wwi_perf.Sale_Heap" = @{
-                Count = 339507246
-                Valid = $false
-                ValidCount = $false
-        }
-        "wwi_perf.Sale_Index" = @{
-                Count = 339507246
-                Valid = $false
-                ValidCount = $false
-        }
-        "wwi_perf.Sale_Partition01" = @{
-                Count = 339507246
-                Valid = $false
-                ValidCount = $false
-        }
-        "wwi_perf.Sale_Partition02" = @{
-                Count = 339507246
-                Valid = $false
-                ValidCount = $false
-        }
-        "wwi_security.CustomerInfo" = @{
-                Count = 110
-                Valid = $false
-                ValidCount = $false
-        }
-        "wwi_security.Sale" = @{
-                Count = 52
-                Valid = $false
-                ValidCount = $false
-        }
-        "wwi_ml.MLModelExt" = @{
-                Count = 1
-                Valid = $false
-                ValidCount = $false
-        }
-        "wwi_ml.MLModel" = @{
-                Count = 0
-                Valid = $false
-                ValidCount = $false
-        }
-}
+Write-Information "Checking SQLPool $($sqlPoolName)..."
+$sqlPool = Get-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName
+if ($sqlPool -eq $null) {
+        Write-Warning "    The SQL pool $($sqlPoolName) was not found"
+        $overallStateIsValid = $false
+} else {
+        Write-Information "OK"
 
+        $tables = [ordered]@{
+                "wwi.Date" = @{
+                        Count = 3652
+                        StrictCount = $true
+                        Valid = $false
+                        ValidCount = $false
+                }
+                "wwi.Product" = @{
+                        Count = 5000
+                        StrictCount = $true
+                        Valid = $false
+                        ValidCount = $false
+                }
+                "wwi.SaleSmall" = @{
+                        Count = 1863080489
+                        StrictCount = $true
+                        Valid = $false
+                        ValidCount = $false
+                }
+                "wwi_perf.Sale_Hash_Ordered" = @{
+                        Count = 339507246
+                        StrictCount = $true
+                        Valid = $false
+                        ValidCount = $false
+                }
+                "wwi_perf.Sale_Heap" = @{
+                        Count = 339507246
+                        StrictCount = $true
+                        Valid = $false
+                        ValidCount = $false
+                }
+                "wwi_perf.Sale_Index" = @{
+                        Count = 339507246
+                        StrictCount = $true
+                        Valid = $false
+                        ValidCount = $false
+                }
+                "wwi_perf.Sale_Partition01" = @{
+                        Count = 339507246
+                        StrictCount = $true
+                        Valid = $false
+                        ValidCount = $false
+                }
+                "wwi_perf.Sale_Partition02" = @{
+                        Count = 339507246
+                        StrictCount = $true
+                        Valid = $false
+                        ValidCount = $false
+                }
+                "wwi_security.CustomerInfo" = @{
+                        Count = 110
+                        StrictCount = $false
+                        Valid = $false
+                        ValidCount = $false
+                }
+                "wwi_security.Sale" = @{
+                        Count = 52
+                        StrictCount = $false
+                        Valid = $false
+                        ValidCount = $false
+                }
+                "wwi_ml.MLModelExt" = @{
+                        Count = 1
+                        StrictCount = $true
+                        Valid = $false
+                        ValidCount = $false
+                }
+                "wwi_ml.MLModel" = @{
+                        Count = 0
+                        StrictCount = $true
+                        Valid = $false
+                        ValidCount = $false
+                }
+        }
+        
 $query = @"
 SELECT
         S.name as SchemaName
@@ -195,45 +215,53 @@ FROM
         join sys.schemas S on
                 T.schema_id = S.schema_id
 "@
-$result = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $query
+        $result = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $query
+        
+        
+        foreach ($dataRow in $result.data) {
+                $schemaName = $dataRow[0]
+                $tableName = $dataRow[1]
+        
+                $fullName = "$($schemaName).$($tableName)"
+        
+                if ($tables[$fullName]) {
+                        
+                        $tables[$fullName]["Valid"] = $true
+                        $strictCount = $tables[$fullName]["StrictCount"]
+        
+                        Write-Information "Counting table $($fullName) with StrictCount = $($strictCount)..."
+        
+                        try {
+                            $countQuery = "select count_big(*) from $($fullName)"
+                            $countResult = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $countQuery
+        
+                            Write-Information "    Count result $([int64]$countResult[0][0].data[0].Get(0))"
+        
+                            if (
+                                ($strictCount -and ([int64]$countResult[0][0].data[0].Get(0) -eq $tables[$fullName]["Count"])) -or
+                                ((-not $strictCount) -and ([int64]$countResult[0][0].data[0].Get(0) -ge $tables[$fullName]["Count"]))) {
 
-
-foreach ($dataRow in $result.data) {
-        $schemaName = $dataRow[0]
-        $tableName = $dataRow[1]
-
-        $fullName = "$($schemaName).$($tableName)"
-
-        if ($tables[$fullName]) {
-                
-                $tables[$fullName]["Valid"] = $true
-
-                Write-Information "Counting table $($fullName)..."
-
-                try {
-                    $countQuery = "select count_big(*) from $($fullName)"
-                    $countResult = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $countQuery
-
-                    Write-Information "    Count result $([int64]$countResult[0][0].data[0].Get(0))"
-
-                    if ([int64]$countResult[0][0].data[0].Get(0) -eq $tables[$fullName]["Count"]) {
-                            Write-Information "    Records counted is correct."
-                            $tables[$fullName]["ValidCount"] = $true
-                    }
-                    else {
-                        Write-Warning "    Records counted is NOT correct."
-                        $overallStateIsValid = $false
-                    }
+                                    Write-Information "    OK - Records counted is correct."
+                                    $tables[$fullName]["ValidCount"] = $true
+                            }
+                            else {
+                                Write-Warning "    Records counted is NOT correct."
+                                $overallStateIsValid = $false
+                            }
+                        }
+                        catch { 
+                            Write-Warning "    Error while querying table."
+                            $overallStateIsValid = $false
+                        }
+        
                 }
-                catch { 
-                    Write-Warning "    Error while querying table."
-                    $overallStateIsValid = $false
-                }
-
         }
+        
+        # $tables contains the current status of the necessary tables
 }
 
-# $tables contains the current status of the necessary tables
+Write-Information "Checking Spark pool $($sparkP)"
+
 
 $documentCount = Count-CosmosDbDocuments -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -CosmosDbAccountName $cosmosDbAccountName `
                 -CosmosDbDatabase $cosmosDbDatabase -CosmosDbContainer $cosmosDbContainer
@@ -242,6 +270,53 @@ if ($documentCount -ne 100000) {
         Write-Warning "    Invalid number of CosmosDb documents. Expected 100000 but found $($documentCount)."
         $overallStateIsValid = $false
 }            
+
+Write-Information "Checking datalake account $($dataLakeAccountName)..."
+$dataLakeAccount = Get-AzStorageAccount -ResourceGroupName $resourceGroupName -Name $dataLakeAccountName
+if ($dataLakeAccount -eq $null) {
+        Write-Warning "    The datalake account $($dataLakeAccountName) was not found"
+        $overallStateIsValid = $false
+} else {
+        Write-Information "OK"
+
+        Write-Information "Checking data lake file system wwi-02"
+        $dataLakeFileSystem = Get-AzDataLakeGen2Item -Context $dataLakeAccount.Context -FileSystem "wwi-02"
+        if ($dataLakeFileSystem -eq $null) {
+                Write-Warning "    The data lake file system wwi-02 was not found"
+                $overallStateIsValid = $false
+        } else {
+                Write-Information "OK"
+
+                $dataLakeItems = [ordered]@{
+                        "sale-small" = "folder path"
+                        "online-user-profiles-02" = "folder path"
+                        "sale-small\Year=2014" = "folder path"
+                        "sale-small\Year=2015" = "folder path"
+                        "sale-small\Year=2016" = "folder path"
+                        "sale-small\Year=2017" = "folder path"
+                        "sale-small\Year=2018" = "folder path"
+                        "sale-small\Year=2019" = "folder path"
+                        "sale-small\Year=2016\Quarter=Q4\Month=12\Day=20161231\sale-small-20161231-snappy.parquet" = "file path"
+                        "campaign-analytics\dailycounts.txt" = "file path"
+                        "campaign-analytics\sale-20161230-snappy.parquet" = "file path"
+                        "campaign-analytics\campaignanalytics.csv" = "file path"
+                }
+        
+                foreach ($dataLakeItemName in $dataLakeItems.Keys) {
+        
+                        Write-Information "Checking data lake $($dataLakeItems[$dataLakeItemName]) $($dataLakeItemName)..."
+                        $dataLakeItem = Get-AzDataLakeGen2Item -Context $dataLakeAccount.Context -FileSystem "wwi-02" -Path $dataLakeItemName
+                        if ($dataLakeItem -eq $null) {
+                                Write-Warning "    The data lake $($dataLakeItems[$dataLakeItemName]) $($dataLakeItemName) was not found"
+                                $overallStateIsValid = $false
+                        } else {
+                                Write-Information "OK"
+                        }
+        
+                }  
+        }      
+}
+
 
 if ($overallStateIsValid -eq $true) {
     Write-Information "Validation Passed"

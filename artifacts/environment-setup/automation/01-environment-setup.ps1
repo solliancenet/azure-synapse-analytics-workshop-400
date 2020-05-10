@@ -209,11 +209,11 @@ Write-Information "Create tables in wwi_perf schema in SQL pool $($sqlPoolName)"
 
 $params = @{}
 $scripts = [ordered]@{
-        #"07-create-wwi-perf-sale-heap" = "CTAS : Sale_Heap"
+        "07-create-wwi-perf-sale-heap" = "CTAS : Sale_Heap"
         "08-create-wwi-perf-sale-partition01" = "CTAS : Sale_Partition01"
         "09-create-wwi-perf-sale-partition02" = "CTAS : Sale_Partition02"
-        #"10-create-wwi-perf-sale-index" = "CTAS : Sale_Index"
-        #"11-create-wwi-perf-sale-hash-ordered" = "CTAS : Sale_Hash_Ordered"
+        "10-create-wwi-perf-sale-index" = "CTAS : Sale_Index"
+        "11-create-wwi-perf-sale-hash-ordered" = "CTAS : Sale_Hash_Ordered"
 }
 
 foreach ($script in $scripts.Keys) {
