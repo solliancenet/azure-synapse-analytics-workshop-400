@@ -228,8 +228,8 @@ foreach ($dataRow in $result.data) {
 $documentCount = Count-CosmosDbDocuments -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -CosmosDbAccountName $cosmosDbAccountName `
                 -CosmosDbDatabase $cosmosDbDatabase -CosmosDbContainer $cosmosDbContainer
 
-if ($documentCount -lt 722647) {
-        Write-Warning "    Invalid number of CosmosDb documents. Expected at least 722647 but found $($documentCount)."
+if ($documentCount -ne 100000) {
+        Write-Warning "    Invalid number of CosmosDb documents. Expected 100000 but found $($documentCount)."
         $overallStateIsValid = $false
 }            
 
