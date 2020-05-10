@@ -130,7 +130,7 @@ When you query Parquet files using Synapse SQL Serverless, you can explore the d
 
 2. Expand **Storage accounts**. Expand the `asadatalakeXX` primary ADLS Gen2 account and select `wwi-02`.
 
-3. Navigate to the `sale-small/Year=2010/Quarter=Q4/Month=12/Day=20101231` folder. Right-click on the `sale-small-20101231-snappy.parquet` file, select **New SQL script**, then **Select TOP 100 rows**.
+3. Navigate to the `sale-small/Year=2016/Quarter=Q4/Month=12/Day=20161231` folder. Right-click on the `sale-small-20161231-snappy.parquet` file, select **New SQL script**, then **Select TOP 100 rows**.
 
     ![The Data hub is displayed with the options highlighted.](media/data-hub-parquet-select-rows.png "Select TOP 100 rows")
 
@@ -143,12 +143,12 @@ When you query Parquet files using Synapse SQL Serverless, you can explore the d
     ```sql
     SELECT
         TransactionDate, ProductId,
-        CAST(SUM(ProfitAmount) AS decimal(18,2)) AS [(sum) Profit],
-        CAST(AVG(ProfitAmount) AS decimal(18,2)) AS [(avg) Profit],
-        SUM(Quantity) AS [(sum) Quantity]
+            CAST(SUM(ProfitAmount) AS decimal(18,2)) AS [(sum) Profit],
+            CAST(AVG(ProfitAmount) AS decimal(18,2)) AS [(avg) Profit],
+            SUM(Quantity) AS [(sum) Quantity]
     FROM
         OPENROWSET(
-            BULK 'https://asadatalake01.dfs.core.windows.net/wwi-02/sale-small/Year=2010/Quarter=Q4/Month=12/Day=20101231/sale-small-20101231-snappy.parquet',
+            BULK 'https://asadatalake01.dfs.core.windows.net/wwi-02/sale-small/Year=2016/Quarter=Q4/Month=12/Day=20161231/sale-small-20161231-snappy.parquet',
             FORMAT='PARQUET'
         ) AS [r] GROUP BY r.TransactionDate, r.ProductId;
     ```
@@ -177,7 +177,7 @@ When you query Parquet files using Synapse SQL Serverless, you can explore the d
 
 ### Task 2: Query sales Parquet data with Azure Synapse Spark
 
-1. Navigate to the **Data** hub, browse to the data lake storage account folder `sale-small/Year=2010/Quarter=Q4/Month=12/Day=20101231` if needed, then right-click the Parquet file and select New notebook.
+1. Navigate to the **Data** hub, browse to the data lake storage account folder `sale-small/Year=2016/Quarter=Q4/Month=12/Day=20161231` if needed, then right-click the Parquet file and select New notebook.
 
     ![The Parquet file is displayed with the New notebook menu item highlighted.](media/new-spark-notebook-sales.png "New notebook")
 
@@ -244,12 +244,12 @@ profitByDateProduct.show(100)
 
 In addition to the sales data, we have customer profile data from an e-commerce system that provides top product purchases for each visitor of the site (customer) over the past 12 months. This data is stored within JSON files in the data lake. We will import this data in the next lab, but let's explore it while we're in the Spark notebook.
 
-1. Create a new cell in the Spark notebook, enter the following code, replace `[asadatalakeXX]` with your data lake name, and execute the cell:
+1. Create a new cell in the Spark notebook, enter the following code, replace `<asadatalakeNNNNNN>` with your data lake name, and execute the cell:
 
 ```python
 df = (spark.read \
         .option("inferSchema", "true") \
-        .json("abfss://wwi-02@[asadatalakeXX].dfs.core.windows.net/online-user-profiles-02/*.json", multiLine=True)
+        .json("abfss://wwi-02@<asadatalakeNNNNNN>.dfs.core.windows.net/online-user-profiles-02/*.json", multiLine=True)
     )
 
 df.printSchema()
@@ -570,10 +570,10 @@ PolyBase requires the following elements:
     )
     GO
 
-    CREATE SCHEMA [external];
+    CREATE SCHEMA [wwi_external];
     GO
 
-    CREATE EXTERNAL TABLE [external].Sales
+    CREATE EXTERNAL TABLE [wwi_external].Sales
         (
             [TransactionId] [nvarchar](36)  NOT NULL,
             [CustomerId] [int]  NOT NULL,
@@ -605,7 +605,7 @@ PolyBase requires the following elements:
     ```sql
     INSERT INTO [wwi_staging].[SaleHeap]
     SELECT *
-    FROM [external].[Sales]
+    FROM [wwi_external].[Sales]
     ```
 
 6. Select **Run** from the toolbar menu to execute the SQL command. It will take a few minutes to execute this command. **Take note** of how long it took to execute this query.
@@ -758,7 +758,7 @@ Let's try this same operation using PolyBase.
     );
     GO
 
-    CREATE EXTERNAL TABLE [external].DailySalesCounts
+    CREATE EXTERNAL TABLE [wwi_external].DailySalesCounts
         (
             [Date] [int]  NOT NULL,
             [NorthAmerica] [int]  NOT NULL,
@@ -776,7 +776,7 @@ Let's try this same operation using PolyBase.
     GO
     INSERT INTO [wwi_staging].[DailySalesCounts]
     SELECT *
-    FROM [external].[DailySalesCounts]
+    FROM [wwi_external].[DailySalesCounts]
     ```
 
 2. Select **Run** from the toolbar menu to execute the SQL command.
@@ -873,7 +873,7 @@ To run loads with appropriate compute resources, create loading users designated
 
 8. Choose the **Parquet** format, then select **Continue**.
 
-9. In the properties, set the name to **asal400_december_sales** and select the **asadatalakeXX** linked service. Browse to the `wwi-02/campaign-analytics/large-sale-december2010-snappy.parquet` file location, select **From sample file** for schema import. [Download this sample file](https://github.com/solliancenet/azure-synapse-analytics-workshop-400/blob/master/day-01/media/sale-small-20100102-snappy.parquet?raw=true) to your computer, then browse to it in the **Select file** field. Select **OK**.
+9. In the properties, set the name to **asal400_december_sales** and select the **asadatalakeNNNNNN** linked service. Browse to the `wwi-02/campaign-analytics/sale-20161230-snappy.parquet` file location, select **From sample file** for schema import. [Download this sample file](https://github.com/solliancenet/azure-synapse-analytics-workshop-400/blob/master/day-01/media/sale-small-20100102-snappy.parquet?raw=true) to your computer, then browse to it in the **Select file** field. Select **OK**.
 
     ![The properties are displayed.](media/pipeline-copy-sales-source-dataset.png "Dataset properties")
 
@@ -893,7 +893,7 @@ To run loads with appropriate compute resources, create loading users designated
 
     ![The mapping is displayed.](media/pipeline-copy-sales-sink-mapping.png "Mapping")
 
-15. Select **Settings** and set the **Data integration unit** to `32`. This is required due to the large size of the source Parquet file.
+15. Select **Settings** and set the **Data integration unit** to `8`. This is required due to the large size of the source Parquet file.
 
     ![The data integration unit value is set to 32.](media/pipeline-copy-sales-settings.png "Settings")
 
