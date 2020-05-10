@@ -206,6 +206,9 @@ Lab 07 depends on the following artifacts that must exist in the environment:
 
 Artifact Name | Artifact Type | Notes
 --- | --- | ---
+`Lab 07 - Spark ML` | Spark notebook |
+`SQLPool01` | SQL pool |
+`SparkPool01` | Spark pool |
 
 Lab 07 creates the following artifacts that must be deleted when cleaning up the environment:
 
