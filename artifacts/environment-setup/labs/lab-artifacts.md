@@ -157,8 +157,8 @@ Artifact Name | Artifact Type | Notes
 `Lab 05 - Exercise 3 - Row Level Security` | SQL script |
 `Lab 05 - Exercise 3 - Dynamic Data Masking` | SQL script |
 `wwi_security` | SQL pool schema |
-`wwi_security.Sale` | SQL pool table | Contains 52 rows.
-`wwi_security.CustomerInfo` | SQL pool table | Contains 110 rows.
+`wwi_security.Sale` | SQL pool table | Contains 52 records.
+`wwi_security.CustomerInfo` | SQL pool table | Contains 110 records.
 `CEO` | SQL pool user |
 `DataAnalystMiami` | SQL pool user |
 `DataAnalystSanDiego` | SQL pool user |
@@ -184,13 +184,13 @@ Artifact Name | Artifact Type | Notes
 `SparkPool01` | Spark pool |
 `wwi` | SQL pool schema |
 `wwi_ml` | SQL pool schema |
-`wwi.SaleSmall` | SQL pool table | Contains 1863080489 rows.
-`wwi.Product` | SQL pool table | Contains 5000 rows.
+`wwi.SaleSmall` | SQL pool table | Contains 1863080489 records.
+`wwi.Product` | SQL pool table | Contains 5000 records.
 `StorageCredential` | SQL pool database scoped credential |
 `ModelStorage` | SQL pool external data source |
 `csv` | SQL pool external file format |
-`wwi_ml.MLModelExt` | SQL pool external table | Contains 1 row.
-`wwi_ml.MLModel` | SQL pool table | Contains 0 rows.
+`wwi_ml.MLModelExt` | SQL pool external table | Contains 1 record.
+`wwi_ml.MLModel` | SQL pool table | Contains 0 records.
 
 Lab 06 creates the following artifacts that must be deleted when cleaning up the environment:
 
@@ -209,11 +209,13 @@ Artifact Name | Artifact Type | Notes
 `Lab 07 - Spark ML` | Spark notebook |
 `SQLPool01` | SQL pool |
 `SparkPool01` | Spark pool |
+`wwi.SaleSmall` | SQL pool table | Contains 1863080489 rows.
 
 Lab 07 creates the following artifacts that must be deleted when cleaning up the environment:
 
 Artifact Name | Artifact Type | Notes
 --- | --- | ----
+`wwi.Recommendations` | SQL pool table |
 
 ## Lab 08
 
@@ -221,8 +223,15 @@ Lab 08 depends on the following artifacts that must exist in the environment:
 
 Artifact Name | Artifact Type | Notes
 --- | --- | ---
+`SQLPool01` | SQL pool |
+`asa.sql.workload01` | SQL pool user |
+`asa.sql.workload02` | SQL pool user |
+`Lab 08 - Execute Data Analyst and CEO Queries` | Pipeline |
 
 Lab 08 creates the following artifacts that must be deleted when cleaning up the environment:
 
 Artifact Name | Artifact Type | Notes
 --- | --- | ----
+`CEO` | SQL pool workload classifier |
+`CEODemo` | SQL pool workload group |
+`CEODreamDemo` | SQL pool workload classifier |

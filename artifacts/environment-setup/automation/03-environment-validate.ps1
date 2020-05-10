@@ -174,6 +174,16 @@ $tables = [ordered]@{
                 Valid = $false
                 ValidCount = $false
         }
+        "wwi_ml.MLModelExt" = @{
+                Count = 1
+                Valid = $false
+                ValidCount = $false
+        }
+        "wwi_ml.MLModel" = @{
+                Count = 0
+                Valid = $false
+                ValidCount = $false
+        }
 }
 
 $query = @"
