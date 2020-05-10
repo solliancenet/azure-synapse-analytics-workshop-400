@@ -8,7 +8,7 @@ Artifact Name | Artifact Type | Notes
 --- | --- | ---
 `asacosmosdbNNNNNN` | Cosmos DB account |
 `CustomerProfile` | Cosmos DB database |
-`OnlineUserProfile01` | Cosmos DB database collection |
+`OnlineUserProfile01` | Cosmos DB database collection | Contains 100000 documents.
 `asadatalakeNNNNNN` | Linked service (ADLS Gen2) |
 `wwi-02\sale-small` | Folder path in `asadatalakeNNNNNN` |
 `wwi-02\online-user-profiles-02` | Folder path in `asadatalakeNNNNNN` |
@@ -85,11 +85,14 @@ Lab 03 depends on the following artifacts that must exist in the environment:
 
 Artifact Name | Artifact Type | Notes
 --- | --- | ---
+`wwi_perf` | SQL pool schema |
+`wwi_perf.Sale_Heap` | SQL pool table | Contains N records.
 
 Lab 03 creates the following artifacts that must be deleted when cleaning up the environment:
 
 Artifact Name | Artifact Type | Notes
 --- | --- | ----
+`wwi_perf.Sale_Hash` | SQL pool table |
 
 ## Lab 04
 
