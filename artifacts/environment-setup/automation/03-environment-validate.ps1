@@ -140,27 +140,27 @@ $tables = [ordered]@{
                 ValidCount = $false
         }
         "wwi_perf.Sale_Hash_Ordered" = @{
-                Count = 2903451490
+                Count = 339507246
                 Valid = $false
                 ValidCount = $false
         }
         "wwi_perf.Sale_Heap" = @{
-                Count = 2903451490
+                Count = 339507246
                 Valid = $false
                 ValidCount = $false
         }
         "wwi_perf.Sale_Index" = @{
-                Count = 2903451490
+                Count = 339507246
                 Valid = $false
                 ValidCount = $false
         }
         "wwi_perf.Sale_Partition01" = @{
-                Count = 2903451490
+                Count = 339507246
                 Valid = $false
                 ValidCount = $false
         }
         "wwi_perf.Sale_Partition02" = @{
-                Count = 2903451490
+                Count = 339507246
                 Valid = $false
                 ValidCount = $false
         }

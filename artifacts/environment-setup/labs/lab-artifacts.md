@@ -10,6 +10,8 @@ Artifact Name | Artifact Type | Notes
 `CustomerProfile` | Cosmos DB database |
 `OnlineUserProfile01` | Cosmos DB database collection | Contains 100000 documents.
 `asadatalakeNNNNNN` | Linked service (ADLS Gen2) |
+`asadatalakeNNNNNN` | ADLS Gen2 storage account |
+`wwi-02` | ADLS Gen2 file system in `asadatalakeNNNNNN` |
 `wwi-02\sale-small` | Folder path in `asadatalakeNNNNNN` |
 `wwi-02\online-user-profiles-02` | Folder path in `asadatalakeNNNNNN` |
 `wwi-02\sale-small\Year=2016\Quarter=Q4\Month=12\Day=20161231\sale-small-20161231-snappy.parquet` | File path in `asadatalakeNNNNNN`
@@ -57,6 +59,8 @@ Artifact Name | Artifact Type | Notes
 `sqlpool01` | Linked service (Azure Synapse Analytics)
 `wwi-02\online-user-profiles-02` | Folder path in `asadatalakeNNNNNN` |
 `asadatalakeNNNNNN` | Linked service (ADLS Gen2) |
+`asadatalakeNNNNNN` | ADLS Gen2 storage account |
+`wwi-02` | ADLS Gen2 file system in `asadatalakeNNNNNN` |
 
 Lab 02 depends on the following artifacts created by previous labs:
 
@@ -91,12 +95,12 @@ Artifact Name | Artifact Type | Notes
 --- | --- | ---
 `SQLPool01` | SQL pool |
 `wwi_perf` | SQL pool schema |
-`wwi_perf.Sale_Heap` | SQL pool table | Contains N records.
-`wwi_perf.Sale_Partition01` | SQL pool table | Contains N records.
-`wwi_perf.Sale_Partition02` | SQL pool table | Contains N records.
+`wwi_perf.Sale_Heap` | SQL pool table | Contains 339507246 records.
+`wwi_perf.Sale_Partition01` | SQL pool table | Contains 339507246 records.
+`wwi_perf.Sale_Partition02` | SQL pool table | Contains 339507246 records.
 `wwi.Date` | SQL pool table | Contains 3652 records.
-`wwi_perf.Sale_Index` | SQL pool table | Contains N records.
-`wwi_perf.Sale_Hash_Ordered` | SQL pool table | Contains N records.
+`wwi_perf.Sale_Index` | SQL pool table | Contains 339507246 records.
+`wwi_perf.Sale_Hash_Ordered` | SQL pool table | Contains 339507246 records.
 
 Lab 03 creates the following artifacts that must be deleted when cleaning up the environment:
 
@@ -116,11 +120,11 @@ Artifact Name | Artifact Type | Notes
 --- | --- | ---
 `SQLPool01` | SQL pool |
 `wwi_perf` | SQL pool schema |
-`wwi_perf.Sale_Heap` | SQL pool table | Contains N records.
-`wwi_perf.Sale_Partition01` | SQL pool table | Contains N records.
-`wwi_perf.Sale_Partition02` | SQL pool table | Contains N records.
-`wwi_perf.Sale_Index` | SQL pool table | Contains N records.
-`wwi_perf.Sale_Hash_Ordered` | SQL pool table | Contains N records.
+`wwi_perf.Sale_Heap` | SQL pool table | Contains 339507246 records.
+`wwi_perf.Sale_Partition01` | SQL pool table | Contains 339507246 records.
+`wwi_perf.Sale_Partition02` | SQL pool table | Contains 339507246 records.
+`wwi_perf.Sale_Index` | SQL pool table | Contains 339507246 records.
+`wwi_perf.Sale_Hash_Ordered` | SQL pool table | Contains 339507246 records.
 
 Lab 04 depends on the following artifacts created by previous labs:
 
@@ -155,7 +159,7 @@ Artifact Name | Artifact Type | Notes
 `wwi_security` | SQL pool schema |
 `wwi_security.Sale` | SQL pool table | Contains 52 rows.
 `wwi_security.CustomerInfo` | SQL pool table | Contains 110 rows.
-`CEO` | SQL pool user
+`CEO` | SQL pool user |
 `DataAnalystMiami` | SQL pool user |
 `DataAnalystSanDiego` | SQL pool user |
 
@@ -175,11 +179,26 @@ Lab 06 depends on the following artifacts that must exist in the environment:
 
 Artifact Name | Artifact Type | Notes
 --- | --- | ---
+`Lab 06 - Machine Learning` | Spark notebook |
+`SQLPool01` | SQL pool |
+`SparkPool01` | Spark pool |
+`wwi` | SQL pool schema |
+`wwi_ml` | SQL pool schema |
+`wwi.SaleSmall` | SQL pool table | Contains 1863080489 rows.
+`wwi.Product` | SQL pool table | Contains 5000 rows.
+`StorageCredential` | SQL pool database scoped credential |
+`ModelStorage` | SQL pool external data source |
+`csv` | SQL pool external file format |
+`wwi_ml.MLModelExt` | SQL pool external table | Contains 1 row.
+`wwi_ml.MLModel` | SQL pool table | Contains 0 rows.
 
 Lab 06 creates the following artifacts that must be deleted when cleaning up the environment:
 
 Artifact Name | Artifact Type | Notes
 --- | --- | ----
+`wwi_ml.ProductPCA` | SQL pool table |
+`asadatalakeNNNNNN` | ADLS Gen2 storage account |
+`wwi-02` | ADLS Gen2 file system in `asadatalakeNNNNNN` |
 
 ## Lab 07
 

@@ -655,7 +655,7 @@ function Wait-ForSQLQuery {
     )
 
     Write-Information "Waiting for any pending operation to be properly triggered..."
-    Start-Sleep -Seconds 10
+    Start-Sleep -Seconds 20
     
     $sql = "select status from sys.dm_pdw_exec_requests where [label] = '$($Label)' and submit_time > '$($ReferenceTime.ToString("yyyy-MM-dd HH:mm:ss"))'"
 
