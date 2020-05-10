@@ -13,4 +13,3 @@ In this task, you will train a recommender model using the ALS algorithm from Sp
 2. Under **Notebooks**, select the notebook called `Lab 07 - Spark ML `.
 
 3. Read thru the notebook and execute the cells as instructed in the notebook. When you have finished in the notebook, you have completed this lab.
-

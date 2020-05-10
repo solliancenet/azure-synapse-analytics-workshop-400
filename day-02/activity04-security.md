@@ -2,26 +2,26 @@
 
 Wide World Importers is hosting in their data warehouse a plethora of data coming from many disparate sources. The idea of bringing all of their data together into Azure Synapse Analytics for them to query, gain insights, and consume in ways they have never done before is exhilarating! As much as it is an exciting game-changer for this business, it opens up a large surface area for potential attack. Security must be established at the forefront at the time of design of this solution.
 
-With your help they have already secured the data in the data lake. In this activity, you will help design a solution for securing the data available within the SQL tables that make up their data warehouse. 
+With your help they have already secured the data in the data lake. In this activity, you will help design a solution for securing the data available within the SQL tables that make up their data warehouse.
 
 **Requirements**
 
-* Want to make sure that the connection information to the data warehouse is always securely maintained, by the components that need it to access the data. 
+* Want to make sure that the connection information to the data warehouse is always securely maintained, by the components that need it to access the data.
 * Want to ensure that Azure Synapse is secured in depth at the network level.
-* Will need the flexibility to assign users to groups who should have access to the workspace, as well those that might have elevated permissions, such as those who can administer the entire Synapse Workspace, or manage just the Spark or SQL Pools or use Pipelines. 
+* Will need the flexibility to assign users to groups who should have access to the workspace, as well those that might have elevated permissions, such as those who can administer the entire Synapse Workspace, or manage just the Spark or SQL Pools or use Pipelines.
 * Want to maintain exclusive control over the keys to used to encrypt the data warehouse data at rest. They do not want Microsoft or any other entity to provide or have access to these keys.
 
-
-
 ## Whiteboard
+
 Open your whiteboard for the event, and in the area for Activity 4 provide your answers to the following challenges.
 
 *The following challenges are already present within the whiteboard template provided.*
 
 Challenges
+
 1. The Synapse Pipelines that WWI is creating will need to access both the data in the data lake and in the data warehouse. Diagram and document the steps they should, and the Azure services they should use, to secure pipelines and pipeline runs.
 
-    ANSWER: 
+    ANSWER:
     * Linked Services used by the Synapse Pipelines should use Azure Key Vault to store the sensitive connection information used to access any data source or destination.
     * 1. Provision and configure Key Vault: They would need to provision Azure Key Vault with the following configuration:
           * Add an access policy allowing Get and List secret permissions for the Managed Service Identity of the Synapse workspace (it is named the same as the Synapse workspace).
@@ -29,17 +29,16 @@ Challenges
     * 2. Add the existing Key Vault as a linked service to Azure Synapse Analytics. 
     * 3. Add any required connection strings as secrets within the Key Vault.
     * 3. When creating new linked services, use Azure Key Vault and refer to the desired secret by name instead of specifying a connection string.
-    * 4. To allow run pipelines that include datasets or activities referencing a SQL Pool, they will need to grant the Managed Service Identity of the workspace access to the SQL Pool (by granding it control on the SQL Pool database in T-SQL). 
+    * 4. To allow run pipelines that include datasets or activities referencing a SQL Pool, they will need to grant the Managed Service Identity of the workspace access to the SQL Pool (by granting it control on the SQL Pool database in T-SQL).
 
 2. Building upon the architecture you provided for the previous challenge, how would you address WWI's requirement to maintain exclusive control over the keys to used to encrypt the data warehouse data at rest?
 
-    ANSWER: 
-    * Enable Transparent Data Encryption (TDE) for the SQL Pool. 
-
+    ANSWER:
+    * Enable Transparent Data Encryption (TDE) for the SQL Pool.
 
 3. WWI would like to understand how they will manage access control to the Synapse workspace with your proposed design. What four security groups should they create and what is the purpose of each group? How would you structure the group inheritance? Complete the following diagram and add your justifications.
 
-    ANSWER: 
+    ANSWER:
     * Create the following security groups in Azure Active Directory:
         | Group                             | Description                                                                        |
         |-----------------------------------|------------------------------------------------------------------------------------|
@@ -47,7 +46,7 @@ Challenges
         | Synapse_Workspace_Admins        | Workspace administrators, for users that need complete control over the workspace. |
         | Synapse_Workspace_SQLAdmins     | For users that need complete control over the SQL aspects of the workspace.        |
         | Synapse_Workspace_SparkAdmins   | For users that need complete control over the Spark aspects of the workspace.      |
-    * The group inheritence should be structured as follows:
+    * The group inheritance should be structured as follows:
         | Group                           | Members                                                                                |
         |---------------------------------|----------------------------------------------------------------------------------------|
         | Synapse_Workspace_Users       | Synapse_Workspace_Admins, Synapse_Workspace_SQLAdmins, Synapse_Workspace_SparkAdmins |
@@ -68,7 +67,7 @@ Challenges
 4. Diagram how you would recommend WWI secure the network boundary around Azure Synapse Analytics? If they wanted to ensure that access to Synapse Studio is only possible from a VM on the approved virtual network (or from a computer connected to that virtual network using VPN), how would they configure that? How would they monitor for suspicious traffic against the storage account and receive alerts to the same?
 
     ANSWER: 
-    * Add IP firewall rules to disallow any remote access to the SQL Pools SQL serverless endpoints within the Synapse workspace. 
+    * Add IP firewall rules to disallow any remote access to the SQL Pools SQL serverless endpoints within the Synapse workspace.
     * Leverage a Managed VNET with private endpoints to enable secure communication between applications, servers, data sources and Azure Synapse itself.
     * They should enable Advanced Threat Protection on the Storage Account.
 
