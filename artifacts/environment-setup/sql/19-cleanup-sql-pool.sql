@@ -71,10 +71,19 @@ drop external table [wwi_external].DailySalesCounts
 IF OBJECT_ID(N'[wwi_external].[Sales]') IS NOT NULL 
 drop external table [wwi_external].Sales
 
+IF OBJECT_ID(N'[external].[DailySalesCounts]') IS NOT NULL 
+drop external table [wwi_external].DailySalesCounts
+
+IF OBJECT_ID(N'[external].[Sales]') IS NOT NULL 
+drop external table [wwi_external].Sales
+
 -- DROP SCHEMAS
 
 IF EXISTS (select * from sys.schemas where name = 'wwi_external')
 DROP SCHEMA [wwi_external]
+
+IF EXISTS (select * from sys.schemas where name = 'external')
+DROP SCHEMA [external]
 
 IF EXISTS (select * from sys.schemas where name = 'wwi_staging')
 DROP SCHEMA [wwi_staging]
