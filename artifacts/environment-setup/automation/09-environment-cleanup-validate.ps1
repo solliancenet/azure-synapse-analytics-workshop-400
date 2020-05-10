@@ -64,10 +64,7 @@ $overallStateIsValid = $true
 $knownIssuesMessage = @"
 The cleanup validator does not support currently the following checks:
 
-- Synapse integration runtimes
 - RESULT_SET_CACHING database setting
-- Azure Key Vault secret
-- MASKED option activation on table columns
 "@
 
 Write-Information $knownIssuesMessage
@@ -120,11 +117,11 @@ $asaArtifacts = [ordered]@{
                 Valid = $false
         }
         "ASAL400 - Lab 2 - Write Campaign Analytics to ASA" = @{
-                Category = "pipelines"
+                Category = "dataFlows"
                 Valid = $false
         }
         "ASAL400 - Lab 2 - Write User Profile Data to ASA" = @{
-                Category = "pipelines"
+                Category = "dataFlows"
                 Valid = $false
         }
 }
@@ -210,6 +207,8 @@ if ($sqlPool -eq $null) {
                 "store_index" = @{ Category = "index" }
                 "wwi_security.fn_securitypredicate" = @{ Category = "function" }
                 "salesfilter" = @{ Category = "securitypolicy" }
+                "wwi_security.customerinfo.email" = @{ Category = "maskedcolumn" }
+                "wwi_security.customerinfo.creditcard" = @{ Category = "maskedcolumn" }
         }
         
         $query = Get-Content -Raw -Path ".\artifacts\environment-setup\sql\18-get-sql-pool-artifacts.sql"
@@ -227,7 +226,26 @@ if ($sqlPool -eq $null) {
                 }
         }
 }
-       
+
+$secretName = "PipelineSecret"
+Write-Information "Checking $($secretName) key vault secret..."
+$kvSecret = Get-AzKeyVaultSecret -VaultName $keyVaultName -Name $secretName
+if ($kvSecret) {
+        Write-Warning "The $($secretName) key vault secret was not properly removed"
+        $overallStateIsValid = $false
+} else {
+        Write-Information "OK - the key vault secret was not found"
+}
+
+$largeIntegrationRuntimeName = "AzureLargeComputeOptimizedIntegrationRuntime"
+Write-Information "Checking $($largeIntegrationRuntimeName) integration runtime..."
+$result = Get-IntegrationRuntime -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -Name $largeIntegrationRuntimeName
+if ($result) {
+        Write-Warning "The $($largeIntegrationRuntimeName) integration runtime was not properly removed"
+        $overallStateIsValid = $false
+} else {
+        Write-Information "OK - integration runtime not found"
+}
 
 if ($overallStateIsValid -eq $true) {
     Write-Information "Validation Passed"
@@ -235,5 +253,3 @@ if ($overallStateIsValid -eq $true) {
 else {
     Write-Warning "Validation Failed - see log output"
 }
-
-

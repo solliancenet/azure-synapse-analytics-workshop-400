@@ -68,6 +68,18 @@ WHERE
 UNION ALL
 SELECT
     name as ObjectName
-    ,'function' as ObjectType
+    ,'securitypolicy' as ObjectType
 FROM
     sys.security_policies
+UNION ALL
+select 
+    S.name + '.' + T.name + '.' + MC.name as ObjectName
+    ,'maskedcolumn' as ObjectType
+from 
+    sys.masked_columns MC
+    join sys.tables T ON
+        MC.object_id = T.object_id
+    join sys.schemas S ON
+        T.schema_id = S.schema_id
+WHERE
+    MC.is_masked = 1

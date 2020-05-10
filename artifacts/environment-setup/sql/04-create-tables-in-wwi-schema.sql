@@ -1,3 +1,6 @@
+IF OBJECT_ID(N'[wwi].[Product]', N'U') IS NOT NULL   
+DROP TABLE [wwi].[Product]
+
 CREATE TABLE [wwi].[Product]
 (
     ProductId SMALLINT NOT NULL,
@@ -9,6 +12,9 @@ WITH
 (
     DISTRIBUTION = REPLICATE
 )
+
+IF OBJECT_ID(N'[wwi].[Date]', N'U') IS NOT NULL   
+DROP TABLE [wwi].[Date]
 
 CREATE TABLE [wwi].[Date]
 (
@@ -22,6 +28,9 @@ WITH
 (
     DISTRIBUTION = REPLICATE
 )
+
+IF OBJECT_ID(N'[wwi].[SaleSmall]', N'U') IS NOT NULL   
+DROP TABLE [wwi].[SaleSmall]
 
 CREATE TABLE [wwi].[SaleSmall]
 ( 
