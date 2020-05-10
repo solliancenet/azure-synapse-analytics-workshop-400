@@ -41,6 +41,7 @@ $keyVaultName = "asakeyvault$($uniqueId)"
 $keyVaultSQLUserSecretName = "SQL-USER-ASA"
 $sqlPoolName = "SQLPool01"
 $integrationRuntimeName = "AzureIntegrationRuntime01"
+$sparkPoolName = "SparkPool01"
 
 
 $ropcBodyCore = "client_id=$($clientId)&username=$($userName)&password=$($password)&grant_type=password"
