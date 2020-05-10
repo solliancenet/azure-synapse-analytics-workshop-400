@@ -77,6 +77,9 @@ drop external table [wwi_external].DailySalesCounts
 IF OBJECT_ID(N'[external].[Sales]') IS NOT NULL 
 drop external table [wwi_external].Sales
 
+IF OBJECT_ID(N'[wwi_ml].[MLModel]') IS NOT NULL 
+truncate table [wwi_ml].[MLModel]
+
 -- DROP SCHEMAS
 
 IF EXISTS (select * from sys.schemas where name = 'wwi_external')
