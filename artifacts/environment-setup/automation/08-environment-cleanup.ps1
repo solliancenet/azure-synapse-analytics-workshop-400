@@ -126,6 +126,12 @@ foreach ($asaArtifactName in $asaArtifacts2.Keys) {
 #                         
 
 
+Write-Information "Counting Cosmos DB item in database $($cosmosDbDatabase), container $($cosmosDbContainer)"
+$documentCount = Count-CosmosDbDocuments -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -CosmosDbAccountName $cosmosDbAccountName `
+                -CosmosDbDatabase $cosmosDbDatabase -CosmosDbContainer $cosmosDbContainer
+
+if ($documentCount -ne 100000) {
+
 Write-Information "Rebuild Cosmos DB container $($cosmosDbContainer) in $($cosmosDbDatabase) database"
 
 $container = Get-AzCosmosDBSqlContainer `
@@ -225,6 +231,7 @@ Write-Information "Delete linked service $($name)"
 $result = Delete-ASAObject -WorkspaceName $workspaceName -Category "linkedServices" -Name $name
 Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
+}
 
 #
 # =============== SQL Pool import  ====================
