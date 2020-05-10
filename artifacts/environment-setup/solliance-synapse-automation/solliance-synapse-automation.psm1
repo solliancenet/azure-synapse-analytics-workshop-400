@@ -762,7 +762,7 @@ function Execute-SQLQuery {
     if ($ForceReturn) {
         try {
             Ensure-ValidTokens
-            Invoke-WebRequest -Uri $uri -Method POST -Body $SQLQuery -Headers $headers -ContentType "application/x-www-form-urlencoded; charset=UTF-8" -UseBasicParsing -TimeoutSec 15
+            $result = Invoke-WebRequest -Uri $uri -Method POST -Body $SQLQuery -Headers $headers -ContentType "application/x-www-form-urlencoded; charset=UTF-8" -UseBasicParsing -TimeoutSec 15
         } catch {}
         return
     }
