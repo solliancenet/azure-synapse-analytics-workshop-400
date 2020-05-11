@@ -69,6 +69,8 @@ Artifact Name | Artifact Type | Created by | Notes
 `asal400_ecommerce_userprofiles_source` | Dataset (ADLS Gen2, JSON) | Lab 01 |
 `asal400_customerprofile_cosmosdb` | Dataset (Cosmos DB) | Lab 01 |
 
+> UPDATE: There is now an optional step in Lab 02 that walks users through creating these two datasets if they were unable to complete Exercise 1 in Lab 01.
+
 Lab 02 creates the following artifacts that must be deleted when cleaning up the environment:
 
 Artifact Name | Artifact Type | Notes
