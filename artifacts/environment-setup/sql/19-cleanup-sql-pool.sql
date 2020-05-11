@@ -117,6 +117,9 @@ DROP WORKLOAD Classifier HeavyLoader
 
 -- DROP WORKLOAD GROUPS
 
+IF EXISTS (SELECT * FROM sys.workload_management_workload_groups where name = 'BigDataLoad')
+DROP WORKLOAD GROUP BigDataLoad
+
 IF EXISTS (SELECT * FROM sys.workload_management_workload_groups where name = 'CEODemo')
 DROP WORKLOAD GROUP CEODemo
 
