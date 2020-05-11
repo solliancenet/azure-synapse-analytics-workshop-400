@@ -260,7 +260,7 @@ function Create-IntegrationRuntime {
     Ensure-ValidTokens
     $result = Invoke-RestMethod  -Uri $uri -Method PUT -Body $integrationRuntime -Headers @{ Authorization="Bearer $managementToken" } -ContentType "application/json"
  
-    Write-Output $result
+    return $result
 }
 
 function Get-IntegrationRuntime {
@@ -288,11 +288,12 @@ function Get-IntegrationRuntime {
     Ensure-ValidTokens
 
     try {
-        $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $managementToken" }    
+        $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $managementToken" }  
+        return $result  
     }
-    catch {}
- 
-    Write-Output $result
+    catch {
+        return $null
+    }
 }
 
 function Delete-IntegrationRuntime {
@@ -320,7 +321,7 @@ function Delete-IntegrationRuntime {
     Ensure-ValidTokens
     $result = Invoke-RestMethod  -Uri $uri -Method DELETE -Headers @{ Authorization="Bearer $managementToken" }
  
-    Write-Output $result
+    return $result
 }
 
 function Create-Dataset {
