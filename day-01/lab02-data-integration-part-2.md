@@ -228,7 +228,7 @@ Issues include invalid characters in the revenue currency data, and misaligned c
 
 ### Task 4: Create user profile datasets
 
-User profile data comes from two different data sources. In lab 1, you created datasets for these sources: `asal400_ecommerce_userprofiles_source` and `asal400_customerprofile_cosmosdb`. The customer profile data from an e-commerce system that provides top product purchases for each visitor of the site (customer) over the past 12 months is stored within JSON files in the data lake. User profile data containing, among other things, product preferences and product reviews is stored as JSON documents in Cosmos DB.
+User profile data comes from two different data sources. In lab 1, you created datasets for these sources: `asal400_ecommerce_userprofiles_source` and `asal400_customerprofile_cosmosdb` (*complete Task 5 below if you did not complete lab 1*). The customer profile data from an e-commerce system that provides top product purchases for each visitor of the site (customer) over the past 12 months is stored within JSON files in the data lake. User profile data containing, among other things, product preferences and product reviews is stored as JSON documents in Cosmos DB.
 
 In this task, you'll create datasets for the SQL tables that will serve as data sinks for data pipelines you'll create later in this lab.
 
@@ -253,6 +253,37 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
 3. Select **Publish all** to save your new resources.
 
     ![Publish all is highlighted.](media/publish-all-1.png "Publish all")
+
+### Task 5: OPTIONAL - Create datasets from Lab 1
+
+If you **did not** complete Exercise 1 in lab 1, where you configure the linked service and create datasets, complete the steps below to create two additional datasets for this lab (`asal400_ecommerce_userprofiles_source` and `asal400_customerprofile_cosmosdb`).
+
+1. Create a new **Azure Cosmos DB (SQL API)** dataset with the following characteristics:
+
+    - **Name**: Enter `asal400_customerprofile_cosmosdb`.
+    - **Linked service**: Select the Azure Cosmos DB linked service.
+    - **Collection**: Select `OnlineUserProfile01`.
+
+    ![New Azure Cosmos DB dataset.](media/create-cosmos-db-dataset.png "New Cosmos DB dataset")
+
+2. After creating the dataset, navigate to its **Connection** tab, then select **Preview data**.
+
+    ![The preview data button on the dataset is highlighted.](media/cosmos-dataset-preview-data-link.png "Preview data")
+
+3. Preview data queries the selected Azure Cosmos DB collection and returns a sample of the documents within. The documents are stored in JSON format and include a `userId` field, `cartId`, `preferredProducts` (an array of product IDs that may be empty), and `productReviews` (an array of written product reviews that may be empty). We will use this data in lab 2.
+
+    ![A preview of the Azure Cosmos DB data is displayed.](media/cosmos-db-dataset-preview-data.png "Preview data")
+
+4. Select the **Schema** tab, then select **Import schema**. Synapse Analytics evaluates the JSON documents within the collection and infers the schema based on the nature of the data within. Since we are only storing one document type in this collection, you will see the inferred schema for all documents within.
+
+    ![The inferred schema for the Azure Cosmos DB documents is displayed.](media/cosmos-db-dataset-schema.png "Schema")
+
+5. Create a new **Azure Data Lake Storage Gen2** dataset with the **JSON** format type with the following characteristics:
+
+    - **Name**: Enter `asal400_ecommerce_userprofiles_source`.
+    - **Linked service**: Select the `asadatalakeXX` linked service that already exists.
+    - **File path**: Browse to the `wwi-02/online-user-profiles-02` path.
+    - **Import schema**: Select `From connection/store`.
 
 ## Exercise 2: Create data pipeline to import poorly formatted CSV
 
