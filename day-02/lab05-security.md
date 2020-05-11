@@ -67,15 +67,15 @@ Having robust Internet security is a must for every technology system. One way t
 
 When dealing with connectivity to external data sources and services, sensitive connection information such as passwords and access keys should be properly handled. It is recommended that this type of information be stored in an Azure Key Vault. Leveraging Azure Key Vault not only protects against secrets being compromised, it also serves as a central source of truth; meaning that if a secret value needs to be updated (such as when cycling access keys on a storage account), it can be changed in one place and all services consuming this key will start pulling the new value immediately. Azure Key Vault encrypts and decrypts information transparently using 256-bit AES encryption, which is FIPS 140-2 compliant.
 
-1. In the **Azure Portal**, open the `Synapse-L400-Workshop-XXXXX` resource group and from the list of resources and select the Key vault resource.
+1. In the **Azure Portal**, open the `Synapse-L400-Workshop-NNNNNN` resource group and from the list of resources and select the Key vault resource.
 
 
 2. From the left menu, under Settings, select **Access Policies**.
 
-3. Observe that Managed Service Identity (MSI) representing your Synapse workpace (it has a name similar to `asaworkspaceXX`) has already been listed under Application and it has 2 selected Secret Premissions.
+3. Observe that Managed Service Identity (MSI) representing your Synapse workpace (it has a name similar to `asaworkspaceNNNNNN`) has already been listed under Application and it has 2 selected Secret Premissions.
 
 
-4. Select the drop-down that reads `2 selected` under `Secret Permissions, observet that Get (which allows your workspace to retrieve the values of secrets from Key Vault) and List (which allows your workspace to enumerate secrets) are set.
+4. Select the drop-down that reads `2 selected` under `Secret Permissions`, observe that Get (which allows your workspace to retrieve the values of secrets from Key Vault) and List (which allows your workspace to enumerate secrets) are set.
 
 
 ### Task 2 - Use Azure Key Vault for secrets when creating Linked Services

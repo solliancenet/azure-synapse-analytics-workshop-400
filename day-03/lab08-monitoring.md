@@ -39,7 +39,7 @@ Setting importance in Synapse SQL for Azure Synapse allows you to influence the 
 4. In the query window, replace the script with the following to confirm that there are no queries currently being run by users logged in as `asa.sql.workload01`, representing the CEO of the organization or `asa.sql.workload02` representing the data analyst working on the project:
 
     ```sql
-    --First, let's confirm that there are no queries currently being run by users logged in as CEONYC or AnalystNYC.
+    --First, let's confirm that there are no queries currently being run by users logged in workload01 or workload02
 
     SELECT s.login_name, r.[Status], r.Importance, submit_time, 
     start_time ,s.session_id FROM sys.dm_pdw_exec_sessions s 

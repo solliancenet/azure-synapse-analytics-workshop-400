@@ -260,7 +260,68 @@ function Create-IntegrationRuntime {
     Ensure-ValidTokens
     $result = Invoke-RestMethod  -Uri $uri -Method PUT -Body $integrationRuntime -Headers @{ Authorization="Bearer $managementToken" } -ContentType "application/json"
  
-    Write-Output $result
+    return $result
+}
+
+function Get-IntegrationRuntime {
+    
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $SubscriptionId,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $ResourceGroupName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $Name
+    )
+
+    $uri = "https://management.azure.com/subscriptions/$($SubscriptionId)/resourcegroups/$($ResourceGroupName)/providers/Microsoft.Synapse/workspaces/$($WorkspaceName)/integrationruntimes/$($Name)?api-version=2019-06-01-preview"
+
+    Ensure-ValidTokens
+
+    try {
+        $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $managementToken" }  
+        return $result  
+    }
+    catch {
+        return $null
+    }
+}
+
+function Delete-IntegrationRuntime {
+    
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $SubscriptionId,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $ResourceGroupName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $Name
+    )
+
+    $uri = "https://management.azure.com/subscriptions/$($SubscriptionId)/resourcegroups/$($ResourceGroupName)/providers/Microsoft.Synapse/workspaces/$($WorkspaceName)/integrationruntimes/$($Name)?api-version=2019-06-01-preview"
+
+    Ensure-ValidTokens
+    $result = Invoke-RestMethod  -Uri $uri -Method DELETE -Headers @{ Authorization="Bearer $managementToken" }
+ 
+    return $result
 }
 
 function Create-Dataset {
@@ -655,7 +716,7 @@ function Wait-ForSQLQuery {
     )
 
     Write-Information "Waiting for any pending operation to be properly triggered..."
-    Start-Sleep -Seconds 10
+    Start-Sleep -Seconds 20
     
     $sql = "select status from sys.dm_pdw_exec_requests where [label] = '$($Label)' and submit_time > '$($ReferenceTime.ToString("yyyy-MM-dd HH:mm:ss"))'"
 
@@ -702,7 +763,7 @@ function Execute-SQLQuery {
     if ($ForceReturn) {
         try {
             Ensure-ValidTokens
-            Invoke-WebRequest -Uri $uri -Method POST -Body $SQLQuery -Headers $headers -ContentType "application/x-www-form-urlencoded; charset=UTF-8" -UseBasicParsing -TimeoutSec 15
+            $result = Invoke-WebRequest -Uri $uri -Method POST -Body $SQLQuery -Headers $headers -ContentType "application/x-www-form-urlencoded; charset=UTF-8" -UseBasicParsing -TimeoutSec 15
         } catch {}
         return
     }
@@ -801,6 +862,34 @@ function Create-SQLScript {
     Ensure-ValidTokens
     $result = Invoke-RestMethod  -Uri $uri -Method PUT -Body $item -Headers @{ Authorization="Bearer $synapseToken" } -ContentType "application/json"
     
+    return $result
+}
+
+function Get-SparkPool {
+
+    param(
+    [parameter(Mandatory=$true)]
+    [String]
+    $SubscriptionId,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $ResourceGroupName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $SparkPoolName
+    )
+
+    $uri = "https://management.azure.com/subscriptions/$($SubscriptionId)/resourcegroups/$($ResourceGroupName)/providers/Microsoft.Synapse/workspaces/$($WorkspaceName)/bigDataPools/$($SparkPoolName)?api-version=2019-06-01-preview"
+
+    Ensure-ValidTokens
+    $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $managementToken" } -ContentType "application/json"
+
     return $result
 }
 
@@ -1284,6 +1373,8 @@ Export-ModuleMember -Function Create-DataLakeLinkedService
 Export-ModuleMember -Function Create-CosmosDBLinkedService
 Export-ModuleMember -Function Create-SQLPoolKeyVaultLinkedService
 Export-ModuleMember -Function Create-IntegrationRuntime
+Export-ModuleMember -Function Get-IntegrationRuntime
+Export-ModuleMember -Function Delete-IntegrationRuntime
 Export-ModuleMember -Function Create-Dataset
 Export-ModuleMember -Function Create-Pipeline
 Export-ModuleMember -Function Run-Pipeline
@@ -1300,6 +1391,7 @@ Export-ModuleMember -Function Execute-SQLQuery
 Export-ModuleMember -Function Execute-SQLScriptFile
 Export-ModuleMember -Function Wait-ForSQLQuery
 Export-ModuleMember -Function Create-SQLScript
+Export-ModuleMember -Function Get-SparkPool
 Export-ModuleMember -Function Create-SparkNotebook
 Export-ModuleMember -Function Start-SparkNotebookSession
 Export-ModuleMember -Function Get-SparkNotebookSession
