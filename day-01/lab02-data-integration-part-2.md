@@ -285,6 +285,10 @@ If you **did not** complete Exercise 1 in lab 1, where you configure the linked 
     - **File path**: Browse to the `wwi-02/online-user-profiles-02` path.
     - **Import schema**: Select `From connection/store`.
 
+6. Select **Publish all** to save your new resources.
+
+    ![Publish all is highlighted.](media/publish-all-1.png "Publish all")
+
 ## Exercise 2: Create data pipeline to import poorly formatted CSV
 
 ### Task 1: Create campaign analytics data flow
