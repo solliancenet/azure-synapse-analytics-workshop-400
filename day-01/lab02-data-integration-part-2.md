@@ -78,7 +78,7 @@ When you create a new linked service, Azure IR provides fully managed compute re
 
     ![The SQL script context menu item is highlighted.](media/synapse-studio-new-sql-script.png "New SQL script")
 
-3. In the toolbar menu, connect to the database on which you want to execute the query.
+3. In the toolbar menu, connect to the **SQL Pool** assigned for your environment.
 
     ![The connect to option is highlighted in the query toolbar.](media/synapse-studio-query-toolbar-connect.png "Query toolbar")
 
