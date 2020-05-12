@@ -13,7 +13,7 @@
         [wwi_perf].[Sale_Heap]
     ```
 
-    The script takes up to 30 seconds to execute and returns a count of 2.89 billion rows in the table.
+    The script takes up to 30 seconds to execute and returns a count of ~ 340 million rows in the table.
 
 2. Run the following (more complex) statement:
 
