@@ -1255,28 +1255,35 @@ function Count-CosmosDbDocuments {
 
     Write-Information "Successfully retrieved PK ranges"
 
-    $headers = @{ 
-            Authorization=$authHeader
-            "Content-Type"="application/query+json"
-            "x-ms-cosmos-allow-tentative-writes"="True"
-            "x-ms-cosmos-is-query"="True"
-            "x-ms-date"=$refTime
-            "x-ms-documentdb-populatequerymetrics"="True"
-            "x-ms-documentdb-partitionkeyrangeid"=$pkResult.PartitionKeyRanges[0].id
-            "x-ms-documentdb-query-enable-scan"="True"
-            "x-ms-documentdb-query-enablecrosspartition"="True"
-            "x-ms-documentdb-query-parallelizecrosspartitionquery"="True"
-            "x-ms-documentdb-responsecontinuationtokenlimitinkb"=1
-            "x-ms-max-item-count"=100
-            "x-ms-version"="2018-12-31"
+    $totalCount = 0
+
+    foreach ($partitionKeyRange in $pkResult.PartitionKeyRanges) {
+
+        $headers = @{ 
+                Authorization=$authHeader
+                "Content-Type"="application/query+json"
+                "x-ms-cosmos-allow-tentative-writes"="True"
+                "x-ms-cosmos-is-query"="True"
+                "x-ms-date"=$refTime
+                "x-ms-documentdb-populatequerymetrics"="True"
+                "x-ms-documentdb-partitionkeyrangeid"=$partitionKeyRange.id
+                "x-ms-documentdb-query-enable-scan"="True"
+                "x-ms-documentdb-query-enablecrosspartition"="True"
+                "x-ms-documentdb-query-parallelizecrosspartitionquery"="True"
+                "x-ms-documentdb-responsecontinuationtokenlimitinkb"=1
+                "x-ms-max-item-count"=100
+                "x-ms-version"="2018-12-31"
+        }
+        $query = "{""query"":$(ConvertTo-Json $result.queryInfo.rewrittenQuery)}"
+
+        Write-Information "Executing query for partition key range $($partitionKeyRange.id)..."
+        $queryResult = Invoke-RestMethod -Uri $uri -Method POST -Body $query -Headers $headers
+
+        $totalCount += $queryResult.Documents[0][0].item
     }
-    $query = "{""query"":$(ConvertTo-Json $result.queryInfo.rewrittenQuery)}"
 
-    Write-Information "Executing query..."
-    $queryResult = Invoke-RestMethod -Uri $uri -Method POST -Body $query -Headers $headers
-
-    Write-Information "The collection contains $($queryResult.Documents[0][0].item) documents."
-    return $queryResult.Documents[0][0].item
+    Write-Information "The collection contains $($totalCount) documents."
+    return $totalCount
 }
 
 function Assign-SynapseRole {
