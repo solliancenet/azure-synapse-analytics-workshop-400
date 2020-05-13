@@ -41,6 +41,8 @@ $keyVaultName = "asakeyvault$($uniqueId)"
 $keyVaultSQLUserSecretName = "SQL-USER-ASA"
 $sqlPoolName = "SQLPool01"
 $integrationRuntimeName = "AzureIntegrationRuntime01"
+$sqlEndpoint = "$($workspaceName).sql.azuresynapse.net"
+$sqlUser = "asa.sql.admin"
 
 
 $ropcBodyCore = "client_id=$($clientId)&username=$($userName)&password=$($password)&grant_type=password"
@@ -100,10 +102,12 @@ FROM
         join sys.schemas S on
                 T.schema_id = S.schema_id
 "@
-$result = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $query
 
+#$result = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $query
+$result = Invoke-SqlCmd -Query $query -ServerInstance $sqlEndpoint -Database $sqlPoolName -Username $sqlUser -Password $sqlPassword
 
-foreach ($dataRow in $result.data) {
+#foreach ($dataRow in $result.data) {
+foreach ($dataRow in $result) {
         $schemaName = $dataRow[0]
         $tableName = $dataRow[1]
 
@@ -117,11 +121,14 @@ foreach ($dataRow in $result.data) {
 
                 try {
                     $countQuery = "select count_big(*) from $($fullName)"
-                    $countResult = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $countQuery
+                    #$countResult = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $countQuery
+                    #count = [int64]$countResult[0][0].data[0].Get(0)
+                    $countResult = Invoke-Sqlcmd -Query $countQuery -ServerInstance $sqlEndpoint -Database $sqlPoolName -Username $sqlUser -Password $sqlPassword
+                    $count = $countResult[0][0]
 
-                    Write-Information "    Count result $([int64]$countResult[0][0].data[0].Get(0))"
+                    Write-Information "    Count result $($count)"
 
-                    if ([int64]$countResult[0][0].data[0].Get(0) -eq $tables[$fullName]["Count"]) {
+                    if ($count -eq $tables[$fullName]["Count"]) {
                             Write-Information "    Records counted is correct."
                             $tables[$fullName]["ValidCount"] = $true
                     }
