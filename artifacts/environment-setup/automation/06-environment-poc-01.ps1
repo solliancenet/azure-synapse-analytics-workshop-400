@@ -76,7 +76,7 @@ $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $
 $result
 
 
-Write-Information "Create tables in wwi_perf schema in SQL pool $($sqlPoolName)"
+Write-Information "Create tables in wwi_poc schema in SQL pool $($sqlPoolName)"
 
 $params = @{}
 $scripts = [ordered]@{
