@@ -163,6 +163,10 @@ In this task, you will author a T-SQL query that uses the previously trained mod
 
     This is the input data you will use to make the predictions.
 
+    >**NOTE**:
+    > Due to capacity constraints limiting the number of environments that can be whitelisted to use the `PREDICT` function, the final three steps in this exercise cannot be executed. They are provided below to help you understand the use of the `PREDICT` function in T-SQL.
+    >
+
 4. Select **Run** from the menubar.
 
    ![The Run button](media/lab06-select-run.png "Select Run")
