@@ -758,6 +758,7 @@ function Execute-SQLQuery {
 
     $headers = @{ 
         Authorization="Bearer $($synapseSQLToken)"
+        "x-csrf-signature"="weelOijlI4iwAB31gW2mKmiO6uF/jTjALHo11PABjgA=; not-before=2020-05-13T17:23:26Z; not-after=2020-05-13T17:33:26Z; signed-headers=authorization,host"
     }
 
     if ($ForceReturn) {
