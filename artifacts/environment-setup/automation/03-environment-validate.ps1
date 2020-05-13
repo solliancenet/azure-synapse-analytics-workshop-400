@@ -15,7 +15,7 @@ $InformationPreference = "Continue"
 $userName = $AzureUserName                # READ FROM FILE
 $password = $AzurePassword                # READ FROM FILE
 $clientId = $TokenGeneratorClientId       # READ FROM FILE
-$sqlPassword = $AzureSQLPassword          # READ FROM FILE
+$global:sqlPassword = $AzureSQLPassword          # READ FROM FILE
 
 $securePassword = $password | ConvertTo-SecureString -AsPlainText -Force
 $cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $userName, $SecurePassword
@@ -43,6 +43,8 @@ $sqlPoolName = "SQLPool01"
 $integrationRuntimeName = "AzureIntegrationRuntime01"
 $sparkPoolName = "SparkPool01"
 $amlWorkspaceName = "amlworkspace$($uniqueId)"
+$global:sqlEndpoint = "$($workspaceName).sql.azuresynapse.net"
+$global:sqlUser = "asa.sql.admin"
 
 $ropcBodyCore = "client_id=$($clientId)&username=$($userName)&password=$($password)&grant_type=password"
 $global:ropcBodySynapse = "$($ropcBodyCore)&scope=https://dev.azuresynapse.net/.default"
@@ -248,10 +250,12 @@ FROM
         join sys.schemas S on
                 T.schema_id = S.schema_id
 "@
-        $result = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $query
-        
-        
-        foreach ($dataRow in $result.data) {
+
+        #$result = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $query
+        $result = Invoke-SqlCmd -Query $query -ServerInstance $sqlEndpoint -Database $sqlPoolName -Username $sqlUser -Password $sqlPassword
+
+        #foreach ($dataRow in $result.data) {
+        foreach ($dataRow in $result) {
                 $schemaName = $dataRow[0]
                 $tableName = $dataRow[1]
         
@@ -266,13 +270,17 @@ FROM
         
                         try {
                             $countQuery = "select count_big(*) from $($fullName)"
-                            $countResult = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $countQuery
+
+                            #$countResult = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $countQuery
+                            #count = [int64]$countResult[0][0].data[0].Get(0)
+                            $countResult = Invoke-Sqlcmd -Query $countQuery -ServerInstance $sqlEndpoint -Database $sqlPoolName -Username $sqlUser -Password $sqlPassword
+                            $count = $countResult[0][0]
         
-                            Write-Information "    Count result $([int64]$countResult[0][0].data[0].Get(0))"
+                            Write-Information "    Count result $($count)"
         
                             if (
-                                ($strictCount -and ([int64]$countResult[0][0].data[0].Get(0) -eq $tables[$fullName]["Count"])) -or
-                                ((-not $strictCount) -and ([int64]$countResult[0][0].data[0].Get(0) -ge $tables[$fullName]["Count"]))) {
+                                ($strictCount -and ($count -eq $tables[$fullName]["Count"])) -or
+                                ((-not $strictCount) -and ($count -ge $tables[$fullName]["Count"]))) {
 
                                     Write-Information "    OK - Records counted is correct."
                                     $tables[$fullName]["ValidCount"] = $true
@@ -313,9 +321,11 @@ FROM
 $query = @"
 select name from sys.sysusers
 "@
-        $result = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $query
+        #$result = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $query
+        $result = Invoke-SqlCmd -Query $query -ServerInstance $sqlEndpoint -Database $sqlPoolName -Username $sqlUser -Password $sqlPassword
 
-        foreach ($dataRow in $result.data) {
+        #foreach ($dataRow in $result.data) {
+        foreach ($dataRow in $result) {
                 $name = $dataRow[0]
 
                 if ($users[$name]) {
