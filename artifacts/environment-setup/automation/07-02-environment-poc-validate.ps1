@@ -150,10 +150,10 @@ foreach ($dataRow in $result) {
 if ($overallStateIsValid -eq $true) {
     Write-Information "Validation Passed"
 
-    Write-Information "Pause the $($sqlPoolName) SQL pool to DW500c after PoC import."
+    #Write-Information "Pause the $($sqlPoolName) SQL pool to DW500c after PoC import."
 
-    Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action pause
-    Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Paused
+    #Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action pause
+    #Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Paused
 }
 else {
     Write-Warning "Validation Failed - see log output"
