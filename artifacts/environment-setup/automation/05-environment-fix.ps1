@@ -62,6 +62,8 @@ $global:tokenTimes = [ordered]@{
 
 Write-Information "Creating Spark notebooks..."
 
+$dataLakeAccountKey = List-StorageAccountKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $dataLakeAccountName
+
 $notebooks = [ordered]@{
         "Activity 05 - Model Training" = ".\artifacts\day-03"
 }
@@ -71,6 +73,8 @@ $cellParams = [ordered]@{
         "#SUBSCRIPTION_ID#" = $subscriptionId
         "#RESOURCE_GROUP_NAME#" = $resourceGroupName
         "#AML_WORKSPACE_NAME#" = $amlWorkspaceName
+        "#DATA_LAKE_ACCOUNT_NAME#" = $dataLakeAccountName
+        "#DATA_LAKE_ACCOUNT_KEY#" = $dataLakeAccountKey
 }
 
 foreach ($notebookName in $notebooks.Keys) {
