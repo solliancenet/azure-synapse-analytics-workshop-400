@@ -758,7 +758,7 @@ function Execute-SQLQuery {
 
     $headers = @{ 
         Authorization="Bearer $($synapseSQLToken)"
-        "x-csrf-signature"="weelOijlI4iwAB31gW2mKmiO6uF/jTjALHo11PABjgA=; not-before=2020-05-13T17:23:26Z; not-after=2020-05-13T17:33:26Z; signed-headers=authorization,host"
+        "x-csrf-signature"="..."
     }
 
     if ($ForceReturn) {
@@ -814,7 +814,11 @@ function Execute-SQLScriptFile {
 
     [parameter(Mandatory=$false)]
     [Boolean]
-    $ForceReturn
+    $ForceReturn,
+
+    [parameter(Mandatory=$false)]
+    [Boolean]
+    $UseAPI = $false
     )
 
     $sqlQuery = Get-Content -Raw -Path "$($SQLScriptsPath)/$($FileName).sql"
@@ -825,7 +829,14 @@ function Execute-SQLScriptFile {
         }
     }
 
-    return Execute-SQLQuery -WorkspaceName $WorkspaceName -SQLPoolName $SQLPoolName -SQLQuery $sqlQuery -ForceReturn $ForceReturn
+    if ($UseAPI) {
+        Execute-SQLQuery -WorkspaceName $WorkspaceName -SQLPoolName $SQLPoolName -SQLQuery $sqlQuery -ForceReturn $ForceReturn
+    } else {
+        if ($ForceReturn) {
+            Invoke-SqlCmd -Query $sqlQuery -ServerInstance $sqlEndpoint -Database $sqlPoolName -Username $sqlUser -Password $sqlPassword -QueryTimeout 15
+        } else {
+            Invoke-SqlCmd -Query $sqlQuery -ServerInstance $sqlEndpoint -Database $sqlPoolName -Username $sqlUser -Password $sqlPassword
+    }
 }
 
 function Create-SQLScript {
