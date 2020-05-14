@@ -7,6 +7,7 @@ $InformationPreference = "Continue"
 # Install-Module -Name Az -AllowClobber -Scope CurrentUser
 # Install-Module -Name Az.CosmosDB -AllowClobber -Scope CurrentUser
 # Import-Module Az.CosmosDB
+# Install-Module -Name SqlServer -AllowClobber
 
 #
 # TODO: Keep all required configuration in C:\LabFiles\AzureCreds.ps1 file
@@ -15,7 +16,7 @@ $InformationPreference = "Continue"
 $userName = $AzureUserName                # READ FROM FILE
 $password = $AzurePassword                # READ FROM FILE
 $clientId = $TokenGeneratorClientId       # READ FROM FILE
-$sqlPassword = $AzureSQLPassword          # READ FROM FILE
+$global:sqlPassword = $AzureSQLPassword          # READ FROM FILE
 
 $securePassword = $password | ConvertTo-SecureString -AsPlainText -Force
 $cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $userName, $SecurePassword
@@ -41,7 +42,8 @@ $keyVaultName = "asakeyvault$($uniqueId)"
 $keyVaultSQLUserSecretName = "SQL-USER-ASA"
 $sqlPoolName = "SQLPool01"
 $integrationRuntimeName = "AzureIntegrationRuntime01"
-
+$global:sqlEndpoint = "$($workspaceName).sql.azuresynapse.net"
+$global:sqlUser = "asa.sql.admin"
 
 $ropcBodyCore = "client_id=$($clientId)&username=$($userName)&password=$($password)&grant_type=password"
 $global:ropcBodySynapse = "$($ropcBodyCore)&scope=https://dev.azuresynapse.net/.default"
@@ -69,23 +71,9 @@ if ($result.properties.status -ne "Online") {
 }
 
 $tables = [ordered]@{
-        "wwi_poc.Date" = @{
-                Count = 3652
-                Valid = $false
-                ValidCount = $false
-        }
-        "wwi_poc.Product" = @{
-                Count = 5000
-                Valid = $false
-                ValidCount = $false
-        }
-        "wwi_poc.Sale" = @{
-                Count = 981995895
-                Valid = $false
-                ValidCount = $false
-        }
-        "wwi_poc.Customer" = @{
-                Count = 1000000
+        "wwi.SaleSmall" = @{
+                Count = 1863080489
+                StrictCount = $true
                 Valid = $false
                 ValidCount = $false
         }
@@ -100,10 +88,12 @@ FROM
         join sys.schemas S on
                 T.schema_id = S.schema_id
 "@
-$result = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $query
 
+#$result = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $query
+$result = Invoke-SqlCmd -Query $query -ServerInstance $sqlEndpoint -Database $sqlPoolName -Username $sqlUser -Password $sqlPassword
 
-foreach ($dataRow in $result.data) {
+#foreach ($dataRow in $result.data) {
+foreach ($dataRow in $result) {
         $schemaName = $dataRow[0]
         $tableName = $dataRow[1]
 
@@ -117,11 +107,15 @@ foreach ($dataRow in $result.data) {
 
                 try {
                     $countQuery = "select count_big(*) from $($fullName)"
-                    $countResult = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $countQuery
+                    
+                    #$countResult = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $countQuery
+                    #count = [int64]$countResult[0][0].data[0].Get(0)
+                    $countResult = Invoke-Sqlcmd -Query $countQuery -ServerInstance $sqlEndpoint -Database $sqlPoolName -Username $sqlUser -Password $sqlPassword
+                    $count = $countResult[0][0]
 
-                    Write-Information "    Count result $([int64]$countResult[0][0].data[0].Get(0))"
+                    Write-Information "    Count result $($count)"
 
-                    if ([int64]$countResult[0][0].data[0].Get(0) -eq $tables[$fullName]["Count"]) {
+                    if ($count -eq $tables[$fullName]["Count"]) {
                             Write-Information "    Records counted is correct."
                             $tables[$fullName]["ValidCount"] = $true
                     }
@@ -140,13 +134,68 @@ foreach ($dataRow in $result.data) {
 
 # $tables contains the current status of the necessary tables
 
+
+$dataLakeItems = [ordered]@{
+        "data-generators\generator-customer.csv" = "file path"
+        "sale-poc\sale-20170501.csv" = "file path"
+        "sale-poc\sale-20170502.csv" = "file path"
+        "sale-poc\sale-20170503.csv" = "file path"
+        "sale-poc\sale-20170504.csv" = "file path"
+        "sale-poc\sale-20170505.csv" = "file path"
+        "sale-poc\sale-20170506.csv" = "file path"
+        "sale-poc\sale-20170507.csv" = "file path"
+        "sale-poc\sale-20170508.csv" = "file path"
+        "sale-poc\sale-20170509.csv" = "file path"
+        "sale-poc\sale-20170510.csv" = "file path"
+        "sale-poc\sale-20170511.csv" = "file path"
+        "sale-poc\sale-20170512.csv" = "file path"
+        "sale-poc\sale-20170513.csv" = "file path"
+        "sale-poc\sale-20170514.csv" = "file path"
+        "sale-poc\sale-20170515.csv" = "file path"
+        "sale-poc\sale-20170516.csv" = "file path"
+        "sale-poc\sale-20170517.csv" = "file path"
+        "sale-poc\sale-20170518.csv" = "file path"
+        "sale-poc\sale-20170519.csv" = "file path"
+        "sale-poc\sale-20170520.csv" = "file path"
+        "sale-poc\sale-20170521.csv" = "file path"
+        "sale-poc\sale-20170522.csv" = "file path"
+        "sale-poc\sale-20170523.csv" = "file path"
+        "sale-poc\sale-20170524.csv" = "file path"
+        "sale-poc\sale-20170525.csv" = "file path"
+        "sale-poc\sale-20170526.csv" = "file path"
+        "sale-poc\sale-20170527.csv" = "file path"
+        "sale-poc\sale-20170528.csv" = "file path"
+        "sale-poc\sale-20170529.csv" = "file path"
+        "sale-poc\sale-20170530.csv" = "file path"
+        "sale-poc\sale-20170531.csv" = "file path"
+}
+
+
+Write-Information "Checking datalake account $($dataLakeAccountName)..."
+$dataLakeAccount = Get-AzStorageAccount -ResourceGroupName $resourceGroupName -Name $dataLakeAccountName
+if ($dataLakeAccount -eq $null) {
+        Write-Warning "    The datalake account $($dataLakeAccountName) was not found"
+        $overallStateIsValid = $false
+} else {
+        Write-Information "OK"
+
+        foreach ($dataLakeItemName in $dataLakeItems.Keys) {
+
+                Write-Information "Checking data lake $($dataLakeItems[$dataLakeItemName]) $($dataLakeItemName)..."
+                $dataLakeItem = Get-AzDataLakeGen2Item -Context $dataLakeAccount.Context -FileSystem "wwi-02" -Path $dataLakeItemName
+                if ($dataLakeItem -eq $null) {
+                        Write-Warning "    The data lake $($dataLakeItems[$dataLakeItemName]) $($dataLakeItemName) was not found"
+                        $overallStateIsValid = $false
+                } else {
+                        Write-Information "OK"
+                }
+
+        }  
+}
+
+
 if ($overallStateIsValid -eq $true) {
     Write-Information "Validation Passed"
-
-    Write-Information "Pause the $($sqlPoolName) SQL pool to DW500c after PoC import."
-
-    Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action pause
-    Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Paused
 }
 else {
     Write-Warning "Validation Failed - see log output"

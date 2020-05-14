@@ -758,6 +758,7 @@ function Execute-SQLQuery {
 
     $headers = @{ 
         Authorization="Bearer $($synapseSQLToken)"
+        "x-csrf-signature"="..."
     }
 
     if ($ForceReturn) {
@@ -813,7 +814,11 @@ function Execute-SQLScriptFile {
 
     [parameter(Mandatory=$false)]
     [Boolean]
-    $ForceReturn
+    $ForceReturn,
+
+    [parameter(Mandatory=$false)]
+    [Boolean]
+    $UseAPI = $false
     )
 
     $sqlQuery = Get-Content -Raw -Path "$($SQLScriptsPath)/$($FileName).sql"
@@ -824,7 +829,21 @@ function Execute-SQLScriptFile {
         }
     }
 
-    return Execute-SQLQuery -WorkspaceName $WorkspaceName -SQLPoolName $SQLPoolName -SQLQuery $sqlQuery -ForceReturn $ForceReturn
+    #https://aka.ms/vs/15/release/vc_redist.x64.exe 
+    #https://www.microsoft.com/en-us/download/confirmation.aspx?id=56567
+    #https://go.microsoft.com/fwlink/?linkid=2082790
+
+    if ($UseAPI) {
+        Execute-SQLQuery -WorkspaceName $WorkspaceName -SQLPoolName $SQLPoolName -SQLQuery $sqlQuery -ForceReturn $ForceReturn
+    } else {
+        if ($ForceReturn) {
+            #Invoke-SqlCmd -Query $sqlQuery -ServerInstance $sqlEndpoint -Database $sqlPoolName -Username $sqlUser -Password $sqlPassword
+            & sqlcmd -S $sqlEndpoint -d $sqlPoolName -U $userName -P $password -G -I -Q $sqlQuery
+        } else {
+            #Invoke-SqlCmd -Query $sqlQuery -ServerInstance $sqlEndpoint -Database $sqlPoolName -Username $sqlUser -Password $sqlPassword
+            & sqlcmd -S $sqlEndpoint -d $sqlPoolName -U $userName -P $password -G -I -Q $sqlQuery
+        }
+    }
 }
 
 function Create-SQLScript {
@@ -1242,28 +1261,35 @@ function Count-CosmosDbDocuments {
 
     Write-Information "Successfully retrieved PK ranges"
 
-    $headers = @{ 
-            Authorization=$authHeader
-            "Content-Type"="application/query+json"
-            "x-ms-cosmos-allow-tentative-writes"="True"
-            "x-ms-cosmos-is-query"="True"
-            "x-ms-date"=$refTime
-            "x-ms-documentdb-populatequerymetrics"="True"
-            "x-ms-documentdb-partitionkeyrangeid"=$pkResult.PartitionKeyRanges[0].id
-            "x-ms-documentdb-query-enable-scan"="True"
-            "x-ms-documentdb-query-enablecrosspartition"="True"
-            "x-ms-documentdb-query-parallelizecrosspartitionquery"="True"
-            "x-ms-documentdb-responsecontinuationtokenlimitinkb"=1
-            "x-ms-max-item-count"=100
-            "x-ms-version"="2018-12-31"
+    $totalCount = 0
+
+    foreach ($partitionKeyRange in $pkResult.PartitionKeyRanges) {
+
+        $headers = @{ 
+                Authorization=$authHeader
+                "Content-Type"="application/query+json"
+                "x-ms-cosmos-allow-tentative-writes"="True"
+                "x-ms-cosmos-is-query"="True"
+                "x-ms-date"=$refTime
+                "x-ms-documentdb-populatequerymetrics"="True"
+                "x-ms-documentdb-partitionkeyrangeid"=$partitionKeyRange.id
+                "x-ms-documentdb-query-enable-scan"="True"
+                "x-ms-documentdb-query-enablecrosspartition"="True"
+                "x-ms-documentdb-query-parallelizecrosspartitionquery"="True"
+                "x-ms-documentdb-responsecontinuationtokenlimitinkb"=1
+                "x-ms-max-item-count"=100
+                "x-ms-version"="2018-12-31"
+        }
+        $query = "{""query"":$(ConvertTo-Json $result.queryInfo.rewrittenQuery)}"
+
+        Write-Information "Executing query for partition key range $($partitionKeyRange.id)..."
+        $queryResult = Invoke-RestMethod -Uri $uri -Method POST -Body $query -Headers $headers
+
+        $totalCount += $queryResult.Documents[0][0].item
     }
-    $query = "{""query"":$(ConvertTo-Json $result.queryInfo.rewrittenQuery)}"
 
-    Write-Information "Executing query..."
-    $queryResult = Invoke-RestMethod -Uri $uri -Method POST -Body $query -Headers $headers
-
-    Write-Information "The collection contains $($queryResult.Documents[0][0].item) documents."
-    return $queryResult.Documents[0][0].item
+    Write-Information "The collection contains $($totalCount) documents."
+    return $totalCount
 }
 
 function Assign-SynapseRole {

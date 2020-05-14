@@ -15,7 +15,7 @@ $InformationPreference = "Continue"
 $userName = $AzureUserName                # READ FROM FILE
 $password = $AzurePassword                # READ FROM FILE
 $clientId = $TokenGeneratorClientId       # READ FROM FILE
-$sqlPassword = $AzureSQLPassword          # READ FROM FILE
+$global:sqlPassword = $AzureSQLPassword          # READ FROM FILE
 
 $securePassword = $password | ConvertTo-SecureString -AsPlainText -Force
 $cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $userName, $SecurePassword
@@ -43,6 +43,8 @@ $sqlPoolName = "SQLPool01"
 $integrationRuntimeName = "AzureIntegrationRuntime01"
 $sparkPoolName = "SparkPool01"
 $amlWorkspaceName = "amlworkspace$($uniqueId)"
+$global:sqlEndpoint = "$($workspaceName).sql.azuresynapse.net"
+$global:sqlUser = "asa.sql.admin"
 
 
 $ropcBodyCore = "client_id=$($clientId)&username=$($userName)&password=$($password)&grant_type=password"
@@ -76,7 +78,7 @@ $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $
 $result
 
 
-Write-Information "Create tables in wwi_perf schema in SQL pool $($sqlPoolName)"
+Write-Information "Create tables in wwi_poc schema in SQL pool $($sqlPoolName)"
 
 $params = @{}
 $scripts = [ordered]@{
@@ -87,13 +89,10 @@ foreach ($script in $scripts.Keys) {
 
         $refTime = (Get-Date).ToUniversalTime()
         Write-Information "Starting $($script) with label $($scripts[$script])"
-
-        # refresh the token, just in case
-        Refresh-Token -TokenType "SynapseSQL"
         
         # initiate the script and wait until it finishes
-        Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script -ForceReturn $true
-        Wait-ForSQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Label $scripts[$script] -ReferenceTime $refTime
+        Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName $script
+        #Wait-ForSQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Label $scripts[$script] -ReferenceTime $refTime
 }
 
 
@@ -141,7 +140,7 @@ foreach ($dataset in $loadingDatasets.Keys) {
 }
 
 
-Write-Information "Pause the $($sqlPoolName) SQL pool to DW500c after PoC import."
-
-Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action pause
-Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Paused
+#Write-Information "Pause the $($sqlPoolName) SQL pool to DW500c after PoC import."
+#
+#Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action pause
+#Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Paused

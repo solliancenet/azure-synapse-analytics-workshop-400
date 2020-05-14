@@ -35,6 +35,14 @@ Open the `Lab 06 - Machine Learning` notebook (located in the `Develop` hub, und
 - Train ensemble of trees classifier (using XGBoost)
 - Train classifier using Auto ML
 
+>**IMPORTANT NOTE**
+>
+>There are cases when the language magic does not work properly in notebook cells. Ensure the following language options are set when running each cell in the notebook:
+>- *Spark (Scala)* - for cells 7 and 28
+>- *PySpark (Python)* - for all other cells
+>
+>If you are encountering errors related to the language magic in a cell, remove the language magic, set the language of the cell according to the guidance above, and re-run the cell.
+
 Please note that each of these tasks will be addressed through several cells in the notebook.
 
 ## Exercise 2 - Registering and using models in Synapse Analytics
@@ -162,6 +170,10 @@ In this task, you will author a T-SQL query that uses the previously trained mod
     ```
 
     This is the input data you will use to make the predictions.
+
+    >**NOTE**:
+    > Due to capacity constraints limiting the number of environments that can be whitelisted to use the `PREDICT` function, the final three steps in this exercise cannot be executed. They are provided below to help you understand the use of the `PREDICT` function in T-SQL.
+    >
 
 4. Select **Run** from the menubar.
 

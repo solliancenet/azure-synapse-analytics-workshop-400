@@ -41,8 +41,6 @@ $keyVaultName = "asakeyvault$($uniqueId)"
 $keyVaultSQLUserSecretName = "SQL-USER-ASA"
 $sqlPoolName = "SQLPool01"
 $integrationRuntimeName = "AzureIntegrationRuntime01"
-$sparkPoolName = "SparkPool01"
-$amlWorkspaceName = "amlworkspace$($uniqueId)"
 $global:sqlEndpoint = "$($workspaceName).sql.azuresynapse.net"
 $global:sqlUser = "asa.sql.admin"
 
@@ -62,6 +60,7 @@ $global:tokenTimes = [ordered]@{
         Management = (Get-Date -Year 1)
 }
 
+$overallStateIsValid = $true
 
 Write-Information "Start the $($sqlPoolName) SQL pool if needed."
 
@@ -71,57 +70,93 @@ if ($result.properties.status -ne "Online") {
     Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online
 }
 
-
-Write-Information "Create tables in the [wwi] schema in $($sqlPoolName)"
-
-$params = @{}
-$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "04-create-tables-in-wwi-schema" -Parameters $params
-$result
-
-
-Write-Information "Create data sets for data load in SQL pool $($sqlPoolName)"
-
-$loadingDatasets = @{
-        wwi02_date_adls = $dataLakeAccountName
-        wwi02_product_adls = $dataLakeAccountName
-        wwi02_sale_small_adls = $dataLakeAccountName
-        wwi02_date_asa = $sqlPoolName.ToLower()
-        wwi02_product_asa = $sqlPoolName.ToLower()
-        wwi02_sale_small_asa = "$($sqlPoolName.ToLower())_highperf"
+$tables = [ordered]@{
+        "wwi_poc.Date" = @{
+                Count = 3652
+                Valid = $false
+                ValidCount = $false
+        }
+        "wwi_poc.Product" = @{
+                Count = 5000
+                Valid = $false
+                ValidCount = $false
+        }
+        "wwi_poc.Sale" = @{
+                Count = 981995895
+                Valid = $false
+                ValidCount = $false
+        }
+        "wwi_poc.Customer" = @{
+                Count = 1000000
+                Valid = $false
+                ValidCount = $false
+        }
 }
 
-foreach ($dataset in $loadingDatasets.Keys) {
-        Write-Information "Creating dataset $($dataset)"
-        $result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $dataset -LinkedServiceName $loadingDatasets[$dataset]
-        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
+$query = @"
+SELECT
+        S.name as SchemaName
+        ,T.name as TableName
+FROM
+        sys.tables T
+        join sys.schemas S on
+                T.schema_id = S.schema_id
+"@
+
+#$result = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $query
+$result = Invoke-SqlCmd -Query $query -ServerInstance $sqlEndpoint -Database $sqlPoolName -Username $sqlUser -Password $sqlPassword
+
+#foreach ($dataRow in $result.data) {
+foreach ($dataRow in $result) {
+        $schemaName = $dataRow[0]
+        $tableName = $dataRow[1]
+
+        $fullName = "$($schemaName).$($tableName)"
+
+        if ($tables[$fullName]) {
+                
+                $tables[$fullName]["Valid"] = $true
+
+                Write-Information "Counting table $($fullName)..."
+
+                try {
+                    $countQuery = "select count_big(*) from $($fullName)"
+                    #$countResult = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $countQuery
+                    #count = [int64]$countResult[0][0].data[0].Get(0)
+                    $countResult = Invoke-Sqlcmd -Query $countQuery -ServerInstance $sqlEndpoint -Database $sqlPoolName -Username $sqlUser -Password $sqlPassword
+                    $count = $countResult[0][0]
+
+                    Write-Information "    Count result $($count)"
+
+                    if ($count -eq $tables[$fullName]["Count"]) {
+                            Write-Information "    Records counted is correct."
+                            $tables[$fullName]["ValidCount"] = $true
+                    }
+                    else {
+                        Write-Warning "    Records counted is NOT correct."
+                        $overallStateIsValid = $false
+                    }
+                }
+                catch { 
+                    Write-Warning "    Error while querying table."
+                    $overallStateIsValid = $false
+                }
+
+        }
 }
 
-Write-Information "Create pipeline to load the SQL pool"
+# $tables contains the current status of the necessary tables
 
-$params = @{
-        BLOB_STORAGE_LINKED_SERVICE_NAME = $blobStorageAccountName
+if ($overallStateIsValid -eq $true) {
+    Write-Information "Validation Passed"
+
+    #Write-Information "Pause the $($sqlPoolName) SQL pool to DW500c after PoC import."
+
+    #Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action pause
+    #Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Paused
 }
-$loadingPipelineName = "Setup - Load SQL Pool"
-$fileName = "load_sql_pool_from_data_lake"
-
-Write-Information "Creating pipeline $($loadingPipelineName)"
-
-$result = Create-Pipeline -PipelinesPath $pipelinesPath -WorkspaceName $workspaceName -Name $loadingPipelineName -FileName $fileName -Parameters $params
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
-
-Write-Information "Running pipeline $($loadingPipelineName)"
-
-$result = Run-Pipeline -WorkspaceName $workspaceName -Name $loadingPipelineName
-$result = Wait-ForPipelineRun -WorkspaceName $workspaceName -RunId $result.runId
-$result
-
-Write-Information "Deleting pipeline $($loadingPipelineName)"
-
-$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "pipelines" -Name $loadingPipelineName
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
-
-foreach ($dataset in $loadingDatasets.Keys) {
-        Write-Information "Deleting dataset $($dataset)"
-        $result = Delete-ASAObject -WorkspaceName $workspaceName -Category "datasets" -Name $dataset
-        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
+else {
+    Write-Warning "Validation Failed - see log output"
 }
+
+
