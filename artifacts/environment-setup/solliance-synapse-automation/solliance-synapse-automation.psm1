@@ -829,13 +829,19 @@ function Execute-SQLScriptFile {
         }
     }
 
+    #https://aka.ms/vs/15/release/vc_redist.x64.exe 
+    #https://www.microsoft.com/en-us/download/confirmation.aspx?id=56567
+    #https://go.microsoft.com/fwlink/?linkid=2082790
+
     if ($UseAPI) {
         Execute-SQLQuery -WorkspaceName $WorkspaceName -SQLPoolName $SQLPoolName -SQLQuery $sqlQuery -ForceReturn $ForceReturn
     } else {
         if ($ForceReturn) {
-            Invoke-SqlCmd -Query $sqlQuery -ServerInstance $sqlEndpoint -Database $sqlPoolName -Username $sqlUser -Password $sqlPassword
+            #Invoke-SqlCmd -Query $sqlQuery -ServerInstance $sqlEndpoint -Database $sqlPoolName -Username $sqlUser -Password $sqlPassword
+            & sqlcmd -S $sqlEndpoint -d $sqlPoolName -U $userName -P $password -G -I -Q $sqlQuery
         } else {
-            Invoke-SqlCmd -Query $sqlQuery -ServerInstance $sqlEndpoint -Database $sqlPoolName -Username $sqlUser -Password $sqlPassword
+            #Invoke-SqlCmd -Query $sqlQuery -ServerInstance $sqlEndpoint -Database $sqlPoolName -Username $sqlUser -Password $sqlPassword
+            & sqlcmd -S $sqlEndpoint -d $sqlPoolName -U $userName -P $password -G -I -Q $sqlQuery
         }
     }
 }
