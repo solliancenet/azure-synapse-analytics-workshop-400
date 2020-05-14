@@ -19,6 +19,12 @@ Work as a team to complete the challenges listed below. Pay attention to the bac
 
 You have the freedom to choose the solution your team believes will best fit WWI's needs. However, you must be able to explain the thought process behind the decisions to your coach.
 
+>**IMPORTANT TECHNICAL NOTE**
+>
+> Your workplace for the challenges is the `wwi_poc` schema in your SQL pool.
+>
+> In case you need to create additional tables, you must use the same schema (`wwi_poc`) for them.
+
 ## 1 - Configure the environment and raw import
 
 ### Background story
@@ -31,13 +37,31 @@ Wide World Importers wants your help proving that Synapse Analytics is the right
 
 ### Technical details
 
-Sales data is currently being inserted into the SQL pool. About 60% of the data is already in the internal tables of the SQL Pool. This roughly covers Jan 2012 to April 2012. The remainder of the data is in external CSV and Parquet files.
+Sales data is currently being inserted into the SQL pool. About 57% of the data is already in the internal tables of the SQL Pool. This roughly covers Jan 2014 to April 2017. The remainder of the data is in external CSV and Parquet files.
 
-One of WWI's large LOB systems switched how they export sales data around August 2017. This is why there is a mix of CSV and Parquet files. The CSV external files cover May - August 2017, and the Parquet external files cover September - December 2017.
+One of WWI's large LOB systems had a major outage during the month of May 2017. Data was exported using an alternative approach and is available in CSV files. Starting June 2017, data is available as Parquet files.
+
+Also, customer data is only partially imported. Issues with the processing of customer information prevented a complete import of customer data.
 
 ### WWI resources
 
-WWI loaded their data to the primary ADLS Gen2 account for the Synapse Analytics workspace. You can find the files in the following path: `wwi02/sale-poc`.
+WWI loaded their data to the primary ADLS Gen2 account for the Synapse Analytics workspace.
+
+You can find the CSV files for May 2017 in the following path: `wwi-02 / sale-poc`.
+
+You can find the Parquet files in the following paths:
+
+- `wwi-02 / sale-small / Year=2017 / Quarter=Q2 / Month=6`
+- `wwi-02 / sale-small / Year=2017 / Quarter=Q3`
+- `wwi-02 / sale-small / Year=2017 / Quarter=Q4`
+- `wwi-02 / sale-small / Year=2018`
+- `wwi-02 / sale-small / Year=2019`
+
+You can find the complete customer data in the following path: `wwi-02 / data-generators / generator-customer.csv`. The file should be approximately 140 MB in size.
+
+>**IMPORTANT TECHNICAL NOTE**
+>
+> Do not use other files from the data lake to import sales data as they will invalidate the results of the PoC.
 
 ### Success criteria
 
@@ -45,9 +69,6 @@ WWI loaded their data to the primary ADLS Gen2 account for the Synapse Analytics
 - There are no time constraints on the data loading operation, but be mindful of leaving time for the remaining challenges.
   - Consider working with a subset of both the CSV and Parquet files as you iterate through your data loading process. Test your assumptions with sample sizes before loading the entire data set.
 
-### Resources
-
-Reference links
 
 ## 2 - Optimize data load
 
@@ -57,7 +78,7 @@ Importing all of the existing data is only part of the data load story. Wide Wor
 
 In addition to the RTO requirements, top management is demanding more and more a departure from the traditional "analyze today, yesterday's data". The goal is to significantly reduce the gap between the moment data is generated and the moment it ends up in dashboards.
 
-Data post-2017 is now coming in as a continuous stream of Parquet files. Propose and implement a data lake architecture where top management can get data with various compromises between speed of delivery and accuracy/completeness. Provide a bronze level where freshly collected sales data is analyzed using Synapse SQL Serverless and exposed into dashboards. Provide a silver level where data quality has been increased via data engineering. Finally, provide the gold level where top-quality data has been persisted in a Synapse SQL Pool.
+Data post May 2017 is now coming in as a continuous stream of Parquet files. Propose and implement a data lake architecture where top management can get data with various compromises between speed of delivery and accuracy/completeness. Provide a bronze level where freshly collected sales data is analyzed using Synapse SQL Serverless and exposed into dashboards. Provide a silver level where data quality has been increased via data engineering. Finally, provide the gold level where top-quality data has been persisted in a Synapse SQL Pool.
 
 ### Success criteria
 
@@ -65,6 +86,10 @@ Data post-2017 is now coming in as a continuous stream of Parquet files. Propose
 - You have proven this process by wiping out the database (excluding pre-existing data) and conducting a full import with predictable results and processing time.
 - You store all raw data in a bronze folder, cleaned up data in a silver folder, and all fully-transformed data stores in the SQL pool.
 - The data loading resource takes priority over all other resources connected to the SQL pool.
+
+>**IMPORTANT TECHNICAL NOTE**
+>
+> Observe the important detail in the second success criteria: you should NOT take into account the pre-existing data when estimating and demonstrating the required RTO.
 
 ## 3 - Optimize performance of existing queries and create new queries
 
@@ -82,6 +107,8 @@ WWI has supplied the following business-critical queries that they currently use
 
 Leadership wants to see some early, tangible benefit from the data modernization effort. They've been sold on the "art of the possible" and how Synapse helps unlock new insights on their data. These queries should have a visual component that gets decision makers excited about where the company is headed and have instant transference of complicated sales data into easy-to-understand market insights. They have described the following queries they'd like to see in the new system:
 
+- What is the dynamic of the year-on-year sales profit across individual countries?
+- Which are the most profitable countries?
 - What is the evolution rate (increase in frequency of purchases and the overall value of those purchases) month-over-month for customers overall?
   - What is the evolution rate for individual customers?
 - We tend to see more sales during the week vs. the weekend. Can you identify the customers who make more than the average number of weekend purchases, where they shop, and what their top products are?
@@ -115,6 +142,7 @@ As you and your team plan the security and monitoring aspects of the solution, k
 ### Success criteria
 
 - Implement and demonstrate end-to-end security measures for the data warehouse rebuild process.
+  - The problem of customer PII (Personally Identifiable Information) is addressed.
   - Least-privilege access is incorporated.
   - Secrets are encrypted and not available in clear text, anywhere in the configuration.
     - Want to maintain exclusive control over the keys to used to encrypt the data warehouse data at rest. They do not want Microsoft or any other entity to provide or have access to these keys.
