@@ -6,7 +6,7 @@ This guide focuses on Azure Synapse Analytics performance tuning. The following 
 - SQL Pools
 - Spark Pools
 
-The **Pipelines and Data Flows** section focuses on performance tuning involving:
+The [**Pipelines and Data Flows**](./02-optimizing-pipelines-and-data-flows.md) section focuses on performance tuning involving:
 
 - Integration runtimes
 - Linked services
@@ -14,7 +14,7 @@ The **Pipelines and Data Flows** section focuses on performance tuning involving
 
 The section ends with a summary of best practices for optimizing the performance of pipelines and data flows.
 
-The **SQL Pools** section focuses on performance tuning involving:
+The [**SQL Pools**](./03-optimizing-sql-pools.md) section focuses on performance tuning involving:
 
 - SQL pool sizing and resource allocation (Data Warehouse Units)
 - Table structure (improving with distribution and partitioning)
@@ -28,7 +28,7 @@ The **SQL Pools** section focuses on performance tuning involving:
 
 The section ends with a summary of best practices for optimizing the performance of SQL pools.
 
-The **Spark Pools** section focuses on performance tuning involving:
+The [**Spark Pools**](./04-optimizing-spark-pools.md) section focuses on performance tuning involving:
 
 - Spark pool sizing and resource allocation
 - Notebooks and Spark sessions
