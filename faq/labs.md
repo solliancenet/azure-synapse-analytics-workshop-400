@@ -60,8 +60,3 @@ It is essential to delete the integration runtime instead of just reusing the ex
 
 ---
 
-### **Q**: _?_
-
-**A**: 
-
----

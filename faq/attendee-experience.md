@@ -44,8 +44,3 @@ If you come across performance challenges, please note this in the "Need help - 
 
 ---
 
-### **Q**: _?_
-
-**A**: 
-
----
