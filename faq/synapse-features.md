@@ -1,0 +1,372 @@
+# Content FAQ
+
+### **Q**: _When will we review backup and restore scenarios?_
+
+**A**: This is a great topic we'll explore throughout the next 12 months as part of an ongoing architecture design/review series.
+
+---
+
+### **Q**: _Any best practices of using Spark compute vs. SQL Provisioned compute to query SQL POOL storage?_
+
+**A**: Querying the SQL pool data via the SQL analytics connector in Spark has a particular overhead when compared to directly querying the SQL pool. When that overhead is acceptable, the advantage of not needing to leave the Spark environment takes precedence. In addition to that, the RDD features of Spark kick in and allow you do perform highly parallelized data processing.
+
+---
+
+### **Q**: _Is Synapse using a form of Azure Notebooks?_
+
+**A**: They are similar. Synapse uses Juypter Notebooks (like Azure Notebooks) with nteract. But it's just a convention enforced in the UI. For Spark notebooks, the Apache Livy API is in charge, so you can create sessions and submit statements from anywhere. Livy provides a REST API to manage and execute Spark sessions.
+
+---
+
+### **Q**: _I saw error trying to save/publish Notebook stating that it exceed the 2Mb limit? Is this a workspace configuration where we can change that limit or a hard limit for now? Seems rather smallish?_
+
+**A**: Not currently.
+
+---
+
+### **Q**: _Is there a public doc link for the 90+ inbuilt connectors handy?_
+
+**A**: https://docs.microsoft.com/en-us/azure/data-factory/connector-overview
+
+---
+
+### **Q**: _Can Synapse pipelines create a table automatically in the sink without one being there before?_
+
+**A**: Yes, it can be done, but this is not recommended for production. There is a generate schema option.
+
+---
+
+### **Q**: _Do the latest features in ADF will automatically show up in Synapse studio since they're the same thing?_
+
+**A**: Yes, ADF and Synapse pipelines will be identical. Same bits deployed at the same time (except the SSIS runtime).
+
+---
+
+### **Q**: _Can I run my ADF pipelines from Synapse?_
+
+**A**: Not directly. You can, for example call an Azure Function that would triger an ADF pipeline.
+
+---
+
+### **Q**: _How can the data flow from Azure Databricks to Synapse be encrypted?_
+
+**A**: Here is a link that can help https://docs.microsoft.com/en-us/azure/azure-databricks/databricks-extract-load-sql-data-warehouse#load-data-into-azure-synapse
+
+---
+
+### **Q**: _Is Copy here a Copy Activity of ADF?_
+
+**A**: Copy is an option in a DW Sink of the Copy activity in ADF.
+
+---
+
+### **Q**: _I thought SSIS was not supported in Synapse, how can we do the alternative from On-Prem suggesting to use this?_
+
+**A**: You would use a self-hosted integration runtime that is installed on-premises.
+
+---
+
+### **Q**: _What is technically behind this SQL Endpoint? A shared cross-customer SQL Pool?_
+
+**A**: The resources are on-demand but dedicated to the customer at the workspace level. That's why the first query takes ~25-30 seconds. It allocates the resources.
+
+---
+
+### **Q**: _When will Spark 3.0 come in?_
+
+**A**: We will do it, but we need it to GA first. There will be a gap between it going GA and us making it available.
+
+---
+
+### **Q**: _Will you guys support a similar concept to Runtimes? DB does a great job with this. It is not perfect, but customers love it._
+
+**A**: There are currently no plans for different runtimes, given that the current ML and Platform runtimes will merge. We need to see what the future looks like.
+
+---
+
+### **Q**: _How does autoscale compare to the DBX approach? Will it intelligently allocate/deallocate (a la premium DBX) or do it linearly (like standard DBX)?_
+
+**A**: TBD
+
+---
+
+### **Q**: _Can the spark pools be modified based on need so that I can go up and down as needed?_
+
+**A**: We expect people will create many spark pools as they are just metadata when you connect we spin a cluster to run the job it scales as needed and then you hit the time to live on the cluster (15 mins by default, 30 mins from a notebook) which you can change and when the job is complete the cluster will shut down.
+
+---
+
+### **Q**: _Different Spark pools can have different Spark versions, right?_
+
+**A**: Eventually, yes, we only support one version right now, and we will be very aggressive about keeping the version matrix small vs. say HDI.
+
+---
+
+### **Q**: _How do we convince DBX customers Synapse is better?_
+
+**A**: We are not doing compete stuff yet. ADB may still be the right choice. Remember, this is not a Spark head to head conversation.
+
+---
+
+### **Q**: _What about Data Wrangling?_
+
+**A**: Data Wrangling is something still being worked on.
+
+---
+
+### **Q**: _Is there a baked in Hive store for supporting SQL within the spark layer, or is all SQL expected to be within the SQL pools and entirely separate for the spark layer? None of the demos I've seen combine pyspark and SQL...and the ability to create temporary views etc., switching between pyspark, sparksql, and back in a notebook._
+
+**A**: Was covered in demos. Yes fully supported, and you can see hive in system storage if you know where to look and have the right perms.
+
+---
+
+### **Q**: _How compatible will the notebooks be with standard Jupyter notebooks? thinking about things like support for nbextensions?_
+
+**A**: The notebooks use nteract and can be imported/exported as ipynb. nbextensions don't work, yet we are working on a pure jupyter compat layer for the AML team so their jupyter notebooks can just use Synapse Spark as a remote kernel, so we will be able to support classic jupyter, but it will not be included in the Studio at least for now.
+
+---
+
+### **Q**: _What about Polybase?_
+
+**A**: There will be lots of improvements to reading and writing external data from Synapse SQL.
+
+---
+
+### **Q**: _I am currently working with a customer presently using AWS Redshift and looking to make a TCO comparison on Azure Synapse (SQL option) Analytics._
+
+**A**: You can find our TCO calculator and Redshift compete-materials on aka.ms/azure_synapse_overview.
+
+---
+
+### **Q**: _Does Azure Synapse replaces entirely (and surpasses) Azure Databricks?_
+
+**A**: No, that's not the way to think of it; there are still plenty of reasons to use ADB.
+
+---
+
+### **Q**: _Can I link a Cosmos DB account?_
+
+**A**: NDA, yes. Right now I can add Linked Service and pull data using pipelines
+We're developing the feature to analyze data residing in Cosmos DB directly from Synapse.
+
+---
+
+### **Q**: _How can we join the preview?_
+
+**A**: There is an MVP sandbox. Ask on the MVP NDA alias for access (whole Data Plat)
+details shared via the DL, check junk email need to fill out a quick form.
+
+---
+
+### **Q**: _If I want to run ML models, I have to resort to Spark, not SQL, right?_
+
+**A**: Today, we have the Predict function, which is there in SQL Pools. Use Predict on the ONNX model.
+Training models in SQL is something that is being talked about but not available.
+
+---
+
+### **Q**: _Can I set up spark queues or multiple pools with different permissions?_
+
+**A**: Yes, each Spark Pool is securable. So you can have different permissions.
+
+---
+
+### **Q**: _Does it support EBCDIC (mainframe) unstructured files with metadata, including audio, video and visual files?_
+
+**A**: Not directly, but via Spark you can process virtually any kind of file format/structure.
+
+---
+
+### **Q**: _If Synapse has it's own Hive metastore, will it come with Atlas Hive Hook baked in for integration with ADCv2? Or is that going to be more smoothly integrated/combined? Position Synapse vs. BDC vs. DB?_
+
+**A**: For BDC think of as SQL plus big data caps, the BDC team will provide their guidance.
+Synapse is a PAAS service, DW, with analytics caps embedded in the DW. With Databricks, it's a first-party azure service. We will continue having customers on it. AZDB has proprietary caps that MS will support. For customers who want a single plane of glass approach, for them, we suggest Synapse. Its open-source Spark works on the data lake.
+
+---
+
+### **Q**: _Will the Spark notebooks have a parameter interface? Widgets and ADF are super helpful._
+
+**A**: You will be able to have a parameter cell and then bind to that from ADF etc. 
+We currently don't plan to provide UI widgets as a way of interacting with those.
+
+---
+
+### **Q**: _Does it support delta lake since it's now open-sourced?_
+
+**A**: Yes, we can run the open-source version of Delta Lake.
+
+---
+
+### **Q**: _When you say Delta is supported, do you mean the Spark side of things, via DW, or both?_
+
+**A**: Bringing in full support for delta lake with other parts of Synapse (for ex, SQL Serverless) is on our roadmap. (May 2020)
+
+---
+
+### **Q**: _Is Spark R supported?_
+
+**A**: No.
+
+---
+
+### **Q**: _Are there options other than memory-optimized machines, like GPU?_
+
+**A**: Currently, no other options, our Spark team decided to prioritize memory-optimized machines since they're best suited to most workloads.
+
+---
+
+### **Q**: _Why not provide an on-demand pool option on Spark as well?_
+
+**A**: We're working on bringing the Spark pool deployment time to be quite fast, minimizing the need for an on-demand pool option. Most GPU workloads can be parallelized without Spark reasonably quickly, so you'd be able to use an AML Compute cluster.
+
+---
+
+### **Q**: _Is there a way to prevent the user from importing any library? Or route the user to a private repo?_
+
+**A**: Not currently, but that sort of fine-grained package management is something other customers in the preview have requested and something we're looking at. (May 2020)
+
+---
+
+### **Q**: _Do we have access control at Notebook level like DataBricks?_
+
+**A**: Currently, no. It's just at the Spark admin level. But, many customers have requested securable folders and files similar to Databricks, so it's something we are working on. (May 2020)
+
+---
+
+### **Q**: _Do we have a gauge of the performance of a spark distribution vs. DataBricks?_
+
+**A**: Currently, no, and given the partnership between Azure and DataBricks, you will most likely not see performance comparisons published externally by us.
+
+---
+
+### **Q**: _What is the notebook platform, Jupyter, or something else?_
+
+**A**: Jupyter + nteract
+
+---
+
+### **Q**: _How does AML service fit into all of this?_
+
+**A**: AML integrates with Synapse spark through packages and connecting to an AML workspace where you can register models, run AutoML, etc. The CDP Vision demo on aka.ms/data and ai demos have examples of this in its notebooks.
+
+---
+
+### **Q**: _Is it on the roadmap to include Spark .read.sqlanalytics as part of the pyspark API, or are there some technical reasons that might delay that for a while?_
+
+**A**: As of May 2020, we will have to follow up on that with you later- will need to ask our Spark team.
+
+---
+
+### **Q**: _Do you think that it will still be relevant with v3 / multi-cluster (i.e., one cluster by user or type of tasks)? If so, can you give examples of why?_
+
+**A**: Yes! We see WLM as a toolbox, where there are different tools for different use-cases. For example, workload isolation is excellent at handling fast variations in resource utilization at low overhead. Auto-scale can be better for opening up more resources or lowering costs, but you don't want to continually scale up or down as it evicts the cache and affects performance. Multi-cluster is effective at providing chargeback and isolating more predictable jobs, such as daily loads. Each has its best use-case, and the goal of Synapse is to provide customers with the entire toolbox.
+
+---
+
+### **Q**: _Can monitoring be integrated into Azure Monitor?_
+
+**A**: SQL Pools (GA) integrate with Azure monitor, we are looking at building that out to cover the entire workspace (May 2020).
+
+---
+
+### **Q**: _What is Gen 3?_
+
+**A**: The set of "gen 3" improvements (multi-cluster, online scale, etc.) are not tied to the general synapse preview/GA - it's a separate development effort. 
+
+---
+
+### **Q**: _Mapping Dataflows in synapse workspace assume they spin up synapse spark pools behind the scenes, unlike ADF (DataBricks)... correct?_
+
+**A**: The first edition did use ADB, now mapping Data Flows run directly on Synapse Pool.
+
+---
+
+### **Q**: _Are Synapse tables going to be exposed automatically as dataframe in Sparks in the future, or will we always need to map them manually?_
+
+**A**: We are working to improve the shared metastore in Synapse, including better automatic sharing of table definitions. It's not sure if we'll hit 100% exposure, as you mention. Still, for example, we are working on more comfortable sharing of external table definitions between SQL Pool, SQL On-demand, and Spark databases (May 2020).
+
+---
+
+### **Q**: _What is the AML integration roadmap?_
+
+**A**: Can't say too much besides that as of May 2020, it's definitely on our roadmap. Given the importance of ML to a lot of analytics use-cases, expanding the ML integration is something the team is actively looking into.
+
+---
+
+### **Q**: _What's going to happen for our customers already using SQL DW? Is the cost going to change for them? How are we going to notify the new features to them like the Studio?_
+
+**A**: We are aiming for minimal disruption to our existing SQL Pool customers. The price will not change as the feature set is the same, and there's no overhead cost from Synapse. As we move closer to GA, we will have a more precise story for how customers will be able to access all the new features with as little disruption as possible.
+
+---
+
+### **Q**: _Is there a plan/roadmap and ability to submit notebook jobs for predefined Spark-runtime cluster definitions (like in Datbricks ) using REST?_
+
+**A**: I'll have to check with our Spark PM to be sure if that's on our roadmap. (May 2020) We do have some docs out there about building Spark applications on Synapse: https://docs.microsoft.com/en-us/azure/synapse-analytics/spark/intellij-tool-synapse
+
+---
+
+### **Q**: _All that we can do with the new Synapse Studio, will we be able to do with Azure Data Studio or SQL Management Studio?_
+
+**A**: You can connect to the SQL On-demand and SQL Pool endpoints in Azure Data Studio and SSMS to submit queries. Further integration is on the roadmap right now. (May 2020)
+
+---
+
+### **Q**: _Excel is always a challenge!_
+
+**A**: Excel is in the near term roadmap for ADF. (May 2020).
+
+---
+
+### **Q**: _How do I do version control on the SQL Scripts?_
+
+**A**: Version control/file control is one of the most significant asks we've gotten from customers and something we're working on as we move towards GA. (May 2020)
+
+---
+
+### **Q**: _How do folders and RBAC work for SQL Scripts and the like, If I have 200 devs how do they segment their work?_
+
+**A**: Currently does not exist in the Synapse preview. (May 2020).
+
+---
+
+### **Q**: _Is GPU supported in Synapse Spark?_
+
+**A**: No GPU support. Synapse Spark is for data engineering, not ML/deep learning. Data scientists should use AMLS.
+
+---
+
+### **Q**: _Will Azure ML support Synapse Spark pool as compute?_
+
+**A**: Yes, Synapse Spark as AML compute is on the roadmap and will have deeper integration than the current Databricks integration (May 2020).
+
+---
+
+### **Q**: _Is three a concept similar to ADB Interactive Cluster?_
+
+**A**: No interactive cluster. For non-production, high concurrency is used for cost-saving (dev sharing environments) - in Synapse the price point will be lower so each dev can have their cluster at a similar price point than ADB high concurrency. For production, point the report tools to the SQL endpoint in Synapse instead of the Spark endpoint.
+
+---
+
+### **Q**: _Any GitHub integration or plans?_
+
+**A**: Yes for GA (May 2020)
+
+---
+
+### **Q**: _Is there a view for understanding jobs that were submitted, deep-dive what steps were executed?_
+
+**A**: This will be located in the Monitoring Hub of Synapse Studio.
+
+---
+
+### **Q**: _What type of RBAC granularity do we provide on Synapse?_
+
+**A**: That's a good question for RBAC. The answer is yes, but the granularity would be at the workspace level rather than the object level for now. Some aspects still TBD.
+
+---
+
+### **Q**: _?_
+
+**A**: 
+
+---
