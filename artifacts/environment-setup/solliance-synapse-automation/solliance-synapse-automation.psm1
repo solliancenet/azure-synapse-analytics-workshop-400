@@ -1,3 +1,59 @@
+function Check-HttpRedirect($uri)
+{
+    $httpReq = [system.net.HttpWebRequest]::Create($uri)
+    $httpReq.Accept = "text/html, application/xhtml+xml, */*"
+    $httpReq.method = "GET"   
+    $httpReq.AllowAutoRedirect = $false;
+    
+    #use them all...
+    #[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls11 -bor [System.Net.SecurityProtocolType]::Tls12 -bor [System.Net.SecurityProtocolType]::Ssl3 -bor [System.Net.SecurityProtocolType]::Tls;
+
+    $global:httpCode = -1;
+    
+    $response = "";            
+
+    try
+    {
+        $res = $httpReq.GetResponse();
+
+        $statusCode = $res.StatusCode.ToString();
+        $global:httpCode = [int]$res.StatusCode;
+        $cookieC = $res.Cookies;
+        $resHeaders = $res.Headers;  
+        $global:rescontentLength = $res.ContentLength;
+        $global:location = $null;
+                                
+        try
+        {
+            $global:location = $res.Headers["Location"].ToString();
+            return $global:location;
+        }
+        catch
+        {
+        }
+
+        return $null;
+
+    }
+    catch
+    {
+        $res2 = $_.Exception.InnerException.Response;
+        $global:httpCode = $_.Exception.InnerException.HResult;
+        $global:httperror = $_.exception.message;
+
+        try
+        {
+            $global:location = $res2.Headers["Location"].ToString();
+            return $global:location;
+        }
+        catch
+        {
+        }
+    } 
+
+    return $null;
+}
+
 function List-StorageAccountKeys {
 
     param(
@@ -1326,20 +1382,51 @@ function Refresh-Token {
     $TokenType
     )
 
-    if ($TokenType -eq "Synapse") {
-        $result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
-            -Method POST -Body $global:ropcBodySynapse -ContentType "application/x-www-form-urlencoded"
-        $global:synapseToken = $result.access_token
-    } elseif ($TokenType -eq "SynapseSQL") {
-        $result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
-            -Method POST -Body $global:ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
-        $global:synapseSQLToken = $result.access_token
-    } elseif ($TokenType -eq "Management") {
-        $result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/msazurelabs.onmicrosoft.com/oauth2/v2.0/token" `
-            -Method POST -Body $global:ropcBodyManagement -ContentType "application/x-www-form-urlencoded"
-        $global:managementToken = $result.access_token
+    if(Test-Path C:\LabFiles\AzureCreds.ps1){
+        if ($TokenType -eq "Synapse") {
+            $result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/$($global:logindomain)/oauth2/v2.0/token" `
+                -Method POST -Body $global:ropcBodySynapse -ContentType "application/x-www-form-urlencoded"
+            $global:synapseToken = $result.access_token
+        } elseif ($TokenType -eq "SynapseSQL") {
+            $result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/$($global:logindomain)/oauth2/v2.0/token" `
+                -Method POST -Body $global:ropcBodySynapseSQL -ContentType "application/x-www-form-urlencoded"
+            $global:synapseSQLToken = $result.access_token
+        } elseif ($TokenType -eq "Management") {
+            $result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/$($global:logindomain)/oauth2/v2.0/token" `
+                -Method POST -Body $global:ropcBodyManagement -ContentType "application/x-www-form-urlencoded"
+            $global:managementToken = $result.access_token
+        } elseif ($TokenType -eq "PowerBI") {
+            $result = Invoke-RestMethod  -Uri "https://login.microsoftonline.com/$($global:logindomain)/oauth2/v2.0/token" `
+                -Method POST -Body $global:ropcBodyPowerBI -ContentType "application/x-www-form-urlencoded"
+            $global:powerbitoken = $result.access_token
+        }
+        else {
+            throw "The token type $($TokenType) is not supported."
+        }
     } else {
-        throw "The token type $($TokenType) is not supported."
+        switch($TokenType) {
+            "Synapse" {
+                $tokenValue = ((az account get-access-token --resource https://dev.azuresynapse.net) | ConvertFrom-Json).accessToken
+                $global:synapseToken = $tokenValue; 
+                break;
+            }
+            "SynapseSQL" {
+                $tokenValue = ((az account get-access-token --resource https://sql.azuresynapse.net) | ConvertFrom-Json).accessToken
+                $global:synapseSQLToken = $tokenValue; 
+                break;
+            }
+            "Management" {
+                $tokenValue = ((az account get-access-token --resource https://management.azure.com) | ConvertFrom-Json).accessToken
+                $global:managementToken = $tokenValue; 
+                break;
+            }
+            "PowerBI" {
+                $tokenValue = ((az account get-access-token --resource https://analysis.windows.net/powerbi/api) | ConvertFrom-Json).accessToken
+                $global:powerbitoken = $tokenValue; 
+                break;
+            }
+            default {throw "The token type $($TokenType) is not supported.";}
+        }
     }
 }
 
@@ -1428,5 +1515,7 @@ Export-ModuleMember -Function Get-SparkNotebookSessionStatement
 Export-ModuleMember -Function Wait-ForSparkNotebookSessionStatement
 Export-ModuleMember -Function Assign-SynapseRole
 Export-ModuleMember -Function Refresh-Token
+Export-ModuleMember -Function Ensure-ValidTokens
 Export-ModuleMember -Function Generate-CosmosDbMasterKeyAuthorizationSignature
 Export-ModuleMember -Function Count-CosmosDbDocuments
+Export-ModuleMember -Function Check-HttpRedirect
