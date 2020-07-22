@@ -24,6 +24,7 @@ GO
 COPY INTO [wwi_security].[CustomerInfo]
 FROM 'https://#DATA_LAKE_ACCOUNT_NAME#.dfs.core.windows.net/wwi-02/security/customerinfo.csv'
 WITH (
+	CREDENTIAL = (IDENTITY = 'Storage Account Key', SECRET = '#DATA_LAKE_ACCOUNT_KEY#'),
     FILE_TYPE = 'CSV',
     FIRSTROW = 2,
 	FIELDQUOTE='''',
@@ -58,6 +59,7 @@ GO
 COPY INTO [wwi_security].[Sale]
 FROM 'https://#DATA_LAKE_ACCOUNT_NAME#.dfs.core.windows.net/wwi-02/security/factsale.csv'
 WITH (
+	CREDENTIAL = (IDENTITY = 'Storage Account Key', SECRET = '#DATA_LAKE_ACCOUNT_KEY#'),
     FILE_TYPE = 'CSV',
     FIRSTROW = 2,
 	FIELDQUOTE='''',

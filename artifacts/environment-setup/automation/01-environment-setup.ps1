@@ -147,7 +147,7 @@ Write-Information "Copy Public Data"
 
 Ensure-ValidTokens
 
-if (System.Environment]::OSVersion.Platform -eq "Unix")
+if ([System.Environment]::OSVersion.Platform -eq "Unix")
 {
         $azCopyLink = Check-HttpRedirect "https://aka.ms/downloadazcopy-v10-linux"
 
@@ -161,6 +161,7 @@ if (System.Environment]::OSVersion.Platform -eq "Unix")
         $azCopyCommand = (Get-ChildItem -Path ".\" -Recurse azcopy).Directory.FullName
         cd $azCopyCommand
         chmod +x azcopy
+        cd ..
         $azCopyCommand += "\azcopy"
 }
 else
@@ -189,7 +190,7 @@ if ($download)
         $dataLakeStorageBlobUrl = "https://"+ $dataLakeAccountName + ".blob.core.windows.net/"
         $dataLakeStorageAccountKey = (Get-AzStorageAccountKey -ResourceGroupName $resourceGroupName -AccountName $dataLakeAccountName)[0].Value
         $dataLakeContext = New-AzureStorageContext -StorageAccountName $dataLakeAccountName -StorageAccountKey $dataLakeStorageAccountKey
-        $destinationSasKey = New-AzureStorageContainerSASToken -Container "wwi-02" -Context $dataLakeContext -Permission rwdl -ExpiryTime [Datetime]::Now.addhours(2)
+        $destinationSasKey = New-AzureStorageContainerSASToken -Container "wwi-02" -Context $dataLakeContext -Permission rwdl
 
         Write-Information "Copying single files from the public data account..."
         $singleFiles = @{
@@ -198,7 +199,6 @@ if ($download)
                 products = "wwi-02/data-generators/generator-product/generator-product.csv"
                 dates = "wwi-02/data-generators/generator-date.csv"
                 customer = "wwi-02/data-generators/generator-customer.csv"
-                model = "wwi-02/ml/onnx-hex/product_seasonality_classifier.onnx.hex"
         }
 
         foreach ($singleFile in $singleFiles.Keys) {
@@ -211,9 +211,7 @@ if ($download)
         Write-Information "Copying sample sales raw data directories from the public data account..."
 
         $dataDirectories = @{
-                data2017 = "wwi-02/sale-small,wwi-02/sale-small/Year=2017/"
-                data2018 = "wwi-02/sale-small,wwi-02/sale-small/Year=2018/"
-                data2019 = "wwi-02/sale-small,wwi-02/sale-small/Year=2019/"
+                salesmall = "wwi-02,wwi-02/sale-small/"
                 analytics = "wwi-02,wwi-02/campaign-analytics/"
                 factsale = "wwi-02,wwi-02/sale-csv/"
                 security = "wwi-02,wwi-02-reduced/security/"
@@ -286,6 +284,7 @@ Write-Information "Create tables in the [wwi_security] schema in $($sqlPoolName)
 
 $params = @{ 
         DATA_LAKE_ACCOUNT_NAME = $dataLakeAccountName  
+        DATA_LAKE_ACCOUNT_KEY = $dataLakeAccountKey 
 }
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "06-create-tables-in-wwi-security-schema" -Parameters $params
 $result

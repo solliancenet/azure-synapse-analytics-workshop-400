@@ -11,7 +11,7 @@
             "location": {
                 "type": "AzureBlobFSLocation",
                 "fileName": "generator-product.csv",
-                "folderPath": "data-generators",
+                "folderPath": "data-generators/generator-product",
                 "fileSystem": "wwi-02"
             },
             "columnDelimiter": ",",
