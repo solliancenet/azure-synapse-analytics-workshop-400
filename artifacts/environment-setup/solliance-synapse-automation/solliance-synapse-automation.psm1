@@ -1,3 +1,10 @@
+function SetupSelenium()
+{
+        Register-PackageSource -ProviderName NuGet -Name Nuget -Location https://api.nuget.org/v3/index.json
+        Install-Package Selenium -scope currentuser
+        Install-Package Selenium-WebDriver -scope currentuser
+}
+
 function Check-HttpRedirect($uri)
 {
     $httpReq = [system.net.HttpWebRequest]::Create($uri)
@@ -826,6 +833,10 @@ function Execute-SQLQuery {
     }
 
     Ensure-ValidTokens
+
+    $csrf = GetCSRF "Bearer $synapseSQLToken" "$($WorkspaceName).sql.azuresynapse.net:1443" 300000;
+    $headers.add("X-CSRF-Signature", $csrf);
+
     $rawResult = Invoke-WebRequest -Uri $uri -Method POST -Body $SQLQuery -Headers $headers `
         -ContentType "application/x-www-form-urlencoded; charset=UTF-8" -UseBasicParsing
 
@@ -843,6 +854,67 @@ function Execute-SQLQuery {
     }
 
     return $result
+}
+
+
+function GetCSRF($token, $azurehost, $msTime)
+{
+    $start = [Datetime]::UtcNow.tostring("yyyy-MM-ddTHH:mm:ssZ");
+    $end = [Datetime]::UtcNow.AddMilliseconds($msTime).tostring("yyyy-MM-ddTHH:mm:ssZ");
+
+    $rawsig = "not-before=$($start)`r`nnot-after=$($end)`r`nauthorization: $($token)`r`nhost: $($azurehost)`r`n";
+
+    $hmacsha = New-Object System.Security.Cryptography.HMACSHA256
+    $hmacsha.key = [Text.Encoding]::ASCII.GetBytes($token)
+    $signature = $hmacsha.ComputeHash([Text.Encoding]::ASCII.GetBytes($rawsig))
+    $signature = [Convert]::ToBase64String($signature)
+
+    #$signed = CallJavascript $rawsig $token;
+
+    $sig = "$($signature); not-before=$($start); not-after=$($end); signed-headers=authorization,host"
+
+    return $sig;
+}
+
+function CallJavascript($message, $secret)
+{
+    Write-Information $message
+    Write-Information $secret
+    $url = "https://ciprian-hash.azurewebsites.net/hash.html"
+ 
+    $ie = New-Object -COMObject InternetExplorer.Application
+    $ie.visible = $true;
+
+    $ie.Navigate($url)
+    $ie.visible = $false;
+ 
+    while($ie.Busy) 
+    {
+        start-sleep -m 100
+    } 
+
+    $inputs = $ie.Document.body.getElementsByTagName("input");
+
+    $msgInput = $inputs | where {$_.name -eq "msg"}
+    $secretInput = $inputs | where {$_.name -eq "secret"}
+    $outputInput = $inputs | where {$_.name -eq "output"}
+
+    $buttons = $ie.Document.body.getElementsByTagName("button");
+    $btnGo = $buttons | where {$_.name -eq "btnGo"}
+ 
+    $msgInput.value = $message.replace("`r","\r").replace("`n","\n");
+    $secretInput.value = $secret;
+    $btnGo.click();
+    
+    $ret = $outputInput.value;
+    $ie.quit();
+
+    if (!$ret)
+    {
+        write-host "Error getting CSRF" -ForegroundColor red;
+    }
+ 
+    return $ret;
 }
 
 function Execute-SQLScriptFile {
@@ -1519,3 +1591,4 @@ Export-ModuleMember -Function Ensure-ValidTokens
 Export-ModuleMember -Function Generate-CosmosDbMasterKeyAuthorizationSignature
 Export-ModuleMember -Function Count-CosmosDbDocuments
 Export-ModuleMember -Function Check-HttpRedirect
+Export-ModuleMember -Function GetCSRF

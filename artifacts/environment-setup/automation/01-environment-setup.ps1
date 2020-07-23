@@ -147,7 +147,7 @@ Write-Information "Copy Public Data"
 
 Ensure-ValidTokens
 
-if (System.Environment]::OSVersion.Platform -eq "Unix")
+if ([System.Environment]::OSVersion.Platform -eq "Unix")
 {
         $azCopyLink = Check-HttpRedirect "https://aka.ms/downloadazcopy-v10-linux"
 
@@ -161,6 +161,7 @@ if (System.Environment]::OSVersion.Platform -eq "Unix")
         $azCopyCommand = (Get-ChildItem -Path ".\" -Recurse azcopy).Directory.FullName
         cd $azCopyCommand
         chmod +x azcopy
+        cd ..
         $azCopyCommand += "\azcopy"
 }
 else
@@ -189,16 +190,14 @@ if ($download)
         $dataLakeStorageBlobUrl = "https://"+ $dataLakeAccountName + ".blob.core.windows.net/"
         $dataLakeStorageAccountKey = (Get-AzStorageAccountKey -ResourceGroupName $resourceGroupName -AccountName $dataLakeAccountName)[0].Value
         $dataLakeContext = New-AzureStorageContext -StorageAccountName $dataLakeAccountName -StorageAccountKey $dataLakeStorageAccountKey
-        $destinationSasKey = New-AzureStorageContainerSASToken -Container "wwi-02" -Context $dataLakeContext -Permission rwdl -ExpiryTime [Datetime]::Now.addhours(2)
+        $destinationSasKey = New-AzureStorageContainerSASToken -Container "wwi-02" -Context $dataLakeContext -Permission rwdl
 
         Write-Information "Copying single files from the public data account..."
         $singleFiles = @{
-                parquet_query_file = "wwi-02/sale-small/Year=2010/Quarter=Q4/Month=12/Day=20101231/sale-small-20101231-snappy.parquet"
                 customer_info = "wwi-02/customer-info/customerinfo.csv"
                 products = "wwi-02/data-generators/generator-product/generator-product.csv"
                 dates = "wwi-02/data-generators/generator-date.csv"
                 customer = "wwi-02/data-generators/generator-customer.csv"
-                model = "wwi-02/ml/onnx-hex/product_seasonality_classifier.onnx.hex"
         }
 
         foreach ($singleFile in $singleFiles.Keys) {
@@ -211,9 +210,7 @@ if ($download)
         Write-Information "Copying sample sales raw data directories from the public data account..."
 
         $dataDirectories = @{
-                data2017 = "wwi-02/sale-small,wwi-02/sale-small/Year=2017/"
-                data2018 = "wwi-02/sale-small,wwi-02/sale-small/Year=2018/"
-                data2019 = "wwi-02/sale-small,wwi-02/sale-small/Year=2019/"
+                salesmall = "wwi-02,wwi-02/sale-small/"
                 analytics = "wwi-02,wwi-02/campaign-analytics/"
                 factsale = "wwi-02,wwi-02/sale-csv/"
                 security = "wwi-02,wwi-02-reduced/security/"
@@ -286,6 +283,7 @@ Write-Information "Create tables in the [wwi_security] schema in $($sqlPoolName)
 
 $params = @{ 
         DATA_LAKE_ACCOUNT_NAME = $dataLakeAccountName  
+        DATA_LAKE_ACCOUNT_KEY = $dataLakeAccountKey 
 }
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "06-create-tables-in-wwi-security-schema" -Parameters $params
 $result
@@ -352,7 +350,6 @@ foreach ($dataset in $loadingDatasets.Keys) {
         Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 }
 
-
 Write-Information "Create tables in wwi_perf schema in SQL pool $($sqlPoolName)"
 
 $params = @{}
@@ -378,7 +375,6 @@ foreach ($script in $scripts.Keys) {
 
 #Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action scale -SKU DW500c
 #Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Online
-
 
 Write-Information "Create linked service for SQL pool $($sqlPoolName) with user asa.sql.import01"
 
@@ -511,54 +507,79 @@ Write-Information "Counting Cosmos DB item in database $($cosmosDbDatabase), con
 $documentCount = Count-CosmosDbDocuments -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -CosmosDbAccountName $cosmosDbAccountName `
                 -CosmosDbDatabase $cosmosDbDatabase -CosmosDbContainer $cosmosDbContainer
 
-if ($documentCount -ne 100000) {
+Write-Information "Found $documentCount in Cosmos DB container $($cosmosDbContainer)"
 
-# Increase RUs in CosmosDB container
+if ($documentCount -ne 100000) 
+{
 
-Write-Information "Increase Cosmos DB container $($cosmosDbContainer) to 10000 RUs"
+        Install-Module -Name Az.CosmosDB
+        # Increase RUs in CosmosDB container
 
-$container = Get-AzCosmosDBSqlContainer `
-        -ResourceGroupName $resourceGroupName `
-        -AccountName $cosmosDbAccountName -DatabaseName $cosmosDbDatabase `
-        -Name $cosmosDbContainer
+        Write-Information "Increase Cosmos DB container $($cosmosDbContainer) to 10000 RUs"
 
-Set-AzCosmosDBSqlContainer -ResourceGroupName $resourceGroupName `
-        -AccountName $cosmosDbAccountName -DatabaseName $cosmosDbDatabase `
-        -Name $cosmosDbContainer -Throughput 10000 `
-        -PartitionKeyKind $container.Resource.PartitionKey.Kind `
-        -PartitionKeyPath $container.Resource.PartitionKey.Paths
+        $container = Get-AzCosmosDBSqlContainer `
+                -ResourceGroupName $resourceGroupName `
+                -AccountName $cosmosDbAccountName -DatabaseName $cosmosDbDatabase `
+                -Name $cosmosDbContainer
 
-$name = "wwi02_online_user_profiles_01_adal"
-Write-Information "Create dataset $($name)"
-$result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $name -LinkedServiceName $dataLakeAccountName
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
+        Set-AzCosmosDBSqlContainer -ResourceGroupName $resourceGroupName `
+                -AccountName $cosmosDbAccountName -DatabaseName $cosmosDbDatabase `
+                -Name $cosmosDbContainer -Throughput 10000 `
+                -PartitionKeyKind $container.Resource.PartitionKey.Kind `
+                -PartitionKeyPath $container.Resource.PartitionKey.Paths
 
-Write-Information "Create Cosmos DB linked service $($cosmosDbAccountName)"
-$cosmosDbAccountKey = List-CosmosDBKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $cosmosDbAccountName
-$result = Create-CosmosDBLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $cosmosDbAccountName -Database $cosmosDbDatabase -Key $cosmosDbAccountKey
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
+        $name = "wwi02_online_user_profiles_01_adal"
+        Write-Information "Create dataset $($name)"
+        $result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $name -LinkedServiceName $dataLakeAccountName
+        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
-$name = "customer_profile_cosmosdb"
-Write-Information "Create dataset $($name)"
-$result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $name -LinkedServiceName $cosmosDbAccountName
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
+        Write-Information "Create Cosmos DB linked service $($cosmosDbAccountName)"
+        $cosmosDbAccountKey = List-CosmosDBKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $cosmosDbAccountName
+        $result = Create-CosmosDBLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $cosmosDbAccountName -Database $cosmosDbDatabase -Key $cosmosDbAccountKey
+        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
-$name = "Setup - Import User Profile Data into Cosmos DB"
-$fileName = "import_customer_profiles_into_cosmosdb"
-Write-Information "Create pipeline $($name)"
-$result = Create-Pipeline -PipelinesPath $pipelinesPath -WorkspaceName $workspaceName -Name $name -FileName $fileName
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
+        $name = "customer_profile_cosmosdb"
+        Write-Information "Create dataset $($name)"
+        $result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $name -LinkedServiceName $cosmosDbAccountName
+        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
-Write-Information "Running pipeline $($name)"
-$pipelineRunResult = Run-Pipeline -WorkspaceName $workspaceName -Name $name
-$result = Wait-ForPipelineRun -WorkspaceName $workspaceName -RunId $pipelineRunResult.runId
-$result
+        $name = "Setup - Import User Profile Data into Cosmos DB"
+        $fileName = "import_customer_profiles_into_cosmosdb"
+        Write-Information "Create pipeline $($name)"
+        $result = Create-Pipeline -PipelinesPath $pipelinesPath -WorkspaceName $workspaceName -Name $name -FileName $fileName
+        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
-#
-# =============== WAIT HERE FOR PIPELINE TO FINISH - MIGHT TAKE ~45 MINUTES ====================
-#                         
-#                    COPY 100000 records to CosmosDB ==> SELECT VALUE COUNT(1) FROM C
-#
+        Write-Information "Running pipeline $($name)"
+        $pipelineRunResult = Run-Pipeline -WorkspaceName $workspaceName -Name $name
+        $result = Wait-ForPipelineRun -WorkspaceName $workspaceName -RunId $pipelineRunResult.runId
+        $result
+
+        #
+        # =============== WAIT HERE FOR PIPELINE TO FINISH - MIGHT TAKE ~45 MINUTES ====================
+        #                         
+        #                    COPY 100000 records to CosmosDB ==> SELECT VALUE COUNT(1) FROM C
+        #
+
+        $name = "Setup - Import User Profile Data into Cosmos DB"
+        Write-Information "Delete pipeline $($name)"
+        $result = Delete-ASAObject -WorkspaceName $workspaceName -Category "pipelines" -Name $name
+        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
+
+        $name = "customer_profile_cosmosdb"
+        Write-Information "Delete dataset $($name)"
+        $result = Delete-ASAObject -WorkspaceName $workspaceName -Category "datasets" -Name $name
+        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
+
+        $name = "wwi02_online_user_profiles_01_adal"
+        Write-Information "Delete dataset $($name)"
+        $result = Delete-ASAObject -WorkspaceName $workspaceName -Category "datasets" -Name $name
+        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
+
+        $name = $cosmosDbAccountName
+        Write-Information "Delete linked service $($name)"
+        $result = Delete-ASAObject -WorkspaceName $workspaceName -Category "linkedServices" -Name $name
+        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
+}
 
 $container = Get-AzCosmosDBSqlContainer `
         -ResourceGroupName $resourceGroupName `
@@ -570,25 +591,3 @@ Set-AzCosmosDBSqlContainer -ResourceGroupName $resourceGroupName `
         -Name $cosmosDbContainer -Throughput 400 `
         -PartitionKeyKind $container.Resource.PartitionKey.Kind `
         -PartitionKeyPath $container.Resource.PartitionKey.Paths
-
-$name = "Setup - Import User Profile Data into Cosmos DB"
-Write-Information "Delete pipeline $($name)"
-$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "pipelines" -Name $name
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
-
-$name = "customer_profile_cosmosdb"
-Write-Information "Delete dataset $($name)"
-$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "datasets" -Name $name
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
-
-$name = "wwi02_online_user_profiles_01_adal"
-Write-Information "Delete dataset $($name)"
-$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "datasets" -Name $name
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
-
-$name = $cosmosDbAccountName
-Write-Information "Delete linked service $($name)"
-$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "linkedServices" -Name $name
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
-
-}

@@ -148,21 +148,21 @@ When you query Parquet files using Synapse SQL Serverless, you can explore the d
             SUM(Quantity) AS [(sum) Quantity]
     FROM
         OPENROWSET(
-            BULK 'https://asadatalake01.dfs.core.windows.net/wwi-02/sale-small/Year=2016/Quarter=Q4/Month=12/Day=20161231/sale-small-20161231-snappy.parquet',
+            BULK 'https://asadatalakeSUFFIX.dfs.core.windows.net/wwi-02/sale-small/Year=2016/Quarter=Q4/Month=12/Day=20161231/sale-small-20161231-snappy.parquet',
             FORMAT='PARQUET'
         ) AS [r] GROUP BY r.TransactionDate, r.ProductId;
     ```
 
     ![The T-SQL query above is displayed within the query window.](media/sql-serverless-aggregates.png "Query window")
 
-6. Now let's figure out how many records are contained within the Parquet files for 2019 data. This information is important for planning how we optimize for importing the data into Azure Synapse Analytics. To do this, replace your query with the following (be sure to update the name of your data lake in BULK statement, by replacing `[asadatalakeXX]`):
+6. Now let's figure out how many records are contained within the Parquet files for 2019 data. This information is important for planning how we optimize for importing the data into Azure Synapse Analytics. To do this, replace your query with the following (be sure to update the name of your data lake in BULK statement, by replacing `[asadatalakeSUFFIX]`):
 
     ```sql
     SELECT
         COUNT_BIG(*)
     FROM
         OPENROWSET(
-            BULK 'https://[asadatalakeXX].dfs.core.windows.net/wwi-02/sale-small/Year=2019/*/*/*/*',
+            BULK 'https://asadatalakeSUFFIX.dfs.core.windows.net/wwi-02/sale-small/Year=2019/*/*/*/*',
             FORMAT='PARQUET'
         ) AS [r];
     ```
@@ -249,7 +249,7 @@ In addition to the sales data, we have customer profile data from an e-commerce 
 ```python
 df = (spark.read \
         .option("inferSchema", "true") \
-        .json("abfss://wwi-02@<asadatalakeNNNNNN>.dfs.core.windows.net/online-user-profiles-02/*.json", multiLine=True)
+        .json("abfss://wwi-02@asadatalakeSUFFIX.dfs.core.windows.net/online-user-profiles-02/*.json", multiLine=True)
     )
 
 df.printSchema()
@@ -554,7 +554,7 @@ PolyBase requires the following elements:
     CREATE EXTERNAL DATA SOURCE ABSS
     WITH
     ( TYPE = HADOOP,
-        LOCATION = 'abfss://wwi-02@<PrimaryStorage>.dfs.core.windows.net'
+        LOCATION = 'abfss://wwi-02@asadatalakeSUFFIX.dfs.core.windows.net'
     );
     ```
 
@@ -630,7 +630,7 @@ Now let's see how to perform the same load operation with the COPY statement.
 
     -- Replace <PrimaryStorage> with the workspace default storage account name.
     COPY INTO wwi_staging.SaleHeap
-    FROM 'https://<PrimaryStorage>.dfs.core.windows.net/wwi-02/sale-small%2FYear%3D2019'
+    FROM 'https://asadatalakeSUFFIX.dfs.core.windows.net/wwi-02/sale-small%2FYear%3D2019'
     WITH (
         FILE_TYPE = 'PARQUET',
         COMPRESSION = 'SNAPPY'
@@ -659,7 +659,7 @@ For both of the load operations above, we inserted data into the heap table. Wha
     ```sql
     -- Replace <PrimaryStorage> with the workspace default storage account name.
     COPY INTO wwi_staging.Sale
-    FROM 'https://<PrimaryStorage>.dfs.core.windows.net/wwi-02/sale-small%2FYear%3D2019'
+    FROM 'https://asadatalakeSUFFIX.dfs.core.windows.net/wwi-02/sale-small%2FYear%3D2019'
     WITH (
         FILE_TYPE = 'PARQUET',
         COMPRESSION = 'SNAPPY'
@@ -714,7 +714,7 @@ The data has the following fields: `Date`, `NorthAmerica`, `SouthAmerica`, `Euro
 
     -- Replace <PrimaryStorage> with the workspace default storage account name.
     COPY INTO wwi_staging.DailySalesCounts
-    FROM 'https://<PrimaryStorage>.dfs.core.windows.net/wwi-02/campaign-analytics/dailycounts.txt'
+    FROM 'https://asadatalakeSUFFIX.dfs.core.windows.net/wwi-02/campaign-analytics/dailycounts.txt'
     WITH (
         FILE_TYPE = 'CSV',
         FIELDTERMINATOR='.',
