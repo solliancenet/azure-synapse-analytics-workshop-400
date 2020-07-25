@@ -1521,11 +1521,15 @@ function Ensure-ValidToken {
 
     $refTime = Get-Date
 
+    <#
     if (($refTime - $tokenTimes[$TokenName]).TotalMinutes -gt 30) {
         Write-Information "Refreshing $($TokenName) token."
         Refresh-Token $TokenName
         $tokenTimes[$TokenName] = $refTime
     }
+    #>
+
+    Refresh-Token;
 }
 
 Function Generate-CosmosDbMasterKeyAuthorizationSignature {
