@@ -367,7 +367,7 @@
       "name": "[variables('cosmosDbAccountName')]",
       "location": "[variables('location')]",
       "dependsOn": [
-        "[concat(variables('workspaceName'), '/', variables('sqlComputeName'))]",
+        "[concat('Microsoft.Synapse/workspaces/sqlPools/', variables('workspaceName'), '/', variables('sqlComputeName'))]",
         "[concat('Microsoft.Synapse/workspaces/', variables('workspaceName'))]",
         "[concat('Microsoft.Storage/storageAccounts/', variables('adlsStorageAccountName'), '/blobServices/default/containers/', variables('defaultDataLakeStorageFilesystemName'))]"
       ],
