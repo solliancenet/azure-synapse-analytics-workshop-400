@@ -149,9 +149,9 @@
           },
           "storageProfile": {
             "imageReference": {
-              "publisher": "MicrosoftWindowsServer",
-              "offer": "WindowsServer",
-              "sku": "2019-Datacenter",
+              "publisher": "microsoftvisualstudio",
+              "offer": "visualstudio2019latest",
+              "sku": "vs-2019-ent-latest-ws2019",
               "version": "latest"
             },
             "osDisk": {
