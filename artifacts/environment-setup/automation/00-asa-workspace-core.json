@@ -251,8 +251,7 @@
       "name": "[concat(variables('workspaceName'), '/', variables('sparkComputeName'))]",
       "location": "[variables('location')]",
       "dependsOn": [
-        "[concat('Microsoft.Synapse/workspaces/', variables('workspaceName'))]",
-        "[concat('Microsoft.DocumentDB/databaseAccounts/', variables('cosmosDbAccountName'))]"
+        "[concat('Microsoft.Synapse/workspaces/', variables('workspaceName'))]"
       ],
       "properties": {
         "nodeCount": "[variables('sparkNodeCount')]",
