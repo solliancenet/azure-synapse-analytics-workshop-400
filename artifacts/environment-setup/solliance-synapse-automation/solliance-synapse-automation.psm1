@@ -1,10 +1,3 @@
-function SetupSelenium()
-{
-        Register-PackageSource -ProviderName NuGet -Name Nuget -Location https://api.nuget.org/v3/index.json
-        Install-Package Selenium -scope currentuser
-        Install-Package Selenium-WebDriver -scope currentuser
-}
-
 function Check-HttpRedirect($uri)
 {
     $httpReq = [system.net.HttpWebRequest]::Create($uri)
@@ -494,6 +487,7 @@ function Get-PipelineRun {
     $uri = "https://$($WorkspaceName).dev.azuresynapse.net/pipelineruns/$($RunId)?api-version=2019-06-01-preview"
 
     Ensure-ValidTokens
+
     $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $synapseToken" }
     
     return $result
@@ -821,7 +815,6 @@ function Execute-SQLQuery {
 
     $headers = @{ 
         Authorization="Bearer $($synapseSQLToken)"
-        "x-csrf-signature"="..."
     }
 
     if ($ForceReturn) {
@@ -965,11 +958,11 @@ function Execute-SQLScriptFile {
         Execute-SQLQuery -WorkspaceName $WorkspaceName -SQLPoolName $SQLPoolName -SQLQuery $sqlQuery -ForceReturn $ForceReturn
     } else {
         if ($ForceReturn) {
-            #Invoke-SqlCmd -Query $sqlQuery -ServerInstance $sqlEndpoint -Database $sqlPoolName -Username $sqlUser -Password $sqlPassword
-            & sqlcmd -S $sqlEndpoint -d $sqlPoolName -U $userName -P $password -G -I -Q $sqlQuery
+            Invoke-SqlCmd -Query $sqlQuery -ServerInstance $sqlEndpoint -Database $sqlPoolName -Username $sqlUser -Password $global:sqlPassword
+            #& sqlcmd -S $sqlEndpoint -d $sqlPoolName -U $userName -P $password -G -I -Q $sqlQuery
         } else {
-            #Invoke-SqlCmd -Query $sqlQuery -ServerInstance $sqlEndpoint -Database $sqlPoolName -Username $sqlUser -Password $sqlPassword
-            & sqlcmd -S $sqlEndpoint -d $sqlPoolName -U $userName -P $password -G -I -Q $sqlQuery
+            Invoke-SqlCmd -Query $sqlQuery -ServerInstance $sqlEndpoint -Database $sqlPoolName -Username $sqlUser -Password $global:sqlPassword
+            #& sqlcmd -S $sqlEndpoint -d $sqlPoolName -U $userName -P $password -G -I -Q $sqlQuery
         }
     }
 }

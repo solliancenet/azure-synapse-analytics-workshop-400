@@ -183,15 +183,15 @@ else
 
 $download = $true;
 
+$publicDataUrl = "https://solliancepublicdata.blob.core.windows.net/"
+$dataLakeStorageUrl = "https://"+ $dataLakeAccountName + ".dfs.core.windows.net/"
+$dataLakeStorageBlobUrl = "https://"+ $dataLakeAccountName + ".blob.core.windows.net/"
+$dataLakeStorageAccountKey = (Get-AzStorageAccountKey -ResourceGroupName $resourceGroupName -AccountName $dataLakeAccountName)[0].Value
+$dataLakeContext = New-AzureStorageContext -StorageAccountName $dataLakeAccountName -StorageAccountKey $dataLakeStorageAccountKey
+$destinationSasKey = New-AzureStorageContainerSASToken -Container "wwi-02" -Context $dataLakeContext -Permission rwdl
+
 if ($download)
 {
-        $publicDataUrl = "https://solliancepublicdata.blob.core.windows.net/"
-        $dataLakeStorageUrl = "https://"+ $dataLakeAccountName + ".dfs.core.windows.net/"
-        $dataLakeStorageBlobUrl = "https://"+ $dataLakeAccountName + ".blob.core.windows.net/"
-        $dataLakeStorageAccountKey = (Get-AzStorageAccountKey -ResourceGroupName $resourceGroupName -AccountName $dataLakeAccountName)[0].Value
-        $dataLakeContext = New-AzureStorageContext -StorageAccountName $dataLakeAccountName -StorageAccountKey $dataLakeStorageAccountKey
-        $destinationSasKey = New-AzureStorageContainerSASToken -Container "wwi-02" -Context $dataLakeContext -Permission rwdl
-
         Write-Information "Copying single files from the public data account..."
         $singleFiles = @{
                 customer_info = "wwi-02/customer-info/customerinfo.csv"
@@ -338,6 +338,8 @@ Write-Information "Running pipeline $($loadingPipelineName)"
 $result = Run-Pipeline -WorkspaceName $workspaceName -Name $loadingPipelineName
 $result = Wait-ForPipelineRun -WorkspaceName $workspaceName -RunId $result.runId
 $result
+
+Ensure-ValidTokens
 
 Write-Information "Deleting pipeline $($loadingPipelineName)"
 
@@ -509,12 +511,11 @@ $documentCount = Count-CosmosDbDocuments -SubscriptionId $subscriptionId -Resour
 
 Write-Information "Found $documentCount in Cosmos DB container $($cosmosDbContainer)"
 
+Install-Module -Name Az.CosmosDB
+
 if ($documentCount -ne 100000) 
 {
-
-        Install-Module -Name Az.CosmosDB
         # Increase RUs in CosmosDB container
-
         Write-Information "Increase Cosmos DB container $($cosmosDbContainer) to 10000 RUs"
 
         $container = Get-AzCosmosDBSqlContainer `
