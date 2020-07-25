@@ -12,7 +12,7 @@ C) Integration Runtime
 
 E) It depends
 
-A: It's a trick question meant to get you thinking about how you make this decision. The question really does not provide enough context about the data schema and format, nor does it provide details on the kind of tranformations you can accomplish and how you want to implement those transformations. Let's talk about some more detailed scenarios.
+A: It's a trick question meant to get you thinking about how you make this decision. The question really does not provide enough context about the data schema and format, nor does it provide details on the kind of transformations you can accomplish and how you want to implement those transformations. Let's talk about some more detailed scenarios.
 
 ## Audience Poll 2
 

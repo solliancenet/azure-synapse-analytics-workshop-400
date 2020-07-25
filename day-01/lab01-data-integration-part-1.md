@@ -58,7 +58,7 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
 
     ![The Manage menu item is highlighted.](media/manage-hub.png "Manage hub")
 
-2. Open **Linked services** and create a new linked service to the Azure Cosmos DB account for the lab. Name the linked service after the name of the Azure Cosmos DB account and set the **Database name** value to `CustomerProfile`.
+2. Open **Linked services** and create a new linked service to the Azure Cosmos DB account for the lab. Name the linked service `asacosmosdb01` and set the **Database name** value to `CustomerProfile`.
 
     ![New Azure Cosmos DB linked service.](media/create-cosmos-db-linked-service.png "New linked service")
 
@@ -270,18 +270,18 @@ root
 
 2. We have been using Python code in these cells up to this point. If we want to query the files using SQL syntax, one option is to create a temporary view of the data within the dataframe. Execute the following in a new cell to create a view named `user_profiles`:
 
-```python
-# create a view called user_profiles
-df.createOrReplaceTempView("user_profiles")
-```
+    ```python
+    # create a view called user_profiles
+    df.createOrReplaceTempView("user_profiles")
+    ```
 
 3. Create a new cell. Since we want to use SQL instead of Python, we use the `%%sql` magic to set the language of the cell to SQL. Execute the following code in the cell:
 
-```sql
-%%sql
+    ```sql
+    %%sql
 
-SELECT * FROM user_profiles LIMIT 10
-```
+    SELECT * FROM user_profiles LIMIT 10
+    ```
 
 Notice that the output shows nested data for `topProductPurchases`, which includes an array of `productId` and `itemsPurchasedLast12Months` values. You can expand the fields by clicking the right triangle in each row.
 

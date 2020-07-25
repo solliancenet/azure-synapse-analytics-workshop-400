@@ -1,0 +1,17 @@
+{
+    "Name": "CloudLabs Sample Workshop - RBAC",
+    "Id": null,
+    "IsCustom": true,
+    "Description": "CloudLabs Sample Workshop Custom Role.",
+    "Actions": [
+      "Microsoft.Authorization/*/read",
+      "Microsoft.Authorization/roleAssignments/write",  
+      "Microsoft.Resources/deployments/*",
+      "Microsoft.Resources/deployments/validate/action",
+      "Microsoft.Resources/subscriptions/resourceGroups/read",
+      "Microsoft.Storage/storageAccounts/*",
+      "Microsoft.Synapse/workspaces/*"
+    ],
+    "NotActions": [
+    ]
+  }
