@@ -26,6 +26,7 @@
     "computeSubnetId": "",
     "sqlServerSKU": "DW500c",
     "storageBlobDataContributorRoleID": "ba92f5b4-2d11-453d-a403-e96b0029c9fe",
+    "storageBlobDataOwnerRoleID": "b7e6dc6d-f1e8-4753-8033-0f276bb0955b",
     "defaultDataLakeStorageAccountUrl": "[concat('https://', variables('adlsStorageAccountName'), '.dfs.core.windows.net')]",
     "sparkAutoScaleEnabled": "true",
     "sparkMinNodeCount": "3",
@@ -220,13 +221,13 @@
     {
       "type": "Microsoft.Storage/storageAccounts/blobServices/containers/providers/roleAssignments",
       "apiVersion": "2018-09-01-preview",
-      "name": "[concat(variables('adlsStorageAccountName'), '/default/', variables('defaultDataLakeStorageFilesystemName'), '/Microsoft.Authorization/',  guid(concat(resourceGroup().id, '/', variables('storageBlobDataContributorRoleID'), '/', variables('workspaceName'))))]",
+      "name": "[concat(variables('adlsStorageAccountName'), '/default/', variables('defaultDataLakeStorageFilesystemName'), '/Microsoft.Authorization/',  guid(concat(resourceGroup().id, '/', variables('storageBlobDataOwnerRoleID'), '/', variables('workspaceName'))))]",
       "location": "[variables('location')]",
       "dependsOn": [
         "[concat('Microsoft.Synapse/workspaces/', variables('workspaceName'))]"
       ],
       "properties": {
-        "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', variables('storageBlobDataContributorRoleID'))]",
+        "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', variables('storageBlobDataOwnerRoleID'))]",
         "principalId": "[reference(concat('Microsoft.Synapse/workspaces/', variables('workspaceName')), '2019-06-01-preview', 'Full').identity.principalId]",
         "principalType": "ServicePrincipal"
       }
@@ -234,13 +235,13 @@
     {
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2018-09-01-preview",
-      "name": "[guid(concat(resourceGroup().id, '/', variables('storageBlobDataContributorRoleID'), '/', variables('workspaceName'), '2'))]",
+      "name": "[guid(concat(resourceGroup().id, '/', variables('storageBlobDataOwnerRoleID'), '/', variables('workspaceName'), '2'))]",
       "location": "[variables('location')]",
       "dependsOn": [
         "[concat('Microsoft.Synapse/workspaces/', variables('workspaceName'))]"
       ],
       "properties": {
-        "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', variables('storageBlobDataContributorRoleID'))]",
+        "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', variables('storageBlobDataOwnerRoleID'))]",
         "principalId": "[reference(concat('Microsoft.Synapse/workspaces/', variables('workspaceName')), '2019-06-01-preview', 'Full').identity.principalId]",
         "principalType": "ServicePrincipal"
       }
