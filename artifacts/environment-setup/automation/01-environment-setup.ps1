@@ -548,7 +548,7 @@ if ($documentCount -ne 100000)
                 -AccountName $cosmosDbAccountName -DatabaseName $cosmosDbDatabase `
                 -Name $cosmosDbContainer
 
-        Set-AzCosmosDBSqlContainer -ResourceGroupName $resourceGroupName `
+        Update-AzCosmosDBSqlContainer -ResourceGroupName $resourceGroupName `
                 -AccountName $cosmosDbAccountName -DatabaseName $cosmosDbDatabase `
                 -Name $cosmosDbContainer -Throughput 10000 `
                 -PartitionKeyKind $container.Resource.PartitionKey.Kind `
@@ -612,7 +612,7 @@ $container = Get-AzCosmosDBSqlContainer `
         -AccountName $cosmosDbAccountName -DatabaseName $cosmosDbDatabase `
         -Name $cosmosDbContainer
 
-Set-AzCosmosDBSqlContainer -ResourceGroupName $resourceGroupName `
+Update-AzCosmosDBSqlContainer -ResourceGroupName $resourceGroupName `
         -AccountName $cosmosDbAccountName -DatabaseName $cosmosDbDatabase `
         -Name $cosmosDbContainer -Throughput 400 `
         -PartitionKeyKind $container.Resource.PartitionKey.Kind `
