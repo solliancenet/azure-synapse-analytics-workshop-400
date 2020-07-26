@@ -59,4 +59,3 @@ That will free up resources to start Lab 07.
 It is essential to delete the integration runtime instead of just reusing the existing one because we found that when automated delete fails, the integration runtime remains in a weird state (Synapse Studio says 'Delete failed' state).
 
 ---
-

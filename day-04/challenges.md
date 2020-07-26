@@ -69,7 +69,6 @@ You can find the complete customer data in the following path: `wwi-02 / data-ge
 - There are no time constraints on the data loading operation, but be mindful of leaving time for the remaining challenges.
   - Consider working with a subset of both the CSV and Parquet files as you iterate through your data loading process. Test your assumptions with sample sizes before loading the entire data set.
 
-
 ## 2 - Optimize data load
 
 ### Background story

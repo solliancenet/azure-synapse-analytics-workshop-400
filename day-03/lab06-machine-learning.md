@@ -35,14 +35,6 @@ Open the `Lab 06 - Machine Learning` notebook (located in the `Develop` hub, und
 - Train ensemble of trees classifier (using XGBoost)
 - Train classifier using Auto ML
 
->**IMPORTANT NOTE**
->
->There are cases when the language magic does not work properly in notebook cells. Ensure the following language options are set when running each cell in the notebook:
->- *Spark (Scala)* - for cells 7 and 28
->- *PySpark (Python)* - for all other cells
->
->If you are encountering errors related to the language magic in a cell, remove the language magic, set the language of the cell according to the guidance above, and re-run the cell.
-
 Please note that each of these tasks will be addressed through several cells in the notebook.
 
 ## Exercise 2 - Registering and using models in Synapse Analytics
