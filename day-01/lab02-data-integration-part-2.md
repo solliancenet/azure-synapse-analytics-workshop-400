@@ -47,6 +47,8 @@ When you create a new linked service, Azure IR provides fully managed compute re
 
 3. In the `Integration runtime setup` blade, select **Azure**, then select **Continue**.
 
+    ![The form is displayed with the described configuration settings.](media/integration-runtine-setup.png "Select the Azure runtime type")
+
 4. In the `New integration runtime` form, configure the following:
 
     - **Name**: Enter `AzureLargeComputeOptimizedIntegrationRuntime`.
@@ -301,7 +303,7 @@ If you **did not** complete Exercise 1 in lab 1, where you configure the linked 
 
     ![The new data flow link is highlighted.](media/new-data-flow-link.png "New data flow")
 
-3. In the **General** tab of the new data flow, update the **Name** to the following: `ASAL400 - Lab 2 - Write Campaign Analytics to ASA`.
+3. In the **General** tab of the new data flow, update the **Name** to the following: `asal400_lab2_writecampaignanalyticstoasa`.
 
     ![The name field is populated with the defined value.](media/data-flow-campaign-analysis-name.png "Name")
 
@@ -471,7 +473,7 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
     ![Drag the data flow activity onto the pipeline canvas.](media/pipeline-campaign-analysis-drag-data-flow.png "Pipeline canvas")
 
-5. In the `Adding data flow` blade, select **Use existing data flow**, then select the `ASAL400 - Lab 2 - Write Campaign Analytics to ASA` existing data flow you created in the previous task.
+5. In the `Adding data flow` blade, select **Use existing data flow**, then select the `asal400_lab2_writecampaignanalyticstoasa` existing data flow you created in the previous task.
 
     ![The adding data flow form is displayed with the described configuration.](media/pipeline-campaign-analysis-adding-data-flow.png "Adding data flow")
 
@@ -513,15 +515,16 @@ Now that the pipeline run is complete, let's take a look at the SQL table to ver
 
     ![The Data menu item is highlighted.](media/data-hub.png "Data hub")
 
-2. Expand the `SqlPool01` database underneath the **Databases** section, then expand `Tables`. Right-click the `wwi.CampaignAnalytics` table, then select the **Select TOP 1000 rows** menu item under the New SQL script context menu.
+2. Expand the `SqlPool01` database underneath the **Workspace** section, then expand `Tables`.
+3. Right-click the `wwi.CampaignAnalytics` table, then select the **Select TOP 1000 rows** menu item under the New SQL script context menu. You may need to refresh to see the new tables.
 
-    ![The Select TOP 1000 rows menu item is highlighted.](media/select-top-1000-rows-campaign-analytics.png "Select TOP 1000 rows")
+    ![The Select TOP 10o0 rows menu item is highlighted.](media/select-top-1000-rows-campaign-analytics.png "Select TOP 1000 rows")
 
-3. The properly transformed data should appear in the query results.
+4. The properly transformed data should appear in the query results.
 
     ![The CampaignAnalytics query results are displayed.](media/campaign-analytics-query-results.png "Query results")
 
-4. Update the query to the following and **Run**:
+5. Update the query to the following and **Run**:
 
     ```sql
     SELECT ProductCategory
@@ -532,7 +535,7 @@ Now that the pipeline run is complete, let's take a look at the SQL table to ver
     GROUP BY ProductCategory
     ```
 
-5. In the query results, select the **Chart** view. Configure the columns as defined:
+6. In the query results, select the **Chart** view. Configure the columns as defined:
 
     - **Chart type**: Select `Column`.
     - **Category column**: Select `ProductCategory`.
@@ -579,7 +582,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The new data flow link is highlighted.](media/new-data-flow-link.png "New data flow")
 
-3. In the **General** tab of the new data flow, update the **Name** to the following: `ASAL400 - Lab 2 - Write User Profile Data to ASA`.
+3. In the **General** tab of the new data flow, update the **Name** to the following: `asal400_lab2_writeuserprofiledatatoasa`.
 
 4. Select **Add Source** on the data flow canvas.
 
@@ -595,7 +598,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 6. Select the **Source options** tab, then configure the following:
 
     - **Wildcard paths**: Enter `online-user-profiles-02/*.json`.
-    - **Single document** under JSON Settings: Check this setting. This denotes that each JSON document contains multiple rows of data.
+    - **JSON Settings**: Expand this section, then select the **Single document** setting. This denotes that each JSON document contains multiple rows of data.
 
     ![The source options are configured as described.](media/data-flow-user-profiles-source-options.png "Source options")
 
@@ -603,11 +606,11 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-data-preview.png "Data preview") -->
 
-7. Select the **+** to the right of the `EcommerceUserProfiles` source, then select the **Derived Column** schema modifier from the context menu.
+1. Select the **+** to the right of the `EcommerceUserProfiles` source, then select the **Derived Column** schema modifier from the context menu.
 
     ![The plus sign and Derived Column schema modifier are highlighted.](media/data-flow-user-profiles-new-derived-column.png "New Derived Column")
 
-8. Under **Derived column's settings**, configure the following:
+2. Under **Derived column's settings**, configure the following:
 
     - **Output stream name**: Enter `userId`.
     - **Incoming stream**: Select `EcommerceUserProfiles`.
@@ -619,11 +622,11 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The derived column's settings are configured as described.](media/data-flow-user-profiles-derived-column-settings.png "Derived column's settings")
 
-9. Select the **+** to the right of the `userId` step, then select the **Flatten** schema modifier from the context menu.
+3. Select the **+** to the right of the `userId` step, then select the **Flatten** schema modifier from the context menu.
 
     ![The plus sign and the Flatten schema modifier are highlighted.](media/data-flow-user-profiles-new-flatten.png "New Flatten schema modifier")
 
-10. Under **Flatten settings**, configure the following:
+4.  Under **Flatten settings**, configure the following:
 
     - **Output stream name**: Enter `UserTopProducts`.
     - **Incoming stream**: Select `userId`.
@@ -642,11 +645,11 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-flatten-data-preview.png "Data preview")
 
-11. Select the **+** to the right of the `UserTopProducts` step, then select the **Derived Column** schema modifier from the context menu.
+5.  Select the **+** to the right of the `UserTopProducts` step, then select the **Derived Column** schema modifier from the context menu.
 
     ![The plus sign and Derived Column schema modifier are highlighted.](media/data-flow-user-profiles-new-derived-column2.png "New Derived Column")
 
-12. Under **Derived column's settings**, configure the following:
+6.  Under **Derived column's settings**, configure the following:
 
     - **Output stream name**: Enter `DeriveProductColumns`.
     - **Incoming stream**: Select `UserTopProducts`.
@@ -659,22 +662,22 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The derived column's settings are configured as described.](media/data-flow-user-profiles-derived-column2-settings.png "Derived column's settings")
 
-13. Select **Add Source** on the data flow canvas beneath the `EcommerceUserProfiles` source.
+7.  Select **Add Source** on the data flow canvas beneath the `EcommerceUserProfiles` source.
 
     ![Select Add Source on the data flow canvas.](media/data-flow-user-profiles-add-source.png "Add Source")
 
-14. Under **Source settings**, configure the following:
+8.  Under **Source settings**, configure the following:
 
     - **Output stream name**: Enter `UserProfiles`.
     - **Dataset**: Select `asal400_customerprofile_cosmosdb`.
 
     ![The source settings are configured as described.](media/data-flow-user-profiles-source2-settings.png "Source settings")
 
-15. Since we are not using the data flow debugger, we need to enter the data flow's Script view to update the source projection. Select **Script** in the toolbar above the canvas.
+9.  Since we are not using the data flow debugger, we need to enter the data flow's Script view to update the source projection. Select **Script** in the toolbar above the canvas.
 
     ![The Script link is highlighted above the canvas.](media/data-flow-user-profiles-script-link.png "Data flow canvas")
 
-16. Locate the **UserProfiles** `source` in the script and replace its script block with the following to set `preferredProducts` as an `integer[]` array and ensure the data types within the `productReviews` array are correctly defined:
+10. Locate the **UserProfiles** `source` in the script and replace its script block with the following to set `preferredProducts` as an `integer[]` array and ensure the data types within the `productReviews` array are correctly defined:
 
     ```json
     source(output(
@@ -811,7 +814,7 @@ The query results output includes the standard Table view, as well as a Chart vi
         | Input columns | Output columns |
         | --- | --- |
         | userId | UserId |
-        | DerivedColumnsForMerge@productId | ProductId |
+        | productId | ProductId |
         | itemsPurchasedLast12Months | ItemsPurchasedLast12Months |
         | isTopProduct | IsTopProduct |
         | isPreferredProduct | IsPreferredProduct |
@@ -844,7 +847,7 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
     ![Drag the data flow activity onto the pipeline canvas.](media/pipeline-campaign-analysis-drag-data-flow.png "Pipeline canvas")
 
-5. In the `Adding data flow` blade, select **Use existing data flow**, then select the `ASAL400 - Lab 2 - Write User Profile Data to ASA` existing data flow you created in the previous task.
+5. In the `Adding data flow` blade, select **Use existing data flow**, then select the `asal400_lab2_writeuserprofiledatatoasa` existing data flow you created in the previous task.
 
     ![The adding data flow form is displayed with the described configuration.](media/pipeline-user-profiles-adding-data-flow.png "Adding data flow")
 
@@ -854,7 +857,7 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
 8. Expand **PolyBase** and configure the following:
 
-    - **Staging linked service**: Select the `asadatalake01` linked service.
+    - **Staging linked service**: Select the `asadatalakeSUFFIX` linked service.
     - **Staging storage folder**: Enter `staging/userprofiles`. The `userprofiles` folder will be automatically created for you during the first pipeline run.
 
     ![The mapping data flow activity settings are configured as described.](media/pipeline-user-profiles-data-flow-settings.png "Mapping data flow activity settings")
