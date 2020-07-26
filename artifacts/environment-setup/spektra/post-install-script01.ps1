@@ -91,7 +91,21 @@ InstallAzPowerShellModule
 
 CreateLabFilesDirectory
 
+cd "c:\labfiles";
+
 CreateCredFile $azureUsername $azurePassword $azureTenantID $azureSubscriptionID $deploymentId $odlId
+
+. C:\LabFiles\AzureCreds.ps1
+
+$userName = $AzureUserName                # READ FROM FILE
+$password = $AzurePassword                # READ FROM FILE
+$clientId = $TokenGeneratorClientId       # READ FROM FILE
+$global:sqlPassword = $AzureSQLPassword          # READ FROM FILE
+
+$securePassword = $password | ConvertTo-SecureString -AsPlainText -Force
+$cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $userName, $SecurePassword
+
+Connect-AzAccount -Credential $cred | Out-Null
 
 # Template deployment
 $resourceGroupName = (Get-AzResourceGroup | Where-Object { $_.ResourceGroupName -like "*Synapse-AIAD-*" }).ResourceGroupName
@@ -123,6 +137,13 @@ start-process "$productPath\$productExec" -ArgumentList $argList -wait
 Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI.msi; 
 Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'; 
 rm .\AzureCLI.msi
+
+#install sql server cmdlets
+Install-Module -Name SqlServer
+
+#install cosmosdb
+Install-Module -Name Az.CosmosDB -AllowClobber
+Import-Module Az.CosmosDB
 
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
 

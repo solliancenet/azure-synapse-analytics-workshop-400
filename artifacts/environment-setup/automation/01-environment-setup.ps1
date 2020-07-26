@@ -11,8 +11,10 @@ $IsCloudLabs = Test-Path C:\LabFiles\AzureCreds.ps1;
 $iscloudlabs = $false;
 
 if($IsCloudLabs){
-        Remove-Module solliance-synapse-automation
-        Import-Module ".\artifacts\environment-setup\solliance-synapse-automation"
+        if(Get-Module -Name solliance-synapse-automation){
+                Remove-Module solliance-synapse-automation
+        }
+        Import-Module "..\solliance-synapse-automation"
 
         . C:\LabFiles\AzureCreds.ps1
 
@@ -32,12 +34,22 @@ if($IsCloudLabs){
         $global:ropcBodySynapseSQL = "$($ropcBodyCore)&scope=https://sql.azuresynapse.net/.default"
         $global:ropcBodyPowerBI = "$($ropcBodyCore)&scope=https://analysis.windows.net/powerbi/api/.default"
 
+        <#
         $artifactsPath = ".\artifacts"
         $templatesPath = ".\artifacts\environment-setup\templates"
         $datasetsPath = ".\artifacts\environment-setup\datasets"
         $dataflowsPath = ".\artifacts\environment-setup\dataflows"
         $pipelinesPath = ".\artifacts\environment-setup\pipelines"
         $sqlScriptsPath = ".\artifacts\environment-setup\sql"
+        #>
+
+        $artifactsPath = "..\..\"
+        $reportsPath = "..\reports"
+        $templatesPath = "..\templates"
+        $datasetsPath = "..\datasets"
+        $dataflowsPath = "..\dataflows"
+        $pipelinesPath = "..\pipelines"
+        $sqlScriptsPath = "..\sql"
 } else {
         if(Get-Module -Name solliance-synapse-automation){
                 Remove-Module solliance-synapse-automation
@@ -72,6 +84,13 @@ if($IsCloudLabs){
 }
 
 $resourceGroupName = (Get-AzResourceGroup | Where-Object { $_.ResourceGroupName -like "*L400*" }).ResourceGroupName
+
+if ($resourceGroupName.Count)
+{
+        $resourceGroupName = $resourceGroupName[0];
+        Write-Information "Using $resourceGroupName";
+}
+
 $uniqueId =  (Get-AzResourceGroup -Name $resourceGroupName).Tags["DeploymentId"]
 $subscriptionId = (Get-AzContext).Subscription.Id
 $tenantId = (Get-AzContext).Tenant.Id
@@ -107,6 +126,12 @@ Write-Information "Assign Ownership to L400 Proctors on Synapse Workspace"
 Assign-SynapseRole -WorkspaceName $workspaceName -RoleId "6e4bf58a-b8e1-4cc3-bbf9-d73143322b78" -PrincipalId "37548b2e-e5ab-4d2b-b0da-4d812f56c30e"  # Workspace Admin
 Assign-SynapseRole -WorkspaceName $workspaceName -RoleId "7af0c69a-a548-47d6-aea3-d00e69bd83aa" -PrincipalId "37548b2e-e5ab-4d2b-b0da-4d812f56c30e"  # SQL Admin
 Assign-SynapseRole -WorkspaceName $workspaceName -RoleId "c3a6d2f1-a26f-4810-9b0f-591308d5cbf1" -PrincipalId "37548b2e-e5ab-4d2b-b0da-4d812f56c30e"  # Apache Spark Admin
+
+#add the current user...
+$user = Get-AzADUser -UserPrincipalName $userName
+Assign-SynapseRole -WorkspaceName $workspaceName -RoleId "6e4bf58a-b8e1-4cc3-bbf9-d73143322b78" -PrincipalId $user.id  # Workspace Admin
+Assign-SynapseRole -WorkspaceName $workspaceName -RoleId "7af0c69a-a548-47d6-aea3-d00e69bd83aa" -PrincipalId $user.id  # SQL Admin
+Assign-SynapseRole -WorkspaceName $workspaceName -RoleId "c3a6d2f1-a26f-4810-9b0f-591308d5cbf1" -PrincipalId $user.id  # Apache Spark Admin
 
 #add the permission to the datalake to workspace
 $id = (Get-AzADServicePrincipal -DisplayName $workspacename).id
@@ -187,8 +212,8 @@ $publicDataUrl = "https://solliancepublicdata.blob.core.windows.net/"
 $dataLakeStorageUrl = "https://"+ $dataLakeAccountName + ".dfs.core.windows.net/"
 $dataLakeStorageBlobUrl = "https://"+ $dataLakeAccountName + ".blob.core.windows.net/"
 $dataLakeStorageAccountKey = (Get-AzStorageAccountKey -ResourceGroupName $resourceGroupName -AccountName $dataLakeAccountName)[0].Value
-$dataLakeContext = New-AzureStorageContext -StorageAccountName $dataLakeAccountName -StorageAccountKey $dataLakeStorageAccountKey
-$destinationSasKey = New-AzureStorageContainerSASToken -Container "wwi-02" -Context $dataLakeContext -Permission rwdl
+$dataLakeContext = New-AzStorageContext -StorageAccountName $dataLakeAccountName -StorageAccountKey $dataLakeStorageAccountKey
+$destinationSasKey = New-AzStorageContainerSASToken -Container "wwi-02" -Context $dataLakeContext -Permission rwdl
 
 if ($download)
 {

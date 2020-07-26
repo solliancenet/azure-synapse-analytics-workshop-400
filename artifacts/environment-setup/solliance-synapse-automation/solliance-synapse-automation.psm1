@@ -1440,7 +1440,7 @@ function Assign-SynapseRole {
     return $result
 }
 
-function Refresh-Token()
+function Refresh-Token2()
 {
     $context = Get-AzureRmContext;
     
@@ -1450,7 +1450,7 @@ function Refresh-Token()
     $global:powerbitoken = [Microsoft.Azure.Commands.Common.Authentication.AzureSession]::Instance.AuthenticationFactory.Authenticate($context.Account, $context.Environment, $context.Tenant.Id, $null, "Never", $null, "https://analysis.windows.net/powerbi/api").AccessToken
 }
 
-function Refresh-Token2 {
+function Refresh-Token {
     param(
     [parameter(Mandatory=$true)]
     [String]
@@ -1521,15 +1521,13 @@ function Ensure-ValidToken {
 
     $refTime = Get-Date
 
-    <#
     if (($refTime - $tokenTimes[$TokenName]).TotalMinutes -gt 30) {
         Write-Information "Refreshing $($TokenName) token."
         Refresh-Token $TokenName
         $tokenTimes[$TokenName] = $refTime
     }
-    #>
-
-    Refresh-Token;
+    
+    #Refresh-Token;
 }
 
 Function Generate-CosmosDbMasterKeyAuthorizationSignature {
