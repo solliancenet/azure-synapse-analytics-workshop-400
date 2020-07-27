@@ -211,7 +211,7 @@
     *
     FROM
         sys.dm_pdw_sql_requests
-    WHERE 
+    WHERE
         request_id = 'QID473552'
         AND step_index = 1
     ```
@@ -252,7 +252,7 @@
     AS
     SELECT
         *
-    FROM	
+    FROM
         [wwi_perf].[Sale_Heap]
     ```
 
@@ -323,7 +323,7 @@
 4. Try running a more complex query and investigate the execution plan and execution steps. Here is an example of a more complex query you can use:
 
     ```sql
-    SELECT 
+    SELECT
         AVG(TotalProfit) as AvgMonthlyCustomerProfit
     FROM
     (
@@ -337,7 +337,7 @@
             ,AVG(S.ProfitAmount) as AvgProfit
         FROM
             [wwi_perf].[Sale_Partition01] S
-            join [wwi].[Date] D on 
+            join [wwi].[Date] D on
                 D.DateId = S.TransactionDateId
         GROUP BY
             S.CustomerId
@@ -360,36 +360,35 @@ Your SQL pool already contains two versions of the `Sale` table that have been p
 CREATE TABLE [wwi_perf].[Sale_Partition01]
 WITH
 (
-    DISTRIBUTION = HASH ( [CustomerId] ),
-    CLUSTERED COLUMNSTORE INDEX,
-    PARTITION
-    (
-        [TransactionDateId] RANGE RIGHT FOR VALUES (
+	DISTRIBUTION = HASH ( [CustomerId] ),
+	CLUSTERED COLUMNSTORE INDEX,
+	PARTITION
+	(
+		[TransactionDateId] RANGE RIGHT FOR VALUES (
             20190101, 20190201, 20190301, 20190401, 20190501, 20190601, 20190701, 20190801, 20190901, 20191001, 20191101, 20191201)
-    )
+	)
 )
 AS
 SELECT
-    *
+	*
 FROM	
-    [wwi_perf].[Sale_Heap]
+	[wwi_perf].[Sale_Heap]
 OPTION  (LABEL  = 'CTAS : Sale_Partition01')
 
 CREATE TABLE [wwi_perf].[Sale_Partition02]
 WITH
 (
-    DISTRIBUTION = HASH ( [CustomerId] ),
-    CLUSTERED COLUMNSTORE INDEX,
-    PARTITION
-    (
-        [TransactionDateId] RANGE RIGHT FOR VALUES (
+	DISTRIBUTION = HASH ( [CustomerId] ),
+	CLUSTERED COLUMNSTORE INDEX,
+	PARTITION
+	(
+		[TransactionDateId] RANGE RIGHT FOR VALUES (
             20190101, 20190401, 20190701, 20191001)
-    )
+	)
 )
 AS
-SELECT
-    *
-FROM	
+SELECT *
+FROM
     [wwi_perf].[Sale_Heap]
 OPTION  (LABEL  = 'CTAS : Sale_Partition02')
 ```
@@ -411,7 +410,7 @@ Notice the two partitioning strategies we've used here. The first partitioning s
 2. Run the HyperLogLog approach:
 
     ```sql
-    SELECT APPROX_COUNT_DISTINCT(CustomerId) from wwi_perf.Sale_Heap 
+    SELECT APPROX_COUNT_DISTINCT(CustomerId) from wwi_perf.Sale_Heap
     ```
 
     Query takes about half the time to execute.
@@ -420,14 +419,14 @@ Notice the two partitioning strategies we've used here. The first partitioning s
 
 As opposed to a standard view, a materialized view pre-computes, stores, and maintains its data in a Synapse SQL pool just like a table. Here is a basic comparison between standard and materialized views:
 
-| Comparison                     | View                                         | Materialized View             
-|:-------------------------------|:---------------------------------------------|:--------------------------------------------------------------| 
-|View definition                 | Stored in Azure data warehouse.              | Stored in Azure data warehouse.    
-|View content                    | Generated each time when the view is used.   | Pre-processed and stored in Azure data warehouse during view creation. Updated as data is added to the underlying tables.                                             
-|Data refresh                    | Always updated                               | Always updated                          
+| Comparison                     | View                                         | Materialized View
+|:-------------------------------|:---------------------------------------------|:-------------------------------------------------------------|
+|View definition                 | Stored in Azure data warehouse.              | Stored in Azure data warehouse.
+|View content                    | Generated each time when the view is used.   | Pre-processed and stored in Azure data warehouse during view creation. Updated as data is added to the underlying tables.
+|Data refresh                    | Always updated                               | Always updated
 |Speed to retrieve view data from complex queries     | Slow                                         | Fast  
-|Extra storage                   | No                                           | Yes                             
-|Syntax                          | CREATE VIEW                                  | CREATE MATERIALIZED VIEW AS SELECT     
+|Extra storage                   | No                                           | Yes
+|Syntax                          | CREATE VIEW                                  | CREATE MATERIALIZED VIEW AS SELECT
 
 1. Execute the following query to get an approximation of its execution time:
 
@@ -657,7 +656,7 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
     SELECT
         name
         ,is_result_set_caching_on
-    FROM 
+    FROM
         sys.databases
     ```
 
@@ -693,18 +692,18 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
         ,D.Month
     OPTION (LABEL = 'Lab03: Result set caching')
 
-    SELECT 
+    SELECT
         result_cache_hit
-    FROM 
+    FROM
         sys.dm_pdw_exec_requests
-    WHERE 
-        request_id = 
+    WHERE
+        request_id =
         (
-            SELECT TOP 1 
-                request_id 
-            FROM 
+            SELECT TOP 1
+                request_id
+            FROM
                 sys.dm_pdw_exec_requests
-            WHERE   
+            WHERE
                 [label] = 'Lab03: Result set caching'
             ORDER BY
                 start_time desc
@@ -714,23 +713,23 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
     As expected, the result is `False`. Still, you can identify that, while running the query, Synapse has also cached the result set. Run the following query to get the execution steps:
 
     ```sql
-    SELECT 
+    SELECT
         step_index
         ,operation_type
         ,location_type
         ,status
         ,total_elapsed_time
         ,command
-    FROM 
+    FROM
         sys.dm_pdw_request_steps
-    WHERE 
+    WHERE
         request_id =
         (
-            SELECT TOP 1 
-                request_id 
-            FROM 
+            SELECT TOP 1
+                request_id
+            FROM
                 sys.dm_pdw_exec_requests
-            WHERE   
+            WHERE
                 [label] = 'Lab03: Result set caching'
             ORDER BY
                 start_time desc
@@ -784,9 +783,9 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
         request_id
         ,[label]
         ,result_cache_hit
-    FROM 
+    FROM
         sys.dm_pdw_exec_requests
-    WHERE   
+    WHERE
         [label] in ('Lab03: Result set caching off', 'Lab03: Result set caching on')
     ORDER BY
         start_time desc
@@ -796,7 +795,7 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
 
     ![Result cache on and off](./media/lab3_result_set_cache_off.png)
 
-4. At any moment, you can check the space used bythe results cache:
+4. At any moment, you can check the space used by the results cache:
 
     ```sql
     DBCC SHOWRESULTCACHESPACEUSED
@@ -819,7 +818,7 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
 
     >**Important**
     >
-    >Make sure you disable result set caching on the SQL pool. Failing to do so will have a negative imact on the remainder of this lab, as it will skew execution times and defeat the purpose of several upcoming exercises.
+    >Make sure you disable result set caching on the SQL pool. Failing to do so will have a negative impact on the remainder of this lab, as it will skew execution times and defeat the purpose of several upcoming exercises.
 
     >**Note**
     >
@@ -855,9 +854,9 @@ For example, if the optimizer estimates that the date your query is filtering on
     ```sql
     SELECT
         *
-    FROM 
+    FROM
         sys.dm_pdw_exec_requests
-    WHERE 
+    WHERE
         Command like 'CREATE STATISTICS%'
     ```
 
@@ -942,7 +941,7 @@ Clustered indexes may outperform clustered columnstore indexes when a single row
         CustomerId between 400000 and 400100
     ```
 
-    and then retrive the same information from the table with a clustered index:
+    and then retrieve the same information from the table with a clustered index:
 
     ```sql
     SELECT
@@ -950,7 +949,7 @@ Clustered indexes may outperform clustered columnstore indexes when a single row
     FROM
         [wwi_perf].[Sale_Index]
     WHERE
-        CustomerId between 400000 and 400020
+        CustomerId between 400000 and 400100
     ```
 
     Run both queries several times to get a stable execution time. Under normal conditions, you should see that even with a relatively small number of customers, the CCI table starts yielding better results than the clustered index table.
@@ -963,7 +962,7 @@ Clustered indexes may outperform clustered columnstore indexes when a single row
     FROM
         [wwi_perf].[Sale_Index]
     WHERE
-        CustomerId between 400000 and 400020
+        CustomerId between 400000 and 400100
         and StoreId between 2000 and 4000
     ```
 
@@ -996,7 +995,7 @@ Queries with the following patterns typically run faster with ordered CCI:
 1. Run the following query to show the segment overlaps for the `Sale_Hash` table:
 
     ```sql
-    select 
+    select
         OBJ.name as table_name
         ,COL.name as column_name
         ,NT.distribution_id
@@ -1008,7 +1007,7 @@ Queries with the following patterns typically run faster with ordered CCI:
         ,NCSS.min_data_id
         ,NCSS.max_data_id
         ,NCSS.row_count
-    from 
+    from
         sys.objects OBJ
         JOIN sys.columns as COL ON
             OBJ.object_id = COL.object_id
@@ -1052,7 +1051,7 @@ Queries with the following patterns typically run faster with ordered CCI:
 2. Run the following query to show the segment overlaps for the `Sale_Hash_Ordered` table:
 
     ```sql
-    select 
+    select
         OBJ.name as table_name
         ,COL.name as column_name
         ,NT.distribution_id
@@ -1064,7 +1063,7 @@ Queries with the following patterns typically run faster with ordered CCI:
         ,NCSS.min_data_id
         ,NCSS.max_data_id
         ,NCSS.row_count
-    from 
+    from
         sys.objects OBJ
         JOIN sys.columns as COL ON
             OBJ.object_id = COL.object_id
@@ -1100,7 +1099,7 @@ Queries with the following patterns typically run faster with ordered CCI:
     AS
     SELECT
         *
-    FROM	
+    FROM
         [wwi_perf].[Sale_Heap]
     OPTION  (LABEL  = 'CTAS : Sale_Hash', MAXDOP 1)
     ```

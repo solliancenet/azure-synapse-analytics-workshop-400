@@ -843,7 +843,7 @@ function Execute-SQLQuery {
         }
     }
     if ($errors.Count -gt 0) {
-        throw (-join $errors)
+        #throw (-join $errors)
     }
 
     return $result
