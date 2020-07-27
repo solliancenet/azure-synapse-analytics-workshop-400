@@ -141,6 +141,8 @@ rm .\AzureCLI.msi
 #install sql server cmdlets
 Install-Module -Name SqlServer
 
+Uninstall-AzureRm
+
 #install cosmosdb
 Install-Module -Name Az.CosmosDB -AllowClobber
 Import-Module Az.CosmosDB
