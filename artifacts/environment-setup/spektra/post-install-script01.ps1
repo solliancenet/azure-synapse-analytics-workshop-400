@@ -108,6 +108,23 @@ $securePassword = $password | ConvertTo-SecureString -AsPlainText -Force
 $cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $userName, $SecurePassword
 
 Connect-AzAccount -Credential $cred | Out-Null
+ 
+#download and install git...		
+$output = "c:\LabFiles\git.exe";
+Invoke-WebRequest -Uri https://github.com/git-for-windows/git/releases/download/v2.27.0.windows.1/Git-2.27.0-64-bit.exe -OutFile $output; 
+
+$productPath = "c:\LabFiles";				
+$productExec = "git.exe"	
+$argList = "/SILENT"
+start-process "$productPath\$productExec" -ArgumentList $argList -wait
+        
+#install azure cli
+Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI.msi; 
+Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'; 
+rm .\AzureCLI.msi
+
+#install sql server cmdlets
+Install-Module -Name SqlServer
 
 # Template deployment
 $resourceGroupName = (Get-AzResourceGroup | Where-Object { $_.ResourceGroupName -like "*-L400" }).ResourceGroupName
@@ -125,23 +142,6 @@ $wclient.DownloadFile($url, $output)
 New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName `
   -TemplateUri "https://raw.githubusercontent.com/solliancenet/azure-synapse-analytics-workshop-400/master/artifacts/environment-setup/automation/00-asa-workspace-core.json" `
   -TemplateParameterFile "c:\LabFiles\parameters.json"
-  
-#download and install git...		
-$output = "c:\LabFiles\git.exe";
-Invoke-WebRequest -Uri https://github.com/git-for-windows/git/releases/download/v2.27.0.windows.1/Git-2.27.0-64-bit.exe -OutFile $output; 
-
-$productPath = "c:\LabFiles";				
-$productExec = "git.exe"	
-$argList = "/SILENT"
-start-process "$productPath\$productExec" -ArgumentList $argList -wait
-        
-#install azure cli
-Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI.msi; 
-Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'; 
-rm .\AzureCLI.msi
-
-#install sql server cmdlets
-Install-Module -Name SqlServer
 
 Uninstall-AzureRm
 
