@@ -8,7 +8,6 @@ $InformationPreference = "Continue"
 #
 # TODO: Keep all required configuration in C:\LabFiles\AzureCreds.ps1 file
 $IsCloudLabs = Test-Path C:\LabFiles\AzureCreds.ps1;
-$iscloudlabs = $false;
 
 if($IsCloudLabs){
         if(Get-Module -Name solliance-synapse-automation){
@@ -83,9 +82,9 @@ if($IsCloudLabs){
         $sqlScriptsPath = "..\sql"
 }
 
-$resourceGroupName = (Get-AzResourceGroup | Where-Object { $_.ResourceGroupName -like "*L400*" }).ResourceGroupName
+$resourceGroupName = (Get-AzResourceGroup | Where-Object { $_.ResourceGroupName -like "*-L400" }).ResourceGroupName
 
-if ($resourceGroupName.Count)
+if ($resourceGroupName.Count -gt 1)
 {
         $resourceGroupName = $resourceGroupName[0];
         Write-Information "Using $resourceGroupName";
@@ -94,6 +93,7 @@ if ($resourceGroupName.Count)
 $uniqueId =  (Get-AzResourceGroup -Name $resourceGroupName).Tags["DeploymentId"]
 $subscriptionId = (Get-AzContext).Subscription.Id
 $tenantId = (Get-AzContext).Tenant.Id
+$global:logindomain = (Get-AzContext).Tenant.Id;
 
 $workspaceName = "asaworkspace$($uniqueId)"
 $cosmosDbAccountName = "asacosmosdb$($uniqueId)"

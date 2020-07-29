@@ -15,7 +15,7 @@
 2. Analyze the number of rows in each distribution. Those numbers should be as even as possible. You can see from the results that rows are equally distributed across distributions. Let's dive a bit more into this analysis. Use the following query to get customers with the most sale transaction items:
 
     ```sql
-    SELECT TOP 1000 
+    SELECT TOP 1000
         CustomerId,
         count(*) as TransactionItemsCount
     FROM
@@ -31,7 +31,7 @@
     Now find the customers with the least sale transaction items:
 
     ```sql
-    SELECT TOP 1000 
+    SELECT TOP 1000
         CustomerId,
         count(*) as TransactionItemsCount
     FROM

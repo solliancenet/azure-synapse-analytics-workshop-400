@@ -2,11 +2,11 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-      "sqlAdministratorLoginPassword": {
-        "value": "GET-AZUSER-PASSWORD"
+      "vmAdminUsername": {
+        "value": "wsuser"
       },
-      "uniqueSuffix": {
-        "value": "GET-DEPLOYMENT-ID"
+      "vmAdminPassword": {
+        "value": "GET-AZUSER-PASSWORD"
       },
       "azureUsername": {
         "value": "GET-AZUSER-UPN"
