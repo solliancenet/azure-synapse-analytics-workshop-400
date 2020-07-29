@@ -1,3 +1,62 @@
+function AutoPauseAllPS()
+{
+    $servers = Get-AzSqlServer
+
+    foreach ($s in $server)
+    {
+        $dbs = Get-AzSqlDatabase -server $server;
+
+        foreach($db in $dbs)
+        {
+            Suspend-AzSqlDatabase $db;
+        }
+    }
+}
+
+function AutoPauseAll($subscriptionId)
+{
+    #get resource groups...
+    $uri = "https://management.azure.com/subscriptions/$subscriptionId/resourceGroups?api-version=2020-06-01"
+
+    Ensure-ValidTokens
+    $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $global:managementToken" } -ContentType "application/json"
+
+    foreach($rg in $result.value)
+    {
+        $uri = "https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$($rg.Name)/providers/Microsoft.Synapse/workspaces?api-version=2019-06-01-preview"
+
+        $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $global:managementToken" } -ContentType "application/json"
+
+        foreach($ws in $result.value)
+        {
+            $pools = GetSqlPools $subscriptionId $($rg.Name) $ws.Name;
+            
+            foreach($pool in $pools.value)
+            {
+                PauseSqlPool $subscriptionId $($rg.Name) $ws.Name $pool.Name;
+            }
+        }
+    }
+}
+
+function GetSqlPools($subscriptionId, $rgName, $workspaceName)
+{
+    $uri = "https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$rgName/providers/Microsoft.Synapse/workspaces/$WorkspaceName/sqlPools?api-version=2019-06-01"
+
+    $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $global:managementToken" } -ContentType "application/json"
+
+    return $result;
+}
+
+function PauseSqlPool($subscriptionId, $rgName, $workspaceName, $poolName)
+{
+    $uri = "https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$rgName/providers/Microsoft.Synapse/workspaces/$WorkspaceName/sqlPools/$poolName/pause?api-version=2019-06-01-preview"
+
+    $result = Invoke-RestMethod  -Uri $uri -Method POST -Body $item -Headers @{ Authorization="Bearer $global:managementToken" } -ContentType "application/json"
+
+    return $result;
+}
+
 function Check-HttpRedirect($uri)
 {
     $httpReq = [system.net.HttpWebRequest]::Create($uri)
@@ -1597,3 +1656,4 @@ Export-ModuleMember -Function Generate-CosmosDbMasterKeyAuthorizationSignature
 Export-ModuleMember -Function Count-CosmosDbDocuments
 Export-ModuleMember -Function Check-HttpRedirect
 Export-ModuleMember -Function GetCSRF
+Export-ModuleMember -Function AutoPauseAll
