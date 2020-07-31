@@ -5,6 +5,7 @@ This guide focuses on Azure Synapse Analytics performance tuning. The following 
 - Pipelines and Data Flows
 - SQL Pools
 - Spark Pools
+- Power BI Reports
 
 The [**Pipelines and Data Flows**](./02-optimizing-pipelines-and-data-flows.md) section focuses on performance tuning involving:
 
@@ -35,3 +36,5 @@ The [**Spark Pools**](./04-optimizing-spark-pools.md) section focuses on perform
 - Distribution and parallelism in Spark notebooks
 
 The section ends with a summary of best practices for optimizing the performance of Spark pools.
+
+The [**Power BI Reports**](./05-optimizing-power-bi.md) section focuses on performance tuning involving Power BI datasources.
