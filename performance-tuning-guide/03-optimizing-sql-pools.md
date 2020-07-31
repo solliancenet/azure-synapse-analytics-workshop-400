@@ -2070,3 +2070,4 @@ Loading data into a non-empty table with a clustered index can often contain a m
 
 ## 3.10. Best practices
 
+https://docs.microsoft.com/en-us/azure/synapse-analytics/sql-data-warehouse/sql-data-warehouse-best-practices
