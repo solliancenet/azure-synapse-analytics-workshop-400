@@ -57,3 +57,5 @@
     4.3. Distribution and parallelism in Spark notebooks
 
     4.4. Best practices
+
+5. [Optimizing Power BI](./05-optimizing-power-bi.md)
