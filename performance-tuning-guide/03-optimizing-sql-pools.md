@@ -1,6 +1,111 @@
 # 3. Optimizing SQL Pools
 
+- [3. Optimizing SQL Pools](#3-optimizing-sql-pools)
+  - [3.1. Sizing and resource allocation (DWUs)](#31-sizing-and-resource-allocation-dwus)
+  - [3.2. Table structure](#32-table-structure)
+    - [3.2.1. Improve table structure with distribution](#321-improve-table-structure-with-distribution)
+    - [3.2.2. Improve table structure with partitioning](#322-improve-table-structure-with-partitioning)
+  - [3.3. Query performance](#33-query-performance)
+    - [3.3.1. Improve query performance with approximate count](#331-improve-query-performance-with-approximate-count)
+    - [3.3.2. Improve query performance with materialized views](#332-improve-query-performance-with-materialized-views)
+    - [3.3.3. Improve query performance with result set caching](#333-improve-query-performance-with-result-set-caching)
+  - [3.4. Manage statistics](#34-manage-statistics)
+  - [3.5. Manage indexes](#35-manage-indexes)
+    - [3.5.1. Create and update indexes](#351-create-and-update-indexes)
+    - [3.5.2. Ordered Clustered Columnstore Indexes](#352-ordered-clustered-columnstore-indexes)
+  - [3.6. Monitor space usage](#36-monitor-space-usage)
+    - [3.6.1. Analyze space used by tables](#361-analyze-space-used-by-tables)
+    - [3.6.2. Advanced space usage analysis](#362-advanced-space-usage-analysis)
+  - [3.7. Monitor column store storage](#37-monitor-column-store-storage)
+  - [3.8. Choose the right data types](#38-choose-the-right-data-types)
+    - [Task 3 - Compare storage requirements](#task-3---compare-storage-requirements)
+  - [3.9. Avoid extensive logging](#39-avoid-extensive-logging)
+  - [3.10. Best practices](#310-best-practices)
+
 ## 3.1. Sizing and resource allocation (DWUs)
+
+A Synapse SQL Pool Data Warehousing Unit (DWU) is a **high-level representation of usage** that consists of a combination of CPU, memory, and IO resources. To determine the number of DWUs to select is to strike a balance between price and performance. When creating or scaling a SQL Pool, you can select from a range of 100 cDWU (DW100c) up to 30,000 cDWU (DW30000c). (`cDWU` is defined as compute Data Warehouse Unit.)
+
+The general guidance is to start small, monitor your workload, and adjust as needed. You can surface valuable performance metrics by leveraging the monitoring Metrics feature of the SQL Pool, as well as by taking advantage of a series of Dynamic Management Views (DMVs). Leveraging these tools will help you monitor your SQL workload and provide the insight necessary to make an educated decision on whether scaling your SQL Pool would be beneficial.
+
+Compare current memory usage versus total memory available in the SQL Pool through the use of the `sys.dm_pdw_nodes_os_performance_counters` DMV. If you see the memory usage approaching the limit, it is time to scale up.
+
+    ```sql
+    -- Memory consumption
+    SELECT
+        pc1.cntr_value as Curr_Mem_KB,
+        pc1.cntr_value/1024.0 as Curr_Mem_MB,
+        (pc1.cntr_value/1048576.0) as Curr_Mem_GB,
+        pc2.cntr_value as Max_Mem_KB,
+        pc2.cntr_value/1024.0 as Max_Mem_MB,
+        (pc2.cntr_value/1048576.0) as Max_Mem_GB,
+        pc1.cntr_value * 100.0/pc2.cntr_value AS Memory_Utilization_Percentage,
+        pc1.pdw_node_id
+    FROM
+        -- pc1: current memory
+        sys.dm_pdw_nodes_os_performance_counters AS pc1
+        -- pc2: total memory allowed for this SQL instance
+        JOIN sys.dm_pdw_nodes_os_performance_counters AS pc2
+            ON pc1.object_name = pc2.object_name AND pc1.pdw_node_id = pc2.pdw_node_id
+    WHERE
+        pc1.counter_name = 'Total Server Memory (KB)'
+        AND pc2.counter_name = 'Total Server Memory (KB)'
+    ```
+
+Another aspect that should be monitored is the size of the transaction log. If it is determined that a log file is reaching 160 GB in size, you should consider scaling up or reducing the transaction size of your workload. You can monitor the transaction log size through the `sys.dm_pdw_nodes_os_performance_counters` DMV.
+
+    ```sql
+    -- Transaction log size
+    SELECT
+        instance_name as distribution_db,
+        cntr_value*1.0/1048576 as log_file_size_used_GB,
+        pdw_node_id
+    FROM 
+        sys.dm_pdw_nodes_os_performance_counters
+    WHERE
+        instance_name like 'Distribution_%'
+        AND counter_name = 'Log File(s) Used Size (KB)'
+    ```
+
+`Tempdb` is used to hold intermediate results during query execution. For each 100 cDWUs allocated in your pool, there is 399 GB of tempdb space available. By using several DMVs in conjunction with the `microsoft.vw_sql_requests` view from the [`Microsoft Toolkit for SQL`](https://github.com/Microsoft/sql-data-warehouse-samples/tree/master/solutions/monitoring), you can determine if the workload you are running is trending toward capacity.
+
+    ```sql
+    -- Monitor tempdb
+    SELECT
+        sr.request_id,
+        ssu.session_id,
+        ssu.pdw_node_id,
+        sr.command,
+        sr.total_elapsed_time,
+        es.login_name AS 'LoginName',
+        DB_NAME(ssu.database_id) AS 'DatabaseName',
+        (es.memory_usage * 8) AS 'MemoryUsage (in KB)',
+        (ssu.user_objects_alloc_page_count * 8) AS 'Space Allocated For User Objects (in KB)',
+        (ssu.user_objects_dealloc_page_count * 8) AS 'Space Deallocated For User Objects (in KB)',
+        (ssu.internal_objects_alloc_page_count * 8) AS 'Space Allocated For Internal Objects (in KB)',
+        (ssu.internal_objects_dealloc_page_count * 8) AS 'Space Deallocated For Internal Objects (in KB)',
+        CASE es.is_user_process
+        WHEN 1 THEN 'User Session'
+        WHEN 0 THEN 'System Session'
+        END AS 'SessionType',
+        es.row_count AS 'RowCount'
+    FROM sys.dm_pdw_nodes_db_session_space_usage AS ssu
+        INNER JOIN sys.dm_pdw_nodes_exec_sessions AS es ON ssu.session_id = es.session_id AND ssu.pdw_node_id = es.pdw_node_id
+        INNER JOIN sys.dm_pdw_nodes_exec_connections AS er ON ssu.session_id = er.session_id AND ssu.pdw_node_id = er.pdw_node_id
+        INNER JOIN microsoft.vw_sql_requests AS sr ON ssu.session_id = sr.spid AND ssu.pdw_node_id = sr.pdw_node_id
+    WHERE DB_NAME(ssu.database_id) = 'tempdb'
+        AND es.session_id <> @@SPID
+        AND es.login_name <> 'sa'
+        ORDER BY sr.request_id;
+    ```
+
+As an alternative to using the DMVs, you can also access the `Metrics` feature of the SQL Pool to obtain insight into DWU, tempdb, and memory usage. Access the `Metrics` feature by navigating to your SQL Pool resource in the Azure Portal, then from the left menu beneath the `Monitoring` heading, you will find the `Metrics` item. Here, you are able to create your own dashboards and compose useful chart visualizations.
+
+    ![The available metrics of the SQL Pool are displayed.](media/sqlpool_availablemetrics.png "Available SQL Pool Metrics")
+
+    ![A sample performance metric chart is shown plotting DWU limit, DWU used (max) and memory used percentage.](media/sampleperformancemetricchart.png "Sample performance metric chart")
+
+Scaling the size of your SQL Pool is definitely one way to improve the performance. It is critical, however, to also look into other root causes that may be impacting performance. Evaluating table design, indexes, caching, etc. can also provide valuable insight into performance that may be solved without incurring the additional cost of scaling the pool.
 
 ## 3.2. Table structure
 
