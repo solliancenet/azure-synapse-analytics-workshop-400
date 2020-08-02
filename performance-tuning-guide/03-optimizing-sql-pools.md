@@ -9,7 +9,7 @@
   - [3.2. Manage indexes](#32-manage-indexes)
     - [3.2.1. Create and update indexes](#321-create-and-update-indexes)
     - [3.2.2. Ordered Clustered Columnstore Indexes](#322-ordered-clustered-columnstore-indexes)
-  - [3.3. Table structure](#33-table-structure)
+    - [3.3. Table structure](#33-table-structure)
     - [3.3.1. Improve table structure with distribution](#331-improve-table-structure-with-distribution)
     - [3.3.2. Improve table structure with partitioning](#332-improve-table-structure-with-partitioning)
   - [3.4. Query performance](#34-query-performance)
@@ -121,13 +121,40 @@ Scaling the size of your SQL Pool is definitely one way to improve the performan
 
 ## 3.2. Manage indexes
 
+Synapse SQL pools provide the following index types `clustered columnstore`, `heap`, `clustered and nonclustered`.
+
+The `clustered columnstore` index is the default index added to SQL pool tables when no other index is specified. This type of index yields the highest level of performance and compression on large tables. When unsure of which type of index to use, it is recommended to start with a clustered columnstore index. There exists scenarios where clustered columnstore indexes are not a good option, for instance:
+
+    - clustered columnstore tables do not support varchar(max), nvarchar(max) and varbinary(max). If you require these types of columns, utilize heap or a clustered index instead.
+    - clustered columnstore tables are ineffective for transient data. If requiring this use case, consider using a heap or temporary table.
+    - when the total number of rows is less than 60 million, it is recommended to utilize heap tables.
+
+Another flavor of the `clustered columnstore` index is the `ordered clustered columnstore` index. In a clustered columnstore index, data in each column is compressed into a separate CCI rowgroup segments. There's metadata on each segment's value range, so segments that are outside the bounds of the query predicate aren't read from disk during query execution. CCI offers the highest level of data compression and reduces the size of segments to read so queries can run faster. However, because the index builder doesn't sort data before compressing them into segments, segments with overlapping value ranges could occur, causing queries to read more segments from disk and take longer to finish.
+
+When creating an ordered CCI, the Synapse SQL engine sorts the existing data in memory by the order key(s) before the index builder compresses them into index segments. With sorted data, segment overlapping is reduced allowing queries to have a more efficient segment elimination and thus faster performance because the number of segments to read from disk is smaller. If all data can be sorted in memory at once, then segment overlapping can be avoided. Due to large tables in data warehouses, this scenario doesn't happen often.
+
+Queries with the following patterns typically run faster with ordered CCI:
+
+    - The queries have equality, inequality, or range predicates
+    - The predicate columns and the ordered CCI columns are the same.
+    - The predicate columns are used in the same order as the column ordinal of ordered CCI columns.
+
+`Heap` tables are widely used during data load operations as staging tables. This is because a heap table is faster to index and subsequent reads can take advantage of caching. When using a heap table as opposed to a clustered columnstore table because the total row count is less than 60 million rows, you will see greater performance with the heap index.
+
+`Clustered and nonclustered indexes` may outperform the clustered columnstore index when a single row (or very few rows) are returned from a query. It is important to note that this type of index is only meaningful with a very selective filter using the clustered index column. Clustered index table performance can be improved by adding a secondary nonclustered index. In reality, you can add nonclustered indexes on multiple columns that may be used in a filter, but this doesn't come without a tradeoff. For every index added to a table, it increases both the space used by the table and the processing load times.
+
+| Table Indexing | Recommended use |
+|--------------|-------------|
+| Clustered Columnstore | Recommended for tables with greater than 60 million rows, offers the highest data compression with best overall query performance. |
+| Heap Tables | Smaller tables with less than 60 million rows, commonly used as a staging table prior to transformation. |
+| Clustered Index | Large lookup tables (> 60 million rows) where querying will only result in a single row returned. |
+| Clustered Index + nonclustered secondary index(es) | Large tables (> 60 million rows) when single (or very few) records are being returned in queries. |
+
 ### 3.2.1. Create and update indexes
 
-Clustered Columnstore Index vs. Heap vs. Clustered and Nonclustered
+To demonstrate the different types of indexing approaches, we will use a scenario-based demonstration. In this example, consider a Sale table that has approximately 340 million records. We will first establish the performance of a query when returning the sales for a specific customer.
 
-Clustered indexes may outperform clustered columnstore indexes when a single row needs to be quickly retrieved. For queries where a single or very few row lookup is required to perform with extreme speed, consider a cluster index or nonclustered secondary index. The disadvantage to using a clustered index is that only queries that benefit are the ones that use a highly selective filter on the clustered index column. To improve filter on other columns a nonclustered index can be added to other columns. However, each index which is added to a table adds both space and processing time to loads.
-
-1. Retrieve information about a single customer from the table with CCI:
+First, let's retrieve sales data from a single customer from the table with a CCI (clustered column index):
 
     ```sql
     SELECT
@@ -138,9 +165,9 @@ Clustered indexes may outperform clustered columnstore indexes when a single row
         CustomerId = 500000
     ```
 
-    Take a note of the execution time.
+This query took **X#** seconds to execute.
 
-2. Retrieve information about a single customer from the table with a clustered index:
+Let's now take a look at the performance of the same query, this time retrieving the data from a table with a clustered index:
 
     ```sql
     SELECT
@@ -151,9 +178,9 @@ Clustered indexes may outperform clustered columnstore indexes when a single row
         CustomerId = 500000
     ```
 
-    The execution time is similar to the one for the query above. Clustered columnstore indexes have no significant advantage over clustered indexes in the specific scenario of highly selective queries.
+The execution time is similar to the CCI query. Clustered columnstore indexes have no significant advantage over clustered indexes in this specific scenario of a highly selective query.
 
-3. Retrieve information about multiple customers from the table with CCI:
+Let's test these table indexes further retrieving the sales of multiple customers from the table with CCI:
 
     ```sql
     SELECT
@@ -164,7 +191,7 @@ Clustered indexes may outperform clustered columnstore indexes when a single row
         CustomerId between 400000 and 400100
     ```
 
-    and then retrive the same information from the table with a clustered index:
+The similar query on the clustered index table:
 
     ```sql
     SELECT
@@ -175,9 +202,9 @@ Clustered indexes may outperform clustered columnstore indexes when a single row
         CustomerId between 400000 and 400020
     ```
 
-    Run both queries several times to get a stable execution time. Under normal conditions, you should see that even with a relatively small number of customers, the CCI table starts yielding better results than the clustered index table.
+These queries were run multiple times until there was a stable execution time. It was observed that even with a relatively small number of customers, the CCI table starts yielding better performance than the clustered index table.
 
-4. Now add an extra condition on the query, one that refers to the `StoreId` column:
+The next experiment will be adding an additional `StoreId` query filter to the query on the clustered index table.
 
     ```sql
     SELECT
@@ -189,72 +216,60 @@ Clustered indexes may outperform clustered columnstore indexes when a single row
         and StoreId between 2000 and 4000
     ```
 
-    Take a note of the execution time.
+This query took **X#** seconds to execute
 
-5. Create a non-clustered index on the `StoreId` column:
+We will now a add a secondary non-clustered index on the `StoreId` column.
 
     ```sql
     CREATE INDEX Store_Index on wwi_perf.Sale_Index (StoreId)
     ```
 
-    The creation of the index should complete in a few minutes. Once the index is created, run the previous query again. Notice the improvement in execution time resulting from the newly created non-clustered index.
-
-    >**Note**
-    >
-    >Creating a non-clustered index on the `wwi_perf.Sale_Index` is based on the already existing clustered index. As a bonus exercise, try to create the same type of index on the `wwi_perf.Sale_Hash` table. Can you explain the difference in index creation time?
+The creation of the index, as well as the indexing process takes a few minutes to complete. Now when we run the query, we notice a considerable improvement in execution time of **X#** seconds, a direct result of adding the secondary nonclustered index.
 
 ### 3.2.2. Ordered Clustered Columnstore Indexes
 
-By default, for each table created without an index option, an internal component (index builder) creates a non-ordered clustered columnstore index (CCI) on it. Data in each column is compressed into a separate CCI rowgroup segment. There's metadata on each segment's value range, so segments that are outside the bounds of the query predicate aren't read from disk during query execution. CCI offers the highest level of data compression and reduces the size of segments to read so queries can run faster. However, because the index builder doesn't sort data before compressing them into segments, segments with overlapping value ranges could occur, causing queries to read more segments from disk and take longer to finish.
+We've already learned that in some circumstances, primarily surrounding filtering, that an order clustered columnstore index can provide better performance. In order to obtain optimal query performance, it's important to investigate the data segments created by the ordered clustered columnstore index to ensure that there is very little to no overlap. Having overlap in the data segments increases read times and adversely affects performance.
 
-When creating an ordered CCI, the Synapse SQL engine sorts the existing data in memory by the order key(s) before the index builder compresses them into index segments. With sorted data, segment overlapping is reduced allowing queries to have a more efficient segment elimination and thus faster performance because the number of segments to read from disk is smaller. If all data can be sorted in memory at once, then segment overlapping can be avoided. Due to large tables in data warehouses, this scenario doesn't happen often.
+Returning to our scenario, let's look into the segment overlaps for the clustered columnstore index table, `Sale_Hash`.
 
-Queries with the following patterns typically run faster with ordered CCI:
+        ```sql
+        select
+            OBJ.name as table_name
+            ,COL.name as column_name
+            ,NT.distribution_id
+            ,NP.partition_id
+            ,NP.rows as partition_rows
+            ,NP.data_compression_desc
+            ,NCSS.segment_id
+            ,NCSS.version
+            ,NCSS.min_data_id
+            ,NCSS.max_data_id
+            ,NCSS.row_count
+        from 
+            sys.objects OBJ
+            JOIN sys.columns as COL ON
+                OBJ.object_id = COL.object_id
+            JOIN sys.pdw_table_mappings TM ON
+                OBJ.object_id = TM.object_id
+            JOIN sys.pdw_nodes_tables as NT on
+                TM.physical_name = NT.name
+            JOIN sys.pdw_nodes_partitions NP on
+                NT.object_id = NP.object_id
+                and NT.pdw_node_id = NP.pdw_node_id
+                and substring(TM.physical_name, 40, 10) = NP.distribution_id
+            JOIN sys.pdw_nodes_column_store_segments NCSS on
+                NP.partition_id = NCSS.partition_id
+                and NP.distribution_id = NCSS.distribution_id
+                and COL.column_id = NCSS.column_id
+        where
+            OBJ.name = 'Sale_Hash'
+            and COL.name = 'CustomerId'
+            and TM.physical_name  not like '%HdTable%'
+        order by
+            NT.distribution_id
+        ```
 
-- The queries have equality, inequality, or range predicates
-- The predicate columns and the ordered CCI columns are the same.
-- The predicate columns are used in the same order as the column ordinal of ordered CCI columns.
-
-1. Run the following query to show the segment overlaps for the `Sale_Hash` table:
-
-    ```sql
-    select
-        OBJ.name as table_name
-        ,COL.name as column_name
-        ,NT.distribution_id
-        ,NP.partition_id
-        ,NP.rows as partition_rows
-        ,NP.data_compression_desc
-        ,NCSS.segment_id
-        ,NCSS.version
-        ,NCSS.min_data_id
-        ,NCSS.max_data_id
-        ,NCSS.row_count
-    from 
-        sys.objects OBJ
-        JOIN sys.columns as COL ON
-            OBJ.object_id = COL.object_id
-        JOIN sys.pdw_table_mappings TM ON
-            OBJ.object_id = TM.object_id
-        JOIN sys.pdw_nodes_tables as NT on
-            TM.physical_name = NT.name
-        JOIN sys.pdw_nodes_partitions NP on
-            NT.object_id = NP.object_id
-            and NT.pdw_node_id = NP.pdw_node_id
-            and substring(TM.physical_name, 40, 10) = NP.distribution_id
-        JOIN sys.pdw_nodes_column_store_segments NCSS on
-            NP.partition_id = NCSS.partition_id
-            and NP.distribution_id = NCSS.distribution_id
-            and COL.column_id = NCSS.column_id
-    where
-        OBJ.name = 'Sale_Hash'
-        and COL.name = 'CustomerId'
-        and TM.physical_name  not like '%HdTable%'
-    order by
-        NT.distribution_id
-    ```
-
-    Here is a short description of the tables involved in the query:
+Here is an overview of the tables involved in this query:
 
     Table Name | Description
     ---|---
@@ -265,13 +280,11 @@ Queries with the following patterns typically run faster with ordered CCI:
     sys.pdw_nodes_partitions | Contains information on each local partition of each local table in each distribution.
     sys.pdw_nodes_column_store_segments | Contains information on each CCI segment for each partition and distribution column of each local table in each distribution. Filtered to match only the `CustomerId` column of the `Sale_Hash` table.
 
-    With this information on hand, take a look at the result:
+![CCI segment structure on each distribution](./media/lab3_ordered_cci.png)
 
-    ![CCI segment structure on each distribution](./media/lab3_ordered_cci.png)
+The result of the query shows a significant overlap between segments. There is overlap in customer ids between every single pair of segments (`CustomerId` values in the data range from 1 to 1,000,000). The segment structure of this CCI is clearly inefficient and will result in a lot of unnecessary reads from storage.
 
-    Browse through the result set and notice the significant overlap between segments. There is literally overlap in customer ids between every single pair of segments (`CustomerId` values in the data range from 1 to 1,000,000). The segment structure of this CCI is clearly inefficient and will result in a lot of unnecessary reads from storage.
-
-2. Run the following query to show the segment overlaps for the `Sale_Hash_Ordered` table:
+Let's now compare the segment overlaps for the same table, but with an ordered clustered columnstore index (the `Sale_Hash_Ordered` table).
 
     ```sql
     select 
@@ -309,8 +322,11 @@ Queries with the following patterns typically run faster with ordered CCI:
     order by
         NT.distribution_id
     ```
+The end result shows significantly less overlap between segments:
 
-    The CTAS used to create the `wwi_perf.Sale_Hash_Ordered` table was the following:
+    ![CCI segment structure on each distribution with ordered CCI](./media/lab3_ordered_cci_2.png)
+
+Let's dive into the creation of the `wwi_perf.Sale_Hash_Ordered` for a moment. The CTAS that was used to create the table was the following:
 
     ```sql
         CREATE TABLE [wwi_perf].[Sale_Hash_Ordered]
@@ -327,23 +343,15 @@ Queries with the following patterns typically run faster with ordered CCI:
         OPTION  (LABEL  = 'CTAS : Sale_Hash', MAXDOP 1)
     ```
 
-    Notice the creation of the ordered CCI with MAXDOP = 1. Each thread used for ordered CCI creation works on a subset of data and sorts it locally. There's no global sorting across data sorted by different threads. Using parallel threads can reduce the time to create an ordered CCI but will generate more overlapping segments than using a single thread. Currently, the MAXDOP option is only supported in creating an ordered CCI table using CREATE TABLE AS SELECT command. Creating an ordered CCI via CREATE INDEX or CREATE TABLE commands does not support the MAXDOP option.
+Notice the ordered CCI was created with MAXDOP = 1. Each thread used for ordered CCI creation works on a subset of data and sorts it locally. There's no global sorting across data sorted by different threads. Using parallel threads can reduce the time to create an ordered CCI but will generate more overlapping segments than using a single thread. Currently, the MAXDOP option is only supported in creating an ordered CCI table using CREATE TABLE AS SELECT command. Creating an ordered CCI via CREATE INDEX or CREATE TABLE commands does not support the MAXDOP option.
 
-    The results show significantly less overlap between segments:
-
-    ![CCI segment structure on each distribution with ordered CCI](./media/lab3_ordered_cci_2.png)
-
->**Note**
->
->You will learn more about the internal organization of the clustered columnstore indexes in the following lab.
-
-## 3.3. Table structure
+### 3.3. Table structure
 
 The structure of your tables plays a critical role in the overall performance of a data warehouse. Appropriate table distribution and partitioning are vital to performance.
 
 A distributed table appears as a single table, but behind the scenes its rows are stored across 60 distributions. Factors that decide the best table distribution are its size and how often the data in the table changes. In Azure Synapse Analytics the options for distributed tables are Hash-distributed, round-robin, and replicated.
 
-In a hash-distributed model, rows are distributed across distribution using a deterministic hash function applied on a specific column value. This means identical values will always be stored in the same distribution. Using this intrinsic knowledge, the SQL pool is able to minimize data movement and improve query performance. Hash-distributed tables are best for large fact tables that are greater than 2 GB in size and experiences frequent changes. When defining a hash-distributed table, choosing an appropriate distribution column is essential. Consider these factors when deciding on a distribution column:
+In a `hash-distributed` model, rows are distributed across distribution using a deterministic hash function applied on a specific column value. This means identical values will always be stored in the same distribution. Using this intrinsic knowledge, the SQL pool is able to minimize data movement and improve query performance. Hash-distributed tables are best for large fact tables that are greater than 2 GB in size and experiences frequent changes. When defining a hash-distributed table, choosing an appropriate distribution column is essential. Consider these factors when deciding on a distribution column:
 
     - choose a column whose data will distribute evenly and has many unique values. Remember these rows are being stored across 60 distributions, if the hash results in a large percentage of values being assigned to a single distribution, it will impact performance.
     - choose a column that has no or very few NULL values    
@@ -353,13 +361,13 @@ In a hash-distributed model, rows are distributed across distribution using a de
 
 If none of the columns of the table seem to be an ideal candidate for a distribution column. Consider creating a new column that is a composite of two or more column values. If this is the approach taken, take care to include the composite column in JOIN queries to minimize data movement.
 
-A round-robin distributed table has all of its rows evenly distributed across all 60 distributions. Identical values are not guaranteed to fall into the same distribution, and it is more common-place for data movement to occur in the process of executing a query, which may affect performance. Consider round-robin distribution when:
+A `round-robin` distributed table has all of its rows evenly distributed across all 60 distributions. Identical values are not guaranteed to fall into the same distribution, and it is more common-place for data movement to occur in the process of executing a query, which may affect performance. Consider round-robin distribution when:
 
     - there is no obvious joining key, or the join is less significant
     - there isn't an adequate candidate column for hash-distribution
     - the table is a temporary staging table
 
-A replicated table should be reserved for smaller, commonly used lookup tables that are less than 1.5 GB in size.
+A `replicated` table should be reserved for smaller, commonly used lookup tables that are less than 1.5 GB in size.
 
 Proper table partitioning can also provide improved performance. A partition divides data into smaller groups. Partitioning is supported on all Synapse SQL pool table types and distributions. Partitions are defined by a single column which is most commonly a date column. When loading large amounts of data, leveraging partitions reduces the amount of transaction logging, thus improving performance. The same can be said when deleting large amounts of data. Deleting data by partition is substantially faster than deleting a large amount of data row-by-row. As for querying performance, using a partition column in query filters limits the scan to that single partition, avoiding costly full table scans.
 
@@ -390,7 +398,7 @@ This simple query took about 30 seconds to execute and returned a count of appro
     OPTION (LABEL = 'Lab03: Heap')
     ```
 
-There is clearly something wrong with the `Sale_Heap` table that induces the performance hit.
+There is clearly something wrong with the `Sale_Heap` table that introduces a performance hit.
 
     > **Note**: the OPTION clause used in the statement. This comes in handy when you're looking to identify your query in the [sys.dm_pdw_exec_requests](https://docs.microsoft.com/en-us/sql/relational-databases/system-dynamic-management-views/sys-dm-pdw-exec-requests-transact-sql) DMV.
     >
@@ -593,9 +601,9 @@ Lastly, you can use the the DMV `sys.dm_pdw_dms_workers` to investigate how data
 
 ### 3.3.1. Improve table structure with distribution
 
-Now that we've identified the root problem of our performance woes, we are better equipped to fixing it.
+Now that we've identified the root problem of our performance woes, we are better equipped to fixing it. We've observed that the Sale_Heap table approximately 340 million records, which exceeds the recommended maximum size of a Heap table, which is 60 million. It is recommended that we move this data from a heap table to a clustered columnstore table. We can also identify that the CustomerId column identifies as an ideal hash column candidate. The CustomerId column would not contain nulls, and would be predominantly used in JOIN, GROUP BY, DISTINCT, OVER, HAVING  and WHERE clauses.
 
-1. Create an improved version of the table using CTAS (Create Table As Select):
+In this scenario, we already have the Sale_Hash CCI table. It was created using the existing heap table data using the following CTAS (Create Table As Select) statement:
 
     ```sql
     CREATE TABLE [wwi_perf].[Sale_Hash]
@@ -607,19 +615,17 @@ Now that we've identified the root problem of our performance woes, we are bette
     AS
     SELECT
         *
-    FROM	
+    FROM
         [wwi_perf].[Sale_Heap]
     ```
 
-    The query will take about 10 minutes to complete.
+The creation of this table took approximately 10 minutes to complete and index (on 340 million rows).
 
-    >Note:
-    >CTAS is a more customizable version of the SELECT...INTO statement.
-    >SELECT...INTO doesn't allow you to change either the distribution method or the index type as part of the operation. You create the new table by using the >default distribution type of ROUND_ROBIN, and the default table structure of CLUSTERED COLUMNSTORE INDEX.
-    >
+    > **Note**: CTAS is a more customizable version of the SELECT...INTO statement.
+    >SELECT...INTO doesn't allow you to change either the distribution method or the index type as part of the operation. You create the new table by using the default distribution type of ROUND_ROBIN, and the default table structure of CLUSTERED COLUMNSTORE INDEX.
     >With CTAS, on the other hand, you can specify both the distribution of the table data as well as the table structure type.
 
-2. Run the query again to see the performance improvements:
+When the original problematic query is run again, we can see a definite performance improvement.
 
     ```sql
     SELECT TOP 1000 * FROM
@@ -634,7 +640,7 @@ Now that we've identified the root problem of our performance woes, we are bette
     ) T
     ```
 
-3. Run the following EXPLAIN statement again to get the query plan (do not select `Query Plan` from the toolbar as it will try do download the query plan and open it in SQL Server Management Studio):
+We can further examine the execution of this query by repeating the EXPLAIN statement to retrieve the query plan:
 
     ```sql
     EXPLAIN
@@ -650,7 +656,7 @@ Now that we've identified the root problem of our performance woes, we are bette
     ) T
     ```
 
-    The resulting query plan is clearly much better than the previous one, as there is no more inter-distribution data movement involved.
+The resulting query plan is much better than the previous one, as there is no more inter-distribution data movement involved!
 
     ```xml
     <?xml version="1.0" encoding="utf-8"?>
@@ -675,122 +681,84 @@ Now that we've identified the root problem of our performance woes, we are bette
     </dsql_query>
     ```
 
-4. Try running a more complex query and investigate the execution plan and execution steps. Here is an example of a more complex query you can use:
-
-    ```sql
-    SELECT 
-        AVG(TotalProfit) as AvgMonthlyCustomerProfit
-    FROM
-    (
-        SELECT
-            S.CustomerId
-            ,D.Year
-            ,D.Month
-            ,SUM(S.TotalAmount) as TotalAmount
-            ,AVG(S.TotalAmount) as AvgAmount
-            ,SUM(S.ProfitAmount) as TotalProfit
-            ,AVG(S.ProfitAmount) as AvgProfit
-        FROM
-            [wwi_perf].[Sale_Partition01] S
-            join [wwi].[Date] D on 
-                D.DateId = S.TransactionDateId
-        GROUP BY
-            S.CustomerId
-            ,D.Year
-            ,D.Month
-    ) T
-    ```
-
 ### 3.3.2. Improve table structure with partitioning
 
-Improve further the structure of the table with partitioning
+We've already learned that Date columns make good candidates for partitioning tables at the distributions level. In the case of our Sale data, the `TransactionDateId` column is an ideal choice for partitioning.
 
-Date columns are usually good candidates for partitioning tables at the distributions level. In the case of your sales data, partitioning based on the `TransactionDateId` column seems to be a good choice.
+Back to our scenario, we have established two tables, Sale_Partition01 and Sale_Partition02 populated with the 340 million rows of data. The first partitioning scheme is month-based and the second is quarter-based. The following queries show the CTAS statements used to create each table.
 
-Your SQL pool already contains two versions of the `Sale` table that have been partitioned using `TransactionDateId`. These tables are `[wwi_perf].[Sale_Partition01]` annd `[wwi_perf].[Sale_Partition02]`. Below are the CTAS queries that have been used to create these tables.
-
->**Note**
->
->These queries have already been run on the SQL pool. If you want to test the CTAS queries yourself, make sure you replace the table names with new ones.
-
-```sql
-CREATE TABLE [wwi_perf].[Sale_Partition01]
-WITH
-(
-    DISTRIBUTION = HASH ( [CustomerId] ),
-    CLUSTERED COLUMNSTORE INDEX,
-    PARTITION
+    ```sql
+    CREATE TABLE [wwi_perf].[Sale_Partition01]
+    WITH
     (
-        [TransactionDateId] RANGE RIGHT FOR VALUES (
-            20190101, 20190201, 20190301, 20190401, 20190501, 20190601, 20190701, 20190801, 20190901, 20191001, 20191101, 20191201)
+        DISTRIBUTION = HASH ( [CustomerId] ),
+        CLUSTERED COLUMNSTORE INDEX,
+        PARTITION
+        (
+            [TransactionDateId] RANGE RIGHT FOR VALUES (
+                20190101, 20190201, 20190301, 20190401, 20190501, 20190601, 20190701, 20190801, 20190901, 20191001, 20191101, 20191201)
+        )
     )
-)
-AS
-SELECT
-    *
-FROM	
-    [wwi_perf].[Sale_Heap]
-OPTION  (LABEL  = 'CTAS : Sale_Partition01')
+    AS
+    SELECT
+        *
+    FROM
+        [wwi_perf].[Sale_Heap]
+    OPTION  (LABEL  = 'CTAS : Sale_Partition01')
 
-CREATE TABLE [wwi_perf].[Sale_Partition02]
-WITH
-(
-    DISTRIBUTION = HASH ( [CustomerId] ),
-    CLUSTERED COLUMNSTORE INDEX,
-    PARTITION
+    CREATE TABLE [wwi_perf].[Sale_Partition02]
+    WITH
     (
-        [TransactionDateId] RANGE RIGHT FOR VALUES (
-            20190101, 20190401, 20190701, 20191001)
+        DISTRIBUTION = HASH ( [CustomerId] ),
+        CLUSTERED COLUMNSTORE INDEX,
+        PARTITION
+        (
+            [TransactionDateId] RANGE RIGHT FOR VALUES (
+                20190101, 20190401, 20190701, 20191001)
+        )
     )
-)
-AS
-SELECT
-    *
-FROM	
-    [wwi_perf].[Sale_Heap]
-OPTION  (LABEL  = 'CTAS : Sale_Partition02')
-```
+    AS
+    SELECT
+        *
+    FROM
+        [wwi_perf].[Sale_Heap]
+    OPTION  (LABEL  = 'CTAS : Sale_Partition02')
+    ```
 
-Notice the two partitioning strategies we've used here. The first partitioning scheme is month-based and the second is quarter-based. You will explore in Lab 04 the subtle differences between these and understand the potential performance implications resulting from these choices.
+To be completed: **X# TODO: Complete observations**.
   
 ## 3.4. Query performance
 
 ### 3.4.1. Improve query performance with approximate count
 
-Improve COUNT performance
+COUNT queries tend to be expensive performance-wise. If you don't need an exact count and an approximate count will suffice, you can greatly improve performance by utilizing `APPROX_COUNT_DISTINCT`.
 
-1. The following query attempts to find the TOP 100 of customers that have the most sale transactions:
+In our scenario, we can retrieve an exact count of distinct customers using the following query:
 
     ```sql
     SELECT COUNT( DISTINCT CustomerId) from wwi_perf.Sale_Heap
     ```
 
-    Query takes up to 20 seconds to execute. That is expected, since distinct counts are one of the most difficult to optimize types of queries.
-
-2. Run the HyperLogLog approach:
+ This query takes up to 30 seconds to execute. That is expected, since distinct counts are difficult to optimize. With `APPROX_COUNT_DISTINCT`, the approximate result is returned in half the time.
 
     ```sql
     SELECT APPROX_COUNT_DISTINCT(CustomerId) from wwi_perf.Sale_Heap 
     ```
 
-    Query takes about half the time to execute.
-
 ### 3.4.2. Improve query performance with materialized views
 
-Use materialized views
+As opposed to a standard view, a materialized view pre-computes, stores, and maintains its data in a Synapse SQL pool just like a table with a clustered columnstore index. When a materialized view is read, it scans the index and applies changes from the delta store (where changes from the underlying tables are recorded). Here is a basic comparison between standard and materialized views:
 
-As opposed to a standard view, a materialized view pre-computes, stores, and maintains its data in a Synapse SQL pool just like a table. Here is a basic comparison between standard and materialized views:
+| Comparison                     | View                                         | Materialized View
+|:-------------------------------|:---------------------------------------------|:--------------------------------------------------------------|
+|View definition                 | Stored in Azure data warehouse.              | Stored in Azure data warehouse. |
+|View content                    | Generated each time when the view is used.   | Pre-processed and stored in Azure data warehouse during view creation.Updated as data is added to the underlying tables.|
+|Data refresh                    | Always updated                               | Always updated|
+|Speed to retrieve view data from complex queries     | Slow                                         | Fast  |
+|Extra storage                   | No                                           | Yes |
+|Syntax                          | CREATE VIEW                                  | CREATE MATERIALIZED VIEW AS SELECT |
 
-| Comparison                     | View                                         | Materialized View             
-|:-------------------------------|:---------------------------------------------|:--------------------------------------------------------------| 
-|View definition                 | Stored in Azure data warehouse.              | Stored in Azure data warehouse.    
-|View content                    | Generated each time when the view is used.   | Pre-processed and stored in Azure data warehouse during view creation. Updated as data is added to the underlying tables.                                             
-|Data refresh                    | Always updated                               | Always updated                          
-|Speed to retrieve view data from complex queries     | Slow                                         | Fast  
-|Extra storage                   | No                                           | Yes                             
-|Syntax                          | CREATE VIEW                                  | CREATE MATERIALIZED VIEW AS SELECT     
-
-1. Execute the following query to get an approximation of its execution time:
+In our scenario, we're going to use the quarterly partitioned table `Sale_Partition02` to compare the performance of retrieving the total amount and total profit with that of retrieving the same data leveraging a materialized view. The original queries to retrieve this information are:
 
     ```sql
     SELECT TOP 1000 * FROM
@@ -809,11 +777,7 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
             ,D.Year
             ,D.Quarter
     ) T
-    ```
 
-2. Execute this query as well (notice the slight difference):
-
-    ```sql
     SELECT TOP 1000 * FROM
     (
         SELECT
@@ -832,7 +796,9 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
     ) T
     ```
 
-3. Create a materialized view that can support both queries above:
+These queries take approximately **X#** seconds to execute.
+
+Here is the materialized view that has been created to support both of the original queries.
 
     ```sql
     CREATE MATERIALIZED VIEW
@@ -860,7 +826,7 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
         ,D.Month
     ```
 
-4. Run the following query to get an estimated execution plan (do not select `Query Plan` from the toolbar as it will try do download the query plan and open it in SQL Server Management Studio):
+Let's take the first query and retrieve its execution plan.
 
     ```sql
     EXPLAIN
@@ -882,7 +848,7 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
     ) T
     ```
 
-    The resulting execution plan shows how the newly created materialized view is used to optimize the execution. Note the `FROM [SQLPool02].[wwi_perf].[mvCustomerSales]` in the `<dsql_operations>` element.
+The resulting execution plan shows how the newly created materialized view is used to optimize the execution. Note the `FROM [SQLPool02].[wwi_perf].[mvCustomerSales]` in the `<dsql_operations>` element.
 
     ```xml
     <?xml version="1.0" encoding="utf-8"?>
@@ -913,7 +879,7 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
     </dsql_query>
     ```
 
-5. The same materialized view is also used to optimize the second query. Get its execution plan:
+The same materialized view is also used to optimize the second query.
 
     ```sql
     EXPLAIN
@@ -935,7 +901,7 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
     ) T
     ```
 
-    The resulting execution plan shows the use of the same materialized view to optimize execution:
+The resulting execution plan shows the use of the same materialized view to optimize execution:
 
     ```xml
     <?xml version="1.0" encoding="utf-8"?>
@@ -966,11 +932,9 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
     </dsql_query>
     ```
 
-    >**Note**
-    >
-    >Even if the two queries have different aggregation levels, the query optimizer is able to infer the use of the materialized view. This happens because the materialized view covers both aggregation levels (`Quarter` and `Month`) as well as both aggregation measures (`TotalAmount` and `ProfitAmount`).
+    > **Note**: Even if the two queries have different aggregation levels, the query optimizer is able to infer the use of the materialized view. This happens because the materialized view covers both aggregation levels (`Quarter` and `Month`) as well as both aggregation measures (`TotalAmount` and `ProfitAmount`).
 
-6. Check the materialized view overhead:
+2. Check the materialized view overhead:
 
     ```sql
     DBCC PDW_SHOWMATERIALIZEDVIEWOVERHEAD ( 'wwi_perf.mvCustomerSales' )
@@ -978,7 +942,7 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
 
     The results show that `BASE_VIEW_ROWS` are equal to `TOTAL_ROWS` (and hence `OVERHEAD_RATIO` is 1). The materialized view is perfectly aligned with the base view. This situation is expected to change once the underlying data starts to change.
 
-7. Update the original data the materialized view was built on:
+3. Update the original data the materialized view was built on:
 
     ```sql
     UPDATE
@@ -990,7 +954,7 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
         CustomerId BETWEEN 100 and 200
     ```
 
-8. Check the materialized view overhead again:
+4. Check the materialized view overhead again:
 
     ```sql
     DBCC PDW_SHOWMATERIALIZEDVIEWOVERHEAD ( 'wwi_perf.mvCustomerSales' )
@@ -1000,7 +964,7 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
 
     There is now a delta stored by the materialized view which results in `TOTAL_ROWS` being greater than `BASE_VIEW_ROWS` and `OVERHEAD_RATIO` being greater than 1.
 
-9. Rebuild the materialized view and check that the overhead ration went back to 1:
+5. Rebuild the materialized view and check that the overhead ration went back to 1:
 
     ```sql
     ALTER MATERIALIZED VIEW [wwi_perf].[mvCustomerSales] REBUILD
@@ -1367,9 +1331,6 @@ Improve the execution plan of the query with a materialized view
     </dsql_operations>
     </dsql_query>
     ```
-
-
-
 
 ### 3.4.3. Improve query performance with result set caching
 
