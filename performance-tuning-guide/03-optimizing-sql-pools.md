@@ -2,17 +2,21 @@
 
 - [3. Optimizing SQL Pools](#3-optimizing-sql-pools)
   - [3.1. Sizing and resource allocation (DWUs)](#31-sizing-and-resource-allocation-dwus)
-  - [3.2. Table structure](#32-table-structure)
-    - [3.2.1. Improve table structure with distribution](#321-improve-table-structure-with-distribution)
-    - [3.2.2. Improve table structure with partitioning](#322-improve-table-structure-with-partitioning)
-  - [3.3. Query performance](#33-query-performance)
-    - [3.3.1. Improve query performance with approximate count](#331-improve-query-performance-with-approximate-count)
-    - [3.3.2. Improve query performance with materialized views](#332-improve-query-performance-with-materialized-views)
-    - [3.3.3. Improve query performance with result set caching](#333-improve-query-performance-with-result-set-caching)
-  - [3.4. Manage statistics](#34-manage-statistics)
-  - [3.5. Manage indexes](#35-manage-indexes)
-    - [3.5.1. Create and update indexes](#351-create-and-update-indexes)
-    - [3.5.2. Ordered Clustered Columnstore Indexes](#352-ordered-clustered-columnstore-indexes)
+    - [3.1.1. Memory Usage](#311-memory-usage)
+    - [3.1.2. Transaction log size](#312-transaction-log-size)
+    - [3.1.3. Tempdb usage](#313-tempdb-usage)
+    - [3.1.4. Azure Synapse SQL pool metrics](#314-azure-synapse-sql-pool-metrics)
+  - [3.2. Manage indexes](#32-manage-indexes)
+    - [3.2.1. Create and update indexes](#321-create-and-update-indexes)
+    - [3.2.2. Ordered Clustered Columnstore Indexes](#322-ordered-clustered-columnstore-indexes)
+  - [3.3. Table structure](#33-table-structure)
+    - [3.3.1. Improve table structure with distribution](#331-improve-table-structure-with-distribution)
+    - [3.3.2. Improve table structure with partitioning](#332-improve-table-structure-with-partitioning)
+  - [3.4. Query performance](#34-query-performance)
+    - [3.4.1. Improve query performance with approximate count](#341-improve-query-performance-with-approximate-count)
+    - [3.4.2. Improve query performance with materialized views](#342-improve-query-performance-with-materialized-views)
+    - [3.4.3. Improve query performance with result set caching](#343-improve-query-performance-with-result-set-caching)
+  - [3.5. Manage statistics](#35-manage-statistics)
   - [3.6. Monitor space usage](#36-monitor-space-usage)
     - [3.6.1. Analyze space used by tables](#361-analyze-space-used-by-tables)
     - [3.6.2. Advanced space usage analysis](#362-advanced-space-usage-analysis)
@@ -26,9 +30,11 @@
 
 A Synapse SQL Pool Data Warehousing Unit (DWU) is a **high-level representation of usage** that consists of a combination of CPU, memory, and IO resources. To determine the number of DWUs to select is to strike a balance between price and performance. When creating or scaling a SQL Pool, you can select from a range of 100 cDWU (DW100c) up to 30,000 cDWU (DW30000c). (`cDWU` is defined as compute Data Warehouse Unit.)
 
-The general guidance is to start small, monitor your workload, and adjust as needed. You can surface valuable performance metrics by leveraging the monitoring Metrics feature of the SQL Pool, as well as by taking advantage of a series of Dynamic Management Views (DMVs). Leveraging these tools will help you monitor your SQL workload and provide the insight necessary to make an educated decision on whether scaling your SQL Pool would be beneficial.
+The general guidance is to start small, monitor your workload, and adjust as needed. You can surface valuable performance metrics by leveraging the monitoring `Metrics` feature of the SQL Pool, as well as by taking advantage of a series of `Dynamic Management Views (DMVs)`. Using these tools will help you monitor your SQL workload and provide the insight necessary to make an educated decision on whether scaling your SQL Pool would be beneficial.
 
-Compare current memory usage versus total memory available in the SQL Pool through the use of the `sys.dm_pdw_nodes_os_performance_counters` DMV. If you see the memory usage approaching the limit, it is time to scale up.
+### 3.1.1. Memory Usage
+
+Inadequate memory allocation is a common source of performance issues. You are able to compare current memory usage versus total memory available in the SQL Pool through the use of the `sys.dm_pdw_nodes_os_performance_counters` DMV. If you see the memory usage approaching the limit, it is time to scale up.
 
     ```sql
     -- Memory consumption
@@ -52,6 +58,8 @@ Compare current memory usage versus total memory available in the SQL Pool throu
         AND pc2.counter_name = 'Total Server Memory (KB)'
     ```
 
+### 3.1.2. Transaction log size
+
 Another aspect that should be monitored is the size of the transaction log. If it is determined that a log file is reaching 160 GB in size, you should consider scaling up or reducing the transaction size of your workload. You can monitor the transaction log size through the `sys.dm_pdw_nodes_os_performance_counters` DMV.
 
     ```sql
@@ -66,6 +74,8 @@ Another aspect that should be monitored is the size of the transaction log. If i
         instance_name like 'Distribution_%'
         AND counter_name = 'Log File(s) Used Size (KB)'
     ```
+
+### 3.1.3. Tempdb usage
 
 `Tempdb` is used to hold intermediate results during query execution. For each 100 cDWUs allocated in your pool, there is 399 GB of tempdb space available. By using several DMVs in conjunction with the `microsoft.vw_sql_requests` view from the [`Microsoft Toolkit for SQL`](https://github.com/Microsoft/sql-data-warehouse-samples/tree/master/solutions/monitoring), you can determine if the workload you are running is trending toward capacity.
 
@@ -99,19 +109,263 @@ Another aspect that should be monitored is the size of the transaction log. If i
         ORDER BY sr.request_id;
     ```
 
+### 3.1.4. Azure Synapse SQL pool metrics
+
 As an alternative to using the DMVs, you can also access the `Metrics` feature of the SQL Pool to obtain insight into DWU, tempdb, and memory usage. Access the `Metrics` feature by navigating to your SQL Pool resource in the Azure Portal, then from the left menu beneath the `Monitoring` heading, you will find the `Metrics` item. Here, you are able to create your own dashboards and compose useful chart visualizations.
 
     ![The available metrics of the SQL Pool are displayed.](media/sqlpool_availablemetrics.png "Available SQL Pool Metrics")
 
     ![A sample performance metric chart is shown plotting DWU limit, DWU used (max) and memory used percentage.](media/sampleperformancemetricchart.png "Sample performance metric chart")
 
-Scaling the size of your SQL Pool is definitely one way to improve the performance. It is critical, however, to also look into other root causes that may be impacting performance. Evaluating table design, indexes, caching, etc. can also provide valuable insight into performance that may be solved without incurring the additional cost of scaling the pool.
+Scaling the size of your SQL Pool is definitely one way to improve the performance. It is critical, however, to also look into other root causes that may be affecting performance. Evaluating table structure, indexes, result set caching, etc. can also provide valuable insight into performance issues that may be solved without incurring the additional cost of scaling the pool.
 
-## 3.2. Table structure
+## 3.2. Manage indexes
 
-Identify performance issues related to tables
+### 3.2.1. Create and update indexes
 
-1. In `Synapse Studio`, open a new SQL script and run the following statement (make sure you run queries on SQL pools as opposed to `SQL on-demand`):
+Clustered Columnstore Index vs. Heap vs. Clustered and Nonclustered
+
+Clustered indexes may outperform clustered columnstore indexes when a single row needs to be quickly retrieved. For queries where a single or very few row lookup is required to perform with extreme speed, consider a cluster index or nonclustered secondary index. The disadvantage to using a clustered index is that only queries that benefit are the ones that use a highly selective filter on the clustered index column. To improve filter on other columns a nonclustered index can be added to other columns. However, each index which is added to a table adds both space and processing time to loads.
+
+1. Retrieve information about a single customer from the table with CCI:
+
+    ```sql
+    SELECT
+        *
+    FROM
+        [wwi_perf].[Sale_Hash]
+    WHERE
+        CustomerId = 500000
+    ```
+
+    Take a note of the execution time.
+
+2. Retrieve information about a single customer from the table with a clustered index:
+
+    ```sql
+    SELECT
+        *
+    FROM
+        [wwi_perf].[Sale_Index]
+    WHERE
+        CustomerId = 500000
+    ```
+
+    The execution time is similar to the one for the query above. Clustered columnstore indexes have no significant advantage over clustered indexes in the specific scenario of highly selective queries.
+
+3. Retrieve information about multiple customers from the table with CCI:
+
+    ```sql
+    SELECT
+        *
+    FROM
+        [wwi_perf].[Sale_Hash]
+    WHERE
+        CustomerId between 400000 and 400100
+    ```
+
+    and then retrive the same information from the table with a clustered index:
+
+    ```sql
+    SELECT
+        *
+    FROM
+        [wwi_perf].[Sale_Index]
+    WHERE
+        CustomerId between 400000 and 400020
+    ```
+
+    Run both queries several times to get a stable execution time. Under normal conditions, you should see that even with a relatively small number of customers, the CCI table starts yielding better results than the clustered index table.
+
+4. Now add an extra condition on the query, one that refers to the `StoreId` column:
+
+    ```sql
+    SELECT
+        *
+    FROM
+        [wwi_perf].[Sale_Index]
+    WHERE
+        CustomerId between 400000 and 400020
+        and StoreId between 2000 and 4000
+    ```
+
+    Take a note of the execution time.
+
+5. Create a non-clustered index on the `StoreId` column:
+
+    ```sql
+    CREATE INDEX Store_Index on wwi_perf.Sale_Index (StoreId)
+    ```
+
+    The creation of the index should complete in a few minutes. Once the index is created, run the previous query again. Notice the improvement in execution time resulting from the newly created non-clustered index.
+
+    >**Note**
+    >
+    >Creating a non-clustered index on the `wwi_perf.Sale_Index` is based on the already existing clustered index. As a bonus exercise, try to create the same type of index on the `wwi_perf.Sale_Hash` table. Can you explain the difference in index creation time?
+
+### 3.2.2. Ordered Clustered Columnstore Indexes
+
+By default, for each table created without an index option, an internal component (index builder) creates a non-ordered clustered columnstore index (CCI) on it. Data in each column is compressed into a separate CCI rowgroup segment. There's metadata on each segment's value range, so segments that are outside the bounds of the query predicate aren't read from disk during query execution. CCI offers the highest level of data compression and reduces the size of segments to read so queries can run faster. However, because the index builder doesn't sort data before compressing them into segments, segments with overlapping value ranges could occur, causing queries to read more segments from disk and take longer to finish.
+
+When creating an ordered CCI, the Synapse SQL engine sorts the existing data in memory by the order key(s) before the index builder compresses them into index segments. With sorted data, segment overlapping is reduced allowing queries to have a more efficient segment elimination and thus faster performance because the number of segments to read from disk is smaller. If all data can be sorted in memory at once, then segment overlapping can be avoided. Due to large tables in data warehouses, this scenario doesn't happen often.
+
+Queries with the following patterns typically run faster with ordered CCI:
+
+- The queries have equality, inequality, or range predicates
+- The predicate columns and the ordered CCI columns are the same.
+- The predicate columns are used in the same order as the column ordinal of ordered CCI columns.
+
+1. Run the following query to show the segment overlaps for the `Sale_Hash` table:
+
+    ```sql
+    select
+        OBJ.name as table_name
+        ,COL.name as column_name
+        ,NT.distribution_id
+        ,NP.partition_id
+        ,NP.rows as partition_rows
+        ,NP.data_compression_desc
+        ,NCSS.segment_id
+        ,NCSS.version
+        ,NCSS.min_data_id
+        ,NCSS.max_data_id
+        ,NCSS.row_count
+    from 
+        sys.objects OBJ
+        JOIN sys.columns as COL ON
+            OBJ.object_id = COL.object_id
+        JOIN sys.pdw_table_mappings TM ON
+            OBJ.object_id = TM.object_id
+        JOIN sys.pdw_nodes_tables as NT on
+            TM.physical_name = NT.name
+        JOIN sys.pdw_nodes_partitions NP on
+            NT.object_id = NP.object_id
+            and NT.pdw_node_id = NP.pdw_node_id
+            and substring(TM.physical_name, 40, 10) = NP.distribution_id
+        JOIN sys.pdw_nodes_column_store_segments NCSS on
+            NP.partition_id = NCSS.partition_id
+            and NP.distribution_id = NCSS.distribution_id
+            and COL.column_id = NCSS.column_id
+    where
+        OBJ.name = 'Sale_Hash'
+        and COL.name = 'CustomerId'
+        and TM.physical_name  not like '%HdTable%'
+    order by
+        NT.distribution_id
+    ```
+
+    Here is a short description of the tables involved in the query:
+
+    Table Name | Description
+    ---|---
+    sys.objects | All objects in the database. Filtered to match only the `Sale_Hash` table.
+    sys.columns | All columns in the database. Filtered to match only the `CustomerId` column of the `Sale_Hash` table.
+    sys.pdw_table_mappings | Maps each table to local tables on physical nodes and distributions.
+    sys.pdw_nodes_tables | Contains information on each local table in each distribution.
+    sys.pdw_nodes_partitions | Contains information on each local partition of each local table in each distribution.
+    sys.pdw_nodes_column_store_segments | Contains information on each CCI segment for each partition and distribution column of each local table in each distribution. Filtered to match only the `CustomerId` column of the `Sale_Hash` table.
+
+    With this information on hand, take a look at the result:
+
+    ![CCI segment structure on each distribution](./media/lab3_ordered_cci.png)
+
+    Browse through the result set and notice the significant overlap between segments. There is literally overlap in customer ids between every single pair of segments (`CustomerId` values in the data range from 1 to 1,000,000). The segment structure of this CCI is clearly inefficient and will result in a lot of unnecessary reads from storage.
+
+2. Run the following query to show the segment overlaps for the `Sale_Hash_Ordered` table:
+
+    ```sql
+    select 
+        OBJ.name as table_name
+        ,COL.name as column_name
+        ,NT.distribution_id
+        ,NP.partition_id
+        ,NP.rows as partition_rows
+        ,NP.data_compression_desc
+        ,NCSS.segment_id
+        ,NCSS.version
+        ,NCSS.min_data_id
+        ,NCSS.max_data_id
+        ,NCSS.row_count
+    from 
+        sys.objects OBJ
+        JOIN sys.columns as COL ON
+            OBJ.object_id = COL.object_id
+        JOIN sys.pdw_table_mappings TM ON
+            OBJ.object_id = TM.object_id
+        JOIN sys.pdw_nodes_tables as NT on
+            TM.physical_name = NT.name
+        JOIN sys.pdw_nodes_partitions NP on
+            NT.object_id = NP.object_id
+            and NT.pdw_node_id = NP.pdw_node_id
+            and substring(TM.physical_name, 40, 10) = NP.distribution_id
+        JOIN sys.pdw_nodes_column_store_segments NCSS on
+            NP.partition_id = NCSS.partition_id
+            and NP.distribution_id = NCSS.distribution_id
+            and COL.column_id = NCSS.column_id
+    where
+        OBJ.name = 'Sale_Hash_Ordered'
+        and COL.name = 'CustomerId'
+        and TM.physical_name  not like '%HdTable%'
+    order by
+        NT.distribution_id
+    ```
+
+    The CTAS used to create the `wwi_perf.Sale_Hash_Ordered` table was the following:
+
+    ```sql
+    CREATE TABLE [wwi_perf].[Sale_Hash_Ordered]
+    WITH
+    (
+        DISTRIBUTION = HASH ( [CustomerId] ),
+        CLUSTERED COLUMNSTORE INDEX ORDER( [CustomerId] )
+    )
+    AS
+    SELECT
+        *
+    FROM	
+        [wwi_perf].[Sale_Heap]
+    OPTION  (LABEL  = 'CTAS : Sale_Hash', MAXDOP 1)
+    ```
+
+    Notice the creation of the ordered CCI with MAXDOP = 1. Each thread used for ordered CCI creation works on a subset of data and sorts it locally. There's no global sorting across data sorted by different threads. Using parallel threads can reduce the time to create an ordered CCI but will generate more overlapping segments than using a single thread. Currently, the MAXDOP option is only supported in creating an ordered CCI table using CREATE TABLE AS SELECT command. Creating an ordered CCI via CREATE INDEX or CREATE TABLE commands does not support the MAXDOP option.
+
+    The results show significantly less overlap between segments:
+
+    ![CCI segment structure on each distribution with ordered CCI](./media/lab3_ordered_cci_2.png)
+
+>**Note**
+>
+>You will learn more about the internal organization of the clustered columnstore indexes in the following lab.
+
+## 3.3. Table structure
+
+The structure of your tables plays a critical role in the overall performance of a data warehouse. Appropriate table distribution and partitioning are vital to performance.
+
+A distributed table appears as a single table, but behind the scenes its rows are stored across 60 distributions. Factors that decide the best table distribution are its size and how often the data in the table changes. In Azure Synapse Analytics the options for distributed tables are Hash-distributed, round-robin, and replicated.
+
+In a hash-distributed model, rows are distributed across distribution using a deterministic hash function applied on a specific column value. This means identical values will always be stored in the same distribution. Using this intrinsic knowledge, the SQL pool is able to minimize data movement and improve query performance. Hash-distributed tables are best for large fact tables that are greater than 2 GB in size and experiences frequent changes. When defining a hash-distributed table, choosing an appropriate distribution column is essential. Consider these factors when deciding on a distribution column:
+
+    - choose a column whose data will distribute evenly and has many unique values. Remember these rows are being stored across 60 distributions, if the hash results in a large percentage of values being assigned to a single distribution, it will impact performance.
+    - choose a column that has no or very few NULL values    
+    - choose a column that is commonly used in JOIN, GROUP BY, DISTINCT, OVER and HAVING clauses
+    - avoid columns **not** being used in WHERE clauses
+    - avoid date columns (if many users are filtering by common date ranges it would negate the benefits of the distribution)
+
+If none of the columns of the table seem to be an ideal candidate for a distribution column. Consider creating a new column that is a composite of two or more column values. If this is the approach taken, take care to include the composite column in JOIN queries to minimize data movement.
+
+A round-robin distributed table has all of its rows evenly distributed across all 60 distributions. Identical values are not guaranteed to fall into the same distribution, and it is more common-place for data movement to occur in the process of executing a query, which may affect performance. Consider round-robin distribution when:
+
+    - there is no obvious joining key, or the join is less significant
+    - there isn't an adequate candidate column for hash-distribution
+    - the table is a temporary staging table
+
+A replicated table should be reserved for smaller, commonly used lookup tables that are less than 1.5 GB in size.
+
+Proper table partitioning can also provide improved performance. A partition divides data into smaller groups. Partitioning is supported on all Synapse SQL pool table types and distributions. Partitions are defined by a single column which is most commonly a date column. When loading large amounts of data, leveraging partitions reduces the amount of transaction logging, thus improving performance. The same can be said when deleting large amounts of data. Deleting data by partition is substantially faster than deleting a large amount of data row-by-row. As for querying performance, using a partition column in query filters limits the scan to that single partition, avoiding costly full table scans.
+
+As an example, we'll walk through the following example scenario to demonstrate how to investigate and identify performance issues.
+
+Identifying there is a problem is the first step in rectifying it. For instance, consider the following query:
 
     ```sql
     SELECT  
@@ -120,9 +374,7 @@ Identify performance issues related to tables
         [wwi_perf].[Sale_Heap]
     ```
 
-    The script takes up to 30 seconds to execute and returns a count of ~ 340 million rows in the table.
-
-2. Run the following (more complex) statement:
+This simple query took about 30 seconds to execute and returned a count of approximately 340 million rows from the table. That isn't too bad, there doesn't seem to be a problem. However, this next query which is executed on the same table took a couple minutes to return:
 
     ```sql
     SELECT TOP 1000 * FROM
@@ -138,18 +390,17 @@ Identify performance issues related to tables
     OPTION (LABEL = 'Lab03: Heap')
     ```
 
-    The script takes up to a couple of minutes to execute and returns the result. There is clearly something wrong with the `Sale_Heap` table that induces the performance hit.
+There is clearly something wrong with the `Sale_Heap` table that induces the performance hit.
 
-    > Note the OPTION clause used in the statement. This comes in handy when you're looking to identify your query in the [sys.dm_pdw_exec_requests](https://docs.microsoft.com/en-us/sql/relational-databases/system-dynamic-management-views/sys-dm-pdw-exec-requests-transact-sql) DMV.
+    > **Note**: the OPTION clause used in the statement. This comes in handy when you're looking to identify your query in the [sys.dm_pdw_exec_requests](https://docs.microsoft.com/en-us/sql/relational-databases/system-dynamic-management-views/sys-dm-pdw-exec-requests-transact-sql) DMV.
     >
     >```sql
     >SELECT  *
     >FROM    sys.dm_pdw_exec_requests
     >WHERE   [label] = 'Lab03: Heap';
     >```
-    >
 
-3. Check the structure of the `Sale_Heap` table, by right clicking on it in the `Data` hub and selecting `New SQL script` and then `CREATE`. Take a look at the script used to create the table:
+The `Sale_Heap` table was created as a `HEAP` table with a `ROUND_ROBIN` distribution.
 
     ```sql
     CREATE TABLE [wwi_perf].[Sale_Heap]
@@ -173,15 +424,18 @@ Identify performance issues related to tables
     )
     ```
 
-    You can immediately spot at least two reasons for the performance hit:
+You can immediately spot at least two reasons for the performance hit:
+
     - The `ROUND_ROBIN` distribution
     - The `HEAP` structure of the table
 
-    > **NOTE**
-    >
-    >In this case, when we are looking for fast query response times, the heap structure is not a good choice as we will see in a moment. Still, there are cases where using a heap table can help performance rather than hurting it. One such example is when we're looking to ingest large amounts of data into the SQL pool.
+    > **NOTE**: In this case, when we are looking for fast query response times, the heap structure is not a good choice as we will see in a moment. Still, there are cases where using a heap table can be beneficial to performance rather than hurting it. A beneficial application of a heap table is when we're looking to ingest large amounts of data into the SQL pool.
 
-4. Run the same script as the one you've run at step 2, but this time with the `EXPLAIN WITH_RECOMMENDATIONS` line before it:
+To gain further insight into the degradation of performance, we can issue the same query with the `EXPLAIN WITH_RECOMMENDATIONS` clause. The `EXPLAIN WITH_RECOMMENDATIONS` clause returns the query plan for an Azure Synapse Analytics SQL statement without actually running the statement. Use this query plan to preview which operations will require data movement and to view the estimated costs of the query operations. By default, you will get the execution plan in XML format, but you can also export to other formats like CSV or JSON.
+
+    > **TIP**: Do not select `Query Plan` from the toolbar as it will try do download the query plan and open it in SQL Server Management Studio. 
+
+If we run the longer executing script from our scenario, but this time with the `EXPLAIN WITH_RECOMMENDATIONS` clause:
 
     ```sql
     EXPLAIN WITH_RECOMMENDATIONS
@@ -197,9 +451,7 @@ Identify performance issues related to tables
     ) T
     ```
 
-    The `EXPLAIN WITH_RECOMMENDATIONS` clause returns the query plan for an Azure Synapse Analytics SQL statement without running the statement. Use EXPLAIN to preview which operations will require data movement and to view the estimated costs of the query operations. By default, you will get the execution plan in XML format, which you can export to other formats like CSV or JSON. Do not select `Query Plan` from the toolbar as it will try do download the query plan and open it in SQL Server Management Studio.
-
-    Your query should return something similar to:
+The query will return:
 
     ```xml
     <?xml version=""1.0"" encoding=""utf-8""?>
@@ -253,31 +505,31 @@ Identify performance issues related to tables
     </dsql_query>
     ```
 
-    Notice the details of the internal layout of the MPP system:
+Notice the details of the internal layout of the MPP system:
 
-    `<dsql_query number_nodes=""4"" number_distributions=""60"" number_distributions_per_node=""15"">`
+`<dsql_query number_nodes=""4"" number_distributions=""60"" number_distributions_per_node=""15"">`
 
-    This layout is given by the current Date Warehouse Units (DWU) setting. In the setup used for the example above, we were running at `DW2000c` which means that there are 4 physical nodes to service the 60 distributions, giving a number of 15 distributions per physical node. Depending on your own DWU settings, these numbers will vary.
+This layout is given by the current Date Warehouse Units (DWU) setting. In the setup used for the example above, we were running at `DW2000c` which means that there are 4 physical nodes to service the 60 distributions, giving a number of 15 distributions per physical node. Depending on your own DWU settings, these numbers will vary.
 
-    The query plan indicates data movement is required. This is indicated by the `SHUFFLE_MOVE` distributed SQL operation. Data movement is an operation where parts of the distributed tables are moved to different nodes during query execution. This operation is required where the data is not available on the target node, most commonly when the tables do not share the distribution key. The most common data movement operation is shuffle. During shuffle, for each input row, Synapse computes a hash value using the join columns and then sends that row to the node that owns that hash value. Either one or both sides of join can participate in the shuffle. The diagram below displays shuffle to implement join between tables T1 and T2 where neither of the tables is distributed on the join column col2.
+The query plan indicates data movement is required. This is indicated by the `SHUFFLE_MOVE` distributed SQL operation. Data movement is an operation where parts of the distributed tables are moved to different nodes during query execution. This operation is required where the data is not available on the target node, most commonly when the tables do not share the distribution key. The most common data movement operation is shuffle. During shuffle, for each input row, Synapse computes a hash value using the join columns and then sends that row to the node that owns that hash value. Either one or both sides of join can participate in the shuffle. The diagram below displays shuffle to implement join between tables T1 and T2 where neither of the tables is distributed on the join column col2.
 
-    ![Shuffle move conceptual representation](./media/lab3_shuffle_move.png)
+![Shuffle move conceptual representation](./media/lab3_shuffle_move.png)
 
-    Let's dive now into the details provided by the query plan to understand some of the problems our current approach has. The following table contains the description of every operation mentioned in the query plan:
+Let's dive into the details provided by the query plan to understand some of the problems of our current approach. The following table contains the description of every operation mentioned in the query plan:
 
-    Operation | Operation Type | Description
-    ---|---|---
-    1 | RND_ID | Identifies an object that will be created. In our case, it's the `TEMP_ID_76` internal table.
-    2 | ON | Specifies the location (nodes or distributions) where the operation will occur. `AllDistributions` means here the operation will be performed on each of the 60 distributions of the SQL pool. The operation will be a SQL operation (specified via `<sql_operations>`) that will create the  `TEMP_ID_76` table.
-    3 | SHUFFLE_MOVE | The list of shuffle columns contains only one column which is `CustomerId` (specified via `<suffle_columns>`). The values will be distributed to the hash owning distributions and saved locally in the `TEMP_ID_76` tables. The operation will output an estimated number of 41265.25 rows (specified via `<operation_cost>`). According to the same section, the average resulting row size is 13 bytes.
-    4 | RETURN | Data resulting from the shuffle operation will be collected from all distributions (see `<location>`) by querying the internal temporary table `TEMP_ID_76`.
-    5 | ON | The `TEMP_ID_76` will be deleted from all distributions.
+Operation | Operation Type | Description
+---|---|---
+1 | RND_ID | Identifies an object that will be created. In our case, it's the `TEMP_ID_76` internal table.
+2 | ON | Specifies the location (nodes or distributions) where the operation will occur. `AllDistributions` means here the operation will be performed on each of the 60 distributions of the SQL pool. The operation will be a SQL operation (specified via `<sql_operations>`) that will create the  `TEMP_ID_76` table.
+3 | SHUFFLE_MOVE | The list of shuffle columns contains only one column which is `CustomerId` (specified via `<shuffle_columns>`). The values will be distributed to the hash owning distributions and saved locally in the `TEMP_ID_76` tables. The operation will output an estimated number of 41265.25 rows (specified via `<operation_cost>`). According to the same section, the average resulting row size is 13 bytes.
+4 | RETURN | Data resulting from the shuffle operation will be collected from all distributions (see `<location>`) by querying the internal temporary table `TEMP_ID_76`.
+5 | ON | The `TEMP_ID_76` will be deleted from all distributions.
 
-    It becomes clear now what is the root cause of the performance problem: the inter-distribution data movements. This is actually one of the simplest examples given the small size of the data that needs to be shuffled. You can image how much worse things become when the shuffled row size becomes larger.
+It becomes clear now what is the root cause of the performance problem: the inter-distribution data movements. This is actually one of the simplest examples given the small size of the data that needs to be shuffled. You can image how much worse things become when the shuffled row size becomes larger.
 
-    You can learn more about the structure of the query plan generated by the EXPLAIN statement [here](https://docs.microsoft.com/en-us/sql/t-sql/queries/explain-transact-sql?view=azure-sqldw-latest).
+You can learn more about the structure of the query plan generated by the EXPLAIN statement [here](https://docs.microsoft.com/en-us/sql/t-sql/queries/explain-transact-sql?view=azure-sqldw-latest).
 
-5. Besides the `EXPLAIN` statement, you can also understand the plan details using the `sys.dm_pdw_request_steps` DMV.
+1. Besides the `EXPLAIN` statement, you can also understand the plan details using the `sys.dm_pdw_request_steps` DMV.
 
     Query the `sys.dm_pdw_exec_requests` DMW to find your query id (this is for the query you executed previously at step 2):
 
@@ -294,7 +546,7 @@ Identify performance issues related to tables
 
     ![Retrieving the query id](./media/lab3_query_id.png)
 
-6. With the query id (`QID473552` in this case) you can now investigate the individual steps of the query:
+2. With the query id (`QID473552` in this case) you can now investigate the individual steps of the query:
 
     ```sql
     SELECT
@@ -311,7 +563,7 @@ Identify performance issues related to tables
 
     ![Query execution steps](./media/lab3_shuffle_move_2.png)
 
-7. Get more details on the problematic step using the following SQL statement:
+3. Get more details on the problematic step using the following SQL statement:
 
     ```sql
     SELECT
@@ -327,7 +579,7 @@ Identify performance issues related to tables
 
     ![Query execution step details](./media/lab3_shuffle_move_3.png)
 
-8. Finally, you can use the following SQL statement to investigate data movement on the distributed databases:
+6. Finally, you can use the following SQL statement to investigate data movement on the distributed databases:
 
     ```sql
     SELECT
@@ -345,7 +597,7 @@ Identify performance issues related to tables
 
     ![Query execution step data movement](./media/lab3_shuffle_move_4.png)
 
-### 3.2.1. Improve table structure with distribution
+### 3.3.1. Improve table structure with distribution
 
 Improve table structure with hash distribution and columnstore index
 
@@ -455,8 +707,7 @@ Improve table structure with hash distribution and columnstore index
     ) T
     ```
 
-
-### 3.2.2. Improve table structure with partitioning
+### 3.3.2. Improve table structure with partitioning
 
 Improve further the structure of the table with partitioning
 
@@ -508,9 +759,9 @@ OPTION  (LABEL  = 'CTAS : Sale_Partition02')
 
 Notice the two partitioning strategies we've used here. The first partitioning scheme is month-based and the second is quarter-based. You will explore in Lab 04 the subtle differences between these and understand the potential performance implications resulting from these choices.
   
-## 3.3. Query performance
+## 3.4. Query performance
 
-### 3.3.1. Improve query performance with approximate count
+### 3.4.1. Improve query performance with approximate count
 
 Improve COUNT performance
 
@@ -530,7 +781,7 @@ Improve COUNT performance
 
     Query takes about half the time to execute.
 
-### 3.3.2. Improve query performance with materialized views
+### 3.4.2. Improve query performance with materialized views
 
 Use materialized views
 
@@ -1126,7 +1377,7 @@ Improve the execution plan of the query with a materialized view
 
 
 
-### 3.3.3. Improve query performance with result set caching
+### 3.4.3. Improve query performance with result set caching
 
 Use result set caching
 
@@ -1314,7 +1565,7 @@ Use result set caching
     >
     >Pausing a database won't empty cached result set.
 
-## 3.4. Manage statistics
+## 3.5. Manage statistics
 
 Create and update statistics
 
@@ -1379,225 +1630,6 @@ For example, if the optimizer estimates that the date your query is filtering on
     >The SQL pool query optimizer is a cost-based optimizer. It compares the cost of various query plans, and then chooses the plan with the lowest cost. In most cases, it chooses the plan that will execute the fastest.
     >
     >For example, if the optimizer estimates that the date your query is filtering on will return one row it will choose one plan. If it estimates that the selected date will return 1 million rows, it will return a different plan.
-
-## 3.5. Manage indexes
-
-### 3.5.1. Create and update indexes
-
-Clustered Columnstore Index vs. Heap vs. Clustered and Nonclustered
-
-Clustered indexes may outperform clustered columnstore indexes when a single row needs to be quickly retrieved. For queries where a single or very few row lookup is required to perform with extreme speed, consider a cluster index or nonclustered secondary index. The disadvantage to using a clustered index is that only queries that benefit are the ones that use a highly selective filter on the clustered index column. To improve filter on other columns a nonclustered index can be added to other columns. However, each index which is added to a table adds both space and processing time to loads.
-
-1. Retrieve information about a single customer from the table with CCI:
-
-    ```sql
-    SELECT
-        *
-    FROM
-        [wwi_perf].[Sale_Hash]
-    WHERE
-        CustomerId = 500000
-    ```
-
-    Take a note of the execution time.
-
-2. Retrieve information about a single customer from the table with a clustered index:
-
-    ```sql
-    SELECT
-        *
-    FROM
-        [wwi_perf].[Sale_Index]
-    WHERE
-        CustomerId = 500000
-    ```
-
-    The execution time is similar to the one for the query above. Clustered columnstore indexes have no significant advantage over clustered indexes in the specific scenario of highly selective queries.
-
-3. Retrieve information about multiple customers from the table with CCI:
-
-    ```sql
-    SELECT
-        *
-    FROM
-        [wwi_perf].[Sale_Hash]
-    WHERE
-        CustomerId between 400000 and 400100
-    ```
-
-    and then retrive the same information from the table with a clustered index:
-
-    ```sql
-    SELECT
-        *
-    FROM
-        [wwi_perf].[Sale_Index]
-    WHERE
-        CustomerId between 400000 and 400020
-    ```
-
-    Run both queries several times to get a stable execution time. Under normal conditions, you should see that even with a relatively small number of customers, the CCI table starts yielding better results than the clustered index table.
-
-4. Now add an extra condition on the query, one that refers to the `StoreId` column:
-
-    ```sql
-    SELECT
-        *
-    FROM
-        [wwi_perf].[Sale_Index]
-    WHERE
-        CustomerId between 400000 and 400020
-        and StoreId between 2000 and 4000
-    ```
-
-    Take a note of the execution time.
-
-5. Create a non-clustered index on the `StoreId` column:
-
-    ```sql
-    CREATE INDEX Store_Index on wwi_perf.Sale_Index (StoreId)
-    ```
-
-    The creation of the index should complete in a few minutes. Once the index is created, run the previous query again. Notice the improvement in execution time resulting from the newly created non-clustered index.
-
-    >**Note**
-    >
-    >Creating a non-clustered index on the `wwi_perf.Sale_Index` is based on the already existing clustered index. As a bonus exercise, try to create the same type of index on the `wwi_perf.Sale_Hash` table. Can you explain the difference in index creation time?
-
-### 3.5.2. Ordered Clustered Columnstore Indexes
-
-By default, for each table created without an index option, an internal component (index builder) creates a non-ordered clustered columnstore index (CCI) on it. Data in each column is compressed into a separate CCI rowgroup segment. There's metadata on each segment's value range, so segments that are outside the bounds of the query predicate aren't read from disk during query execution. CCI offers the highest level of data compression and reduces the size of segments to read so queries can run faster. However, because the index builder doesn't sort data before compressing them into segments, segments with overlapping value ranges could occur, causing queries to read more segments from disk and take longer to finish.
-
-When creating an ordered CCI, the Synapse SQL engine sorts the existing data in memory by the order key(s) before the index builder compresses them into index segments. With sorted data, segment overlapping is reduced allowing queries to have a more efficient segment elimination and thus faster performance because the number of segments to read from disk is smaller. If all data can be sorted in memory at once, then segment overlapping can be avoided. Due to large tables in data warehouses, this scenario doesn't happen often.
-
-Queries with the following patterns typically run faster with ordered CCI:
-
-- The queries have equality, inequality, or range predicates
-- The predicate columns and the ordered CCI columns are the same.
-- The predicate columns are used in the same order as the column ordinal of ordered CCI columns.
-
-1. Run the following query to show the segment overlaps for the `Sale_Hash` table:
-
-    ```sql
-    select 
-        OBJ.name as table_name
-        ,COL.name as column_name
-        ,NT.distribution_id
-        ,NP.partition_id
-        ,NP.rows as partition_rows
-        ,NP.data_compression_desc
-        ,NCSS.segment_id
-        ,NCSS.version
-        ,NCSS.min_data_id
-        ,NCSS.max_data_id
-        ,NCSS.row_count
-    from 
-        sys.objects OBJ
-        JOIN sys.columns as COL ON
-            OBJ.object_id = COL.object_id
-        JOIN sys.pdw_table_mappings TM ON
-            OBJ.object_id = TM.object_id
-        JOIN sys.pdw_nodes_tables as NT on
-            TM.physical_name = NT.name
-        JOIN sys.pdw_nodes_partitions NP on
-            NT.object_id = NP.object_id
-            and NT.pdw_node_id = NP.pdw_node_id
-            and substring(TM.physical_name, 40, 10) = NP.distribution_id
-        JOIN sys.pdw_nodes_column_store_segments NCSS on
-            NP.partition_id = NCSS.partition_id
-            and NP.distribution_id = NCSS.distribution_id
-            and COL.column_id = NCSS.column_id
-    where
-        OBJ.name = 'Sale_Hash'
-        and COL.name = 'CustomerId'
-        and TM.physical_name  not like '%HdTable%'
-    order by
-        NT.distribution_id
-    ```
-
-    Here is a short description of the tables involved in the query:
-
-    Table Name | Description
-    ---|---
-    sys.objects | All objects in the database. Filtered to match only the `Sale_Hash` table.
-    sys.columns | All columns in the database. Filtered to match only the `CustomerId` column of the `Sale_Hash` table.
-    sys.pdw_table_mappings | Maps each table to local tables on physical nodes and distributions.
-    sys.pdw_nodes_tables | Contains information on each local table in each distribution.
-    sys.pdw_nodes_partitions | Contains information on each local partition of each local table in each distribution.
-    sys.pdw_nodes_column_store_segments | Contains information on each CCI segment for each partition and distribution column of each local table in each distribution. Filtered to match only the `CustomerId` column of the `Sale_Hash` table.
-
-    With this information on hand, take a look at the result:
-
-    ![CCI segment structure on each distribution](./media/lab3_ordered_cci.png)
-
-    Browse through the result set and notice the significant overlap between segments. There is literally overlap in customer ids between every single pair of segments (`CustomerId` values in the data range from 1 to 1,000,000). The segment structure of this CCI is clearly inefficient and will result in a lot of unnecessary reads from storage.
-
-2. Run the following query to show the segment overlaps for the `Sale_Hash_Ordered` table:
-
-    ```sql
-    select 
-        OBJ.name as table_name
-        ,COL.name as column_name
-        ,NT.distribution_id
-        ,NP.partition_id
-        ,NP.rows as partition_rows
-        ,NP.data_compression_desc
-        ,NCSS.segment_id
-        ,NCSS.version
-        ,NCSS.min_data_id
-        ,NCSS.max_data_id
-        ,NCSS.row_count
-    from 
-        sys.objects OBJ
-        JOIN sys.columns as COL ON
-            OBJ.object_id = COL.object_id
-        JOIN sys.pdw_table_mappings TM ON
-            OBJ.object_id = TM.object_id
-        JOIN sys.pdw_nodes_tables as NT on
-            TM.physical_name = NT.name
-        JOIN sys.pdw_nodes_partitions NP on
-            NT.object_id = NP.object_id
-            and NT.pdw_node_id = NP.pdw_node_id
-            and substring(TM.physical_name, 40, 10) = NP.distribution_id
-        JOIN sys.pdw_nodes_column_store_segments NCSS on
-            NP.partition_id = NCSS.partition_id
-            and NP.distribution_id = NCSS.distribution_id
-            and COL.column_id = NCSS.column_id
-    where
-        OBJ.name = 'Sale_Hash_Ordered'
-        and COL.name = 'CustomerId'
-        and TM.physical_name  not like '%HdTable%'
-    order by
-        NT.distribution_id
-    ```
-
-    The CTAS used to create the `wwi_perf.Sale_Hash_Ordered` table was the following:
-
-    ```sql
-    CREATE TABLE [wwi_perf].[Sale_Hash_Ordered]
-    WITH
-    (
-        DISTRIBUTION = HASH ( [CustomerId] ),
-        CLUSTERED COLUMNSTORE INDEX ORDER( [CustomerId] )
-    )
-    AS
-    SELECT
-        *
-    FROM	
-        [wwi_perf].[Sale_Heap]
-    OPTION  (LABEL  = 'CTAS : Sale_Hash', MAXDOP 1)
-    ```
-
-    Notice the creation of the ordered CCI with MAXDOP = 1. Each thread used for ordered CCI creation works on a subset of data and sorts it locally. There's no global sorting across data sorted by different threads. Using parallel threads can reduce the time to create an ordered CCI but will generate more overlapping segments than using a single thread. Currently, the MAXDOP option is only supported in creating an ordered CCI table using CREATE TABLE AS SELECT command. Creating an ordered CCI via CREATE INDEX or CREATE TABLE commands does not support the MAXDOP option.
-
-    The results show significantly less overlap between segments:
-
-    ![CCI segment structure on each distribution with ordered CCI](./media/lab3_ordered_cci_2.png)
-
->**Note**
->
->You will learn more about the internal organization of the clustered columnstore indexes in the following lab.
-
 
 ## 3.6. Monitor space usage
 
