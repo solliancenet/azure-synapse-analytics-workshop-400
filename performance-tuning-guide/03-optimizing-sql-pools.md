@@ -9,7 +9,7 @@
   - [3.2. Manage indexes](#32-manage-indexes)
     - [3.2.1. Create and update indexes](#321-create-and-update-indexes)
     - [3.2.2. Ordered Clustered Columnstore Indexes](#322-ordered-clustered-columnstore-indexes)
-    - [3.3. Table structure](#33-table-structure)
+  - [3.3. Table structure](#33-table-structure)
     - [3.3.1. Improve table structure with distribution](#331-improve-table-structure-with-distribution)
     - [3.3.2. Improve table structure with partitioning](#332-improve-table-structure-with-partitioning)
   - [3.4. Query performance](#34-query-performance)
@@ -345,7 +345,7 @@ Let's dive into the creation of the `wwi_perf.Sale_Hash_Ordered` for a moment. T
 
 Notice the ordered CCI was created with MAXDOP = 1. Each thread used for ordered CCI creation works on a subset of data and sorts it locally. There's no global sorting across data sorted by different threads. Using parallel threads can reduce the time to create an ordered CCI but will generate more overlapping segments than using a single thread. Currently, the MAXDOP option is only supported in creating an ordered CCI table using CREATE TABLE AS SELECT command. Creating an ordered CCI via CREATE INDEX or CREATE TABLE commands does not support the MAXDOP option.
 
-### 3.3. Table structure
+## 3.3. Table structure
 
 The structure of your tables plays a critical role in the overall performance of a data warehouse. Appropriate table distribution and partitioning are vital to performance.
 
@@ -601,7 +601,7 @@ Lastly, you can use the the DMV `sys.dm_pdw_dms_workers` to investigate how data
 
 ### 3.3.1. Improve table structure with distribution
 
-Now that we've identified the root problem of our performance woes, we are better equipped to fixing it. We've observed that the Sale_Heap table approximately 340 million records, which exceeds the recommended maximum size of a Heap table, which is 60 million. It is recommended that we move this data from a heap table to a clustered columnstore table. We can also identify that the CustomerId column identifies as an ideal hash column candidate. The CustomerId column would not contain nulls, and would be predominantly used in JOIN, GROUP BY, DISTINCT, OVER, HAVING  and WHERE clauses.
+Now that we've identified the root problem of our performance woes, we are better equipped to fixing it. We've observed that the Sale_Heap table has approximately 340 million records, which exceeds the recommended maximum size of a Heap table, which is 60 million. It is recommended that we move this data from a heap table to a clustered columnstore table. We can also identify that the CustomerId column identifies as an ideal hash column candidate. The CustomerId column would not contain nulls, and would be predominantly used in JOIN, GROUP BY, DISTINCT, OVER, HAVING  and WHERE clauses.
 
 In this scenario, we already have the Sale_Hash CCI table. It was created using the existing heap table data using the following CTAS (Create Table As Select) statement:
 
@@ -757,6 +757,8 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
 |Speed to retrieve view data from complex queries     | Slow                                         | Fast  |
 |Extra storage                   | No                                           | Yes |
 |Syntax                          | CREATE VIEW                                  | CREATE MATERIALIZED VIEW AS SELECT |
+
+Some benefits of a materialized view include increased performance on complex queries, especially those that have a high computational cost but return relatively small resulting data set.  The SQL pool optimizer will improve query performance transparently, including the materialized view for faster performance, even if there is no direct reference to the materialized view in the query itself. Materialized views are also low maintenance, any underlying base table data changes are automatically and synchronously updated. Beneath the surface, the materialized view stores its data in two places, a CCI table, and a delta store which tracks base data changes. A background process called a tuple mover, migrates data regularly from the delta store to the CCI. A materialized view can also be distributed differently than the underlying base tables. Materialized views support both hash and round-robin distributions, depending on the desired query, having a different distribution strategy than the underlying base tables can yield better overall performance.
 
 In our scenario, we're going to use the quarterly partitioned table `Sale_Partition02` to compare the performance of retrieving the total amount and total profit with that of retrieving the same data leveraging a materialized view. The original queries to retrieve this information are:
 
@@ -934,15 +936,17 @@ The resulting execution plan shows the use of the same materialized view to opti
 
     > **Note**: Even if the two queries have different aggregation levels, the query optimizer is able to infer the use of the materialized view. This happens because the materialized view covers both aggregation levels (`Quarter` and `Month`) as well as both aggregation measures (`TotalAmount` and `ProfitAmount`).
 
-2. Check the materialized view overhead:
+When executing a query that uses a materialized view, the process includes querying the view's CCI index, and applying any changes from the delta store. The more data that is present in the delta store, the slower the performance of the query. Depending on the size of the data in the delta store, will dictate whether or not the materialized view is beneficial. To avoid performance degradation, it's important to keep track of the `material view overhead`. This overhead is calculated as a ratio. The `overhead_ratio` = total_rows/base_view_rows. If this ratio becomes too high, consider rebuilding the materialized views so all rows currently in the delta store are moved to the CCI.
+
+You can obtain the materialized view overhead ratio through the use of `DBCC PDW_SHOWMATERIALIZEDVIEWOVERHEAD`:
 
     ```sql
     DBCC PDW_SHOWMATERIALIZEDVIEWOVERHEAD ( 'wwi_perf.mvCustomerSales' )
     ```
 
-    The results show that `BASE_VIEW_ROWS` are equal to `TOTAL_ROWS` (and hence `OVERHEAD_RATIO` is 1). The materialized view is perfectly aligned with the base view. This situation is expected to change once the underlying data starts to change.
+In our scenario, the results show that `BASE_VIEW_ROWS` are equal to `TOTAL_ROWS` (and hence `OVERHEAD_RATIO` is 1). The materialized view is perfectly aligned with the base view. This situation is expected to change once the underlying data starts to change.
 
-3. Update the original data the materialized view was built on:
+Suppose we update the original base table data:
 
     ```sql
     UPDATE
@@ -954,7 +958,7 @@ The resulting execution plan shows the use of the same materialized view to opti
         CustomerId BETWEEN 100 and 200
     ```
 
-4. Check the materialized view overhead again:
+When we check the materialized view overhead again, we can observe there is now a delta stored by the materialized view which results in `TOTAL_ROWS` being greater than `BASE_VIEW_ROWS` and the `OVERHEAD_RATIO` being greater than 1.
 
     ```sql
     DBCC PDW_SHOWMATERIALIZEDVIEWOVERHEAD ( 'wwi_perf.mvCustomerSales' )
@@ -962,9 +966,7 @@ The resulting execution plan shows the use of the same materialized view to opti
 
     ![Materialized view overhead after update](./media/lab3_materialized_view_updated.png)
 
-    There is now a delta stored by the materialized view which results in `TOTAL_ROWS` being greater than `BASE_VIEW_ROWS` and `OVERHEAD_RATIO` being greater than 1.
-
-5. Rebuild the materialized view and check that the overhead ration went back to 1:
+The next query will demonstrate the rebuilding the materialized view. Performing the overhead ratio check once more will reset the view and have the overhead ratio return to 1:
 
     ```sql
     ALTER MATERIALIZED VIEW [wwi_perf].[mvCustomerSales] REBUILD
@@ -974,11 +976,7 @@ The resulting execution plan shows the use of the same materialized view to opti
 
     ![Materialized view overhead after rebuild](./media/lab3_materialized_view_rebuilt.png)
 
-**Study the impact of materialized views**
-
-Analyze the execution plan of a query
-
-1. Run again the query to find the number of customers in each bucket of per-customer transaction items counts:
+To further investigate the impact of material views, we will once again analyze the execution plan of a query. We will use the scenario that we need to determine the of customers in each bucket of per-customer transaction items counts. Here is the general query:
 
     ```sql
     SELECT
@@ -1000,7 +998,7 @@ Analyze the execution plan of a query
         T.TransactionItemsCountBucket
     ```
 
-2. Improve the query by adding support to calculate the lower margin of the first per-customer transactions items count bucket:
+We can improve this query by adding support to calculate the lower margin of the first per-customer transactions items count bucket:
 
     ```sql
     SELECT
@@ -1037,9 +1035,7 @@ Analyze the execution plan of a query
         T.TransactionItemsCountBucket
     ```
 
-Improve the execution plan of the query with a materialized view
-
-1. Run the query with the `EXPLAIN` directive (note the `WITH_RECOMMENDATIONS` option as well):
+Running the improved query with the `EXPLAIN WITH_RECOMMENDATIONS` to obtain the execution plan.
 
     ```sql
     EXPLAIN WITH_RECOMMENDATIONS
@@ -1077,7 +1073,7 @@ Improve the execution plan of the query with a materialized view
         T.TransactionItemsCountBucket
     ```
 
-2. Analyze the resulting execution plan. Take a close look to the `<materialized_view_candidates>` section which suggests possible materialized views you can create to improve the performance of the query.
+Because the `WITH_RECOMMENDATIONS` option was used, observe the `<materialized_view_candidates>` section of the execution plan. This section suggests possible materialized views you can create to help improve the performance of the query.
 
     ```xml
     <?xml version="1.0" encoding="utf-8"?>
@@ -1176,7 +1172,7 @@ Improve the execution plan of the query with a materialized view
     </dsql_query>
     ```
 
-3. Create the suggested materialized view:
+We'll now create the suggested materialized view and re-query for the execution plan.
 
     ```sql
     CREATE MATERIALIZED VIEW
@@ -1194,8 +1190,6 @@ Improve the execution plan of the query with a materialized view
     GROUP BY
         CustomerId
     ```
-
-4. Check the execution plan again:
 
     ```sql
     EXPLAIN WITH_RECOMMENDATIONS
@@ -1233,7 +1227,7 @@ Improve the execution plan of the query with a materialized view
         T.TransactionItemsCountBucket
     ```
 
-    The resulting execution plan indicates now the use of the `mvTransactionItemsCounts` (the `BROADCAST_MOVE` distributed SQL operation) materialized view which provides improvements to the query execution time:
+The resulting execution plan indicates now the use of the `mvTransactionItemsCounts` (the `BROADCAST_MOVE` distributed SQL operation) materialized view which provides improvements to the query execution time:
 
     ```xml
     <?xml version="1.0" encoding="utf-8"?>
@@ -1334,9 +1328,7 @@ Improve the execution plan of the query with a materialized view
 
 ### 3.4.3. Improve query performance with result set caching
 
-Use result set caching
-
-1. Check if result set caching is on in the current SQL pool:
+Result set caching is used for achieving high concurrency and fast response times from repetitive queries against static data. Result set caching is a feature of the SQl pool, and you can determine if it's been enabled by querying the `is_result_set_caching_on` column in the sys.databases table.
 
     ```sql
     SELECT
@@ -1348,18 +1340,16 @@ Use result set caching
 
     ![Check result set caching settings at the database level](./media/lab3_result_set_caching_db.png)
 
-    If `False` is returned for your SQL pool, run the following query to activate it (you need to run it on the `master` database and replace `<sql_pool> with the name of your SQL pool):
+If `False` is returned for your SQL pool, it may be activated using an `ALTER DATABASE` statement as follows (you need to run it on the `master` database and replace `<sql_pool> with the name of your SQL pool).
 
     ```sql
     ALTER DATABASE [<sql_pool>]
     SET RESULT_SET_CACHING ON
     ```
 
-    >**Important**
-    >
-    >The operations to create result set cache and retrieve data from the cache happen on the control node of a Synapse SQL pool instance. When result set caching is turned ON, running queries that return large result set (for example, >1GB) can cause high throttling on the control node and slow down the overall query response on the instance. Those queries are commonly used during data exploration or ETL operations. To avoid stressing the control node and cause performance issue, users should turn OFF result set caching on the database before running those types of queries.
+    >**Important**: The operation to create result set cache and retrieve data from the cache happen on the control node of a Synapse SQL pool instance. When result set caching is turned ON, running queries that return a large result set (for example, >1GB) can cause high throttling on the control node and slow down the overall query response on the instance. Those queries are commonly used during data exploration or ETL operations. To avoid stressing the control node and cause performance issue, users should turn OFF result set caching on the database before running those types of queries.
 
-2. After activating result set caching, run a query and immediately check if it hit the cache:
+You can determine if there has been a cache hit by leveraging `result_cache_hit` column in the `dm_pdw_exec_requests` DMV. For our scenario, if we were to execute the following query for the first time will, understandably, result in a cache miss.
 
     ```sql
     SELECT
@@ -1396,7 +1386,9 @@ Use result set caching
         )
     ```
 
-    As expected, the result is `False`. Still, you can identify that, while running the query, Synapse has also cached the result set. Run the following query to get the execution steps:
+**X#** todo: put image of output here.
+
+As expected, the result is `False`. Still, you can identify that, while running the query, Synapse has also cached the result set. Run the following query to get the execution steps:
 
     ```sql
     SELECT 
@@ -1422,11 +1414,11 @@ Use result set caching
         )
     ```
 
-    The execution plan reveals the building of the result set cache:
+The execution plan reveals the building of the result set cache:
 
     ![The building of the result set cache](./media/lab3_result_set_cache_build.png)
 
-3. You can control at the user session level the use of the result set cache. The following query shows how to deactivate and activate the result cache:
+You can control at the user session level the use of the result set cache. The following query shows how to deactivate and activate the result cache:
 
     ```sql  
     SET RESULT_SET_CACHING OFF
@@ -1477,11 +1469,11 @@ Use result set caching
         start_time desc
     ```
 
-    The result of `SET RESULT_SET_CACHING OFF` is visible in the cache hit test results (`RESULT_CACHE_HIT` contains a `NULL` value):
+The result of `SET RESULT_SET_CACHING OFF` is visible in the cache hit test results (`RESULT_CACHE_HIT` contains a `NULL` value):
 
     ![Result cache on and off](./media/lab3_result_set_cache_off.png)
 
-4. At any moment, you can check the space used bythe results cache:
+It's important to keep track of the amount of space used by results cache. You can retrieve this information using the `DBCC SHOWRESULTCACHESPACEUSED` statement.
 
     ```sql
     DBCC SHOWRESULTCACHESPACEUSED
@@ -1489,40 +1481,30 @@ Use result set caching
 
     ![Check the size of the result set cache](./media/lab3_result_set_cache_size.png)
 
-5. Clear the result set cache using:
+To clear the result set cache, you can leverage the `DBCC DROPRESULTSETCACHE` statement.
 
     ```sql
     DBCC DROPRESULTSETCACHE
     ```
 
-6. Finally, disable result set caching on the database using the following query (you need to run it on the `master` database and replace `<sql_pool> with the name of your SQL pool):
+To disable result set caching on the database use an `ALTER DATABASE` statement as follows (you need to run it on the `master` database and replace `<sql_pool> with the name of your SQL pool).
 
     ```sql
     ALTER DATABASE [<sql_pool>]
     SET RESULT_SET_CACHING OFF
     ```
 
-    >**Important**
-    >
-    >Make sure you disable result set caching on the SQL pool. Failing to do so will have a negative imact on the remainder of this lab, as it will skew execution times and defeat the purpose of several upcoming exercises.
-
-    >**Note**
-    >
-    >The maximum size of result set cache is 1 TB per database. The cached results are automatically invalidated when the underlying query data change.
-    >
-    >The cache eviction is managed by SQL Analytics automatically following this schedule:
-    >- Every 48 hours if the result set hasn't been used or has been invalidated.
-    >- When the result set cache approaches the maximum size.
+    >**Note**: The maximum size of result set cache is 1 TB per database. The cached results are automatically invalidated when the underlying query data changes. The cache eviction is managed by SQL Analytics automatically following this schedule:
+    >   - Every 48 hours if the result set hasn't been used or has been invalidated.
+    >   - When the result set cache approaches the maximum size.
     >
     >Users can manually empty the entire result set cache by using one of these options:
-    >- Turn OFF the result set cache feature for the database
-    >- Run DBCC DROPRESULTSETCACHE while connected to the database
+    >   - Turn OFF the result set cache feature for the database
+    >   - Run DBCC DROPRESULTSETCACHE while connected to the database
     >
     >Pausing a database won't empty cached result set.
 
 ## 3.5. Manage statistics
-
-Create and update statistics
 
 The more the SQL pool resource knows about your data, the faster it can execute queries. After loading data into SQL pool, collecting statistics on your data is one of the most important things you can do for query optimization.
 
@@ -1530,14 +1512,14 @@ The SQL pool query optimizer is a cost-based optimizer. It compares the cost of 
 
 For example, if the optimizer estimates that the date your query is filtering on will return one row it will choose one plan. If it estimates that the selected date will return 1 million rows, it will return a different plan.
 
-1. Check if statistics are set to be automatically created in the database:
+To determine if statistics are set to be automatically created in the database, you would query the `is_auto_create_stats_on` column from the sys.databases table.
 
     ```sql
     SELECT name, is_auto_create_stats_on
     FROM sys.databases
     ```
 
-2. See statistics that have been automatically created:
+To retrieve a listing of statistics that have been automatically created, use the `sys.dm_pdw_exec_requests` DMV.
 
     ```sql
     SELECT
@@ -1552,43 +1534,31 @@ For example, if the optimizer estimates that the date your query is filtering on
 
     ![View automatically created statistics](./media/lab3_statistics_automated.png)
 
-3. Check if there are any statistics created for `CustomerId` from the `wwi_perf.Sale_Has` table:
+To determine if there are any statistics created for a specific column, you can leverage `DBCC SHOW_STATISTICS`. In our secnario, let's determine the statistics set on the `CustomerId` column from the `wwi_perf.Sale_Hash` table.
 
     ```sql
     DBCC SHOW_STATISTICS ('wwi_perf.Sale_Hash', CustomerId) WITH HISTOGRAM
     ```
 
-    You should get an error stating that statistics for `CustomerId` does not exist.
-
-4. Create statistics for `CustomerId`:
+If there is no statistics for `CustomerId`, an error will occur. To create statistics for the `CustomerId` table, use the `CREATE STATISTICS` statement.
 
     ```sql
     CREATE STATISTICS Sale_Hash_CustomerId ON wwi_perf.Sale_Hash (CustomerId)
     ```
 
-    Display the newly created statistics:
-
-    ```sql
-    DBCC SHOW_STATISTICS([wwi_perf.Sale_Hash], 'Sale_Hash_CustomerId')
-    ```
-
-    In the results pane, swhitch to `Chart` display and set the category column and the legend columns as presented below:
+An example of statistics retrieved using `DBCC SHOW_STATISTICS` is as follows. The `Chart` option has been selected to see the visual.
 
     ![Statistics created for CustomerId](./media/lab3_statistics_customerid.png)
-
-    You now have a visual on the statistics created for the `CustomerId` column.
-
-    >**Important**
+ 
+    > **Important**: The more SQL pool knows about your data, the faster it can execute queries against it. After loading data into SQL pool, collecting statistics on your data is one of the most important things you can do to optimize your queries.
     >
-    >The more SQL pool knows about your data, the faster it can execute queries against it. After loading data into SQL pool, collecting statistics on your data is one of the most important things you can do to optimize your queries.
-    >
-    >The SQL pool query optimizer is a cost-based optimizer. It compares the cost of various query plans, and then chooses the plan with the lowest cost. In most cases, it chooses the plan that will execute the fastest.
+    >The SQL pool query optimizer is a cost-based optimizer. It evaluates the cost of multiple query plans, and then chooses the plan with the lowest cost. In most cases, it chooses the plan that will execute the fastest.
     >
     >For example, if the optimizer estimates that the date your query is filtering on will return one row it will choose one plan. If it estimates that the selected date will return 1 million rows, it will return a different plan.
 
 ## 3.6. Monitor space usage
 
-Check for skewed data and space usage
+It's important to monitor the physical space used by your tables. This will allow you to potentially restructure certain table structures to attain optimal performance. Check for skewed data and space usage
 
 ### 3.6.1. Analyze space used by tables
 
