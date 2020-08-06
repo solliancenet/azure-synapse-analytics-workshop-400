@@ -1,31 +1,5 @@
 # 3. Optimizing SQL Pools
 
-- [3. Optimizing SQL Pools](#3-optimizing-sql-pools)
-  - [3.1. Sizing and resource allocation (DWUs)](#31-sizing-and-resource-allocation-dwus)
-    - [3.1.1. Memory Usage](#311-memory-usage)
-    - [3.1.2. Transaction log size](#312-transaction-log-size)
-    - [3.1.3. Tempdb usage](#313-tempdb-usage)
-    - [3.1.4. Azure Synapse SQL pool metrics](#314-azure-synapse-sql-pool-metrics)
-  - [3.2. Manage indexes](#32-manage-indexes)
-    - [3.2.1. Create and update indexes](#321-create-and-update-indexes)
-    - [3.2.2. Ordered Clustered Columnstore Indexes](#322-ordered-clustered-columnstore-indexes)
-  - [3.3. Table structure](#33-table-structure)
-    - [3.3.1. Improve table structure with distribution](#331-improve-table-structure-with-distribution)
-    - [3.3.2. Improve table structure with partitioning](#332-improve-table-structure-with-partitioning)
-  - [3.4. Query performance](#34-query-performance)
-    - [3.4.1. Improve query performance with approximate count](#341-improve-query-performance-with-approximate-count)
-    - [3.4.2. Improve query performance with materialized views](#342-improve-query-performance-with-materialized-views)
-    - [3.4.3. Improve query performance with result set caching](#343-improve-query-performance-with-result-set-caching)
-  - [3.5. Manage statistics](#35-manage-statistics)
-  - [3.6. Monitor space usage](#36-monitor-space-usage)
-    - [3.6.1. Analyze space used by tables](#361-analyze-space-used-by-tables)
-    - [3.6.2. Advanced space usage analysis](#362-advanced-space-usage-analysis)
-  - [3.7. Monitor column store storage](#37-monitor-column-store-storage)
-  - [3.8. Choose the right data types](#38-choose-the-right-data-types)
-    - [Task 3 - Compare storage requirements](#task-3---compare-storage-requirements)
-  - [3.9. Avoid extensive logging](#39-avoid-extensive-logging)
-  - [3.10. Best practices](#310-best-practices)
-
 ## 3.1. Sizing and resource allocation (DWUs)
 
 A Synapse SQL Pool Data Warehousing Unit (DWU) is a **high-level representation of usage** that consists of a combination of CPU, memory, and IO resources. To determine the number of DWUs to select is to strike a balance between price and performance. When creating or scaling a SQL Pool, you can select from a range of 100 cDWU (DW100c) up to 30,000 cDWU (DW30000c). (`cDWU` is defined as compute Data Warehouse Unit.)
@@ -154,7 +128,9 @@ Queries with the following patterns typically run faster with ordered CCI:
 
 To demonstrate the different types of indexing approaches, we will use a scenario-based demonstration. In this example, consider a Sale table that has approximately 340 million records. We will first establish the performance of a query when returning the sales for a specific customer.
 
-First, let's retrieve sales data from a single customer from the table with a CCI (clustered column index):
+First, let's compare the retrieval of sales data from a single customer from the table with a CCI (clustered column index), with that of a table with a clustered index.
+
+CCI:
 
     ```sql
     SELECT
@@ -165,9 +141,7 @@ First, let's retrieve sales data from a single customer from the table with a CC
         CustomerId = 500000
     ```
 
-This query took **X#** seconds to execute.
-
-Let's now take a look at the performance of the same query, this time retrieving the data from a table with a clustered index:
+Clustered Index:
 
     ```sql
     SELECT
@@ -178,7 +152,7 @@ Let's now take a look at the performance of the same query, this time retrieving
         CustomerId = 500000
     ```
 
-The execution time is similar to the CCI query. Clustered columnstore indexes have no significant advantage over clustered indexes in this specific scenario of a highly selective query.
+The observed execution time of both queries is similar. Clustered columnstore indexes have no significant advantage over clustered indexes in this specific scenario of a highly selective query.
 
 Let's test these table indexes further retrieving the sales of multiple customers from the table with CCI:
 
@@ -216,15 +190,13 @@ The next experiment will be adding an additional `StoreId` query filter to the q
         and StoreId between 2000 and 4000
     ```
 
-This query took **X#** seconds to execute
-
 We will now a add a secondary non-clustered index on the `StoreId` column.
 
     ```sql
     CREATE INDEX Store_Index on wwi_perf.Sale_Index (StoreId)
     ```
 
-The creation of the index, as well as the indexing process takes a few minutes to complete. Now when we run the query, we notice a considerable improvement in execution time of **X#** seconds, a direct result of adding the secondary nonclustered index.
+The creation of the index, as well as the indexing process takes a few minutes to complete. Now when the query is run, there is a considerable improvement in execution time, a direct result of adding the secondary nonclustered index.
 
 ### 3.2.2. Ordered Clustered Columnstore Indexes
 
@@ -685,7 +657,7 @@ The resulting query plan is much better than the previous one, as there is no mo
 
 We've already learned that Date columns make good candidates for partitioning tables at the distributions level. In the case of our Sale data, the `TransactionDateId` column is an ideal choice for partitioning.
 
-Back to our scenario, we have established two tables, Sale_Partition01 and Sale_Partition02 populated with the 340 million rows of data. The first partitioning scheme is month-based and the second is quarter-based. The following queries show the CTAS statements used to create each table.
+Back to our scenario, we have established two tables, Sale_Partition01 and Sale_Partition02 each populated with the 340 million rows of data. The first partitioning scheme is month-based and the second is quarter-based. The following queries show the CTAS statements used to create each table.
 
     ```sql
     CREATE TABLE [wwi_perf].[Sale_Partition01]
@@ -725,8 +697,8 @@ Back to our scenario, we have established two tables, Sale_Partition01 and Sale_
     OPTION  (LABEL  = 'CTAS : Sale_Partition02')
     ```
 
-To be completed: **X# TODO: Complete observations**.
-  
+You will note the `RANGE RIGHT` terminology, this is used for time partitions, whereas using a `RANGE LEFT` is for number partitions. When running queries against these two tables, you'll realize the partitioning by quarter is better performing.
+
 ## 3.4. Query performance
 
 ### 3.4.1. Improve query performance with approximate count
@@ -797,9 +769,6 @@ In our scenario, we're going to use the quarterly partitioned table `Sale_Partit
             ,D.Month
     ) T
     ```
-
-These queries take approximately **X#** seconds to execute.
-
 Here is the materialized view that has been created to support both of the original queries.
 
     ```sql
@@ -1366,7 +1335,7 @@ You can determine if there has been a cache hit by leveraging `result_cache_hit`
         D.Year
         ,D.Quarter
         ,D.Month
-    OPTION (LABEL = 'Lab03: Result set caching')
+    OPTION (LABEL = 'Result set caching')
 
     SELECT 
         result_cache_hit
@@ -1380,15 +1349,13 @@ You can determine if there has been a cache hit by leveraging `result_cache_hit`
             FROM 
                 sys.dm_pdw_exec_requests
             WHERE   
-                [label] = 'Lab03: Result set caching'
+                [label] = 'Result set caching'
             ORDER BY
                 start_time desc
         )
     ```
 
-**X#** todo: put image of output here.
-
-As expected, the result is `False`. Still, you can identify that, while running the query, Synapse has also cached the result set. Run the following query to get the execution steps:
+As expected, the result would be `False`. Still, you can identify that, while running the query, Synapse has also cached the result set. Run the following query to get the execution steps:
 
     ```sql
     SELECT 
@@ -1558,21 +1525,19 @@ An example of statistics retrieved using `DBCC SHOW_STATISTICS` is as follows. T
 
 ## 3.6. Monitor space usage
 
-It's important to monitor the physical space used by your tables. This will allow you to potentially restructure certain table structures to attain optimal performance. Check for skewed data and space usage
+It's important to monitor the physical space used by your tables. This will allow you to potentially restructure certain tables to attain optimal performance when certain thresholds are met, for instance, when a replicated table bypasses 1.5 GB in size. Data skew is defined as how evenly data is distributed. It is also important to keep a heart beat on the skewness of the data as it plays an important role in overall query performance.
 
 ### 3.6.1. Analyze space used by tables
 
-Analyze the space used by tables
-
-1. Run the following DBCC command:
+We can obtain the space used by a table using the `DBCC PDW_SHOWSPACEUSED` commmand, this command also reports on the number of rows in each distribution to denote the skewness of the data. With respect to skewness, those numbers should be as even as possible. You can see from the results of the following command, that rows are equally distributed across distributions.
 
     ```sql
     DBCC PDW_SHOWSPACEUSED('wwi_perf.Sale_Hash');
     ```
 
-    ![Show table space usage](./media/lab3_table_space_usage.png)
+    ![Show table space usage and data skewness.](./media/lab3_table_space_usage.png)
 
-2. Analyze the number of rows in each distribution. Those numbers should be as even as possible. You can see from the results that rows are equally distributed across distributions. Let's dive a bit more into this analysis. Use the following query to get customers with the most sale transaction items:
+As an example of demonstrating the aspect of data skew, we can provide further analysis using the following scenario. Consider the following query to get customers with the most sale transaction items:
 
     ```sql
     SELECT TOP 1000 
@@ -1588,7 +1553,7 @@ Analyze the space used by tables
 
     ![Customers with most sale transaction items](./media/lab4_data_skew_1.png)
 
-    Now find the customers with the least sale transaction items:
+Consider as well as this query, to find the customers with the least sale transaction items:
 
     ```sql
     SELECT TOP 1000 
@@ -1604,9 +1569,9 @@ Analyze the space used by tables
 
     ![Customers with most sale transaction items](./media/lab4_data_skew_2.png)
 
-    Notice the largest number of transaction items is 9465 and the smallest is 184.
+We can see the overall range (skew) of the data at the the surface level to have the largest number of transaction items being 9465 and the smallest being 184.
 
-    Let's find now the distribution of per-customer transaction item counts. Run the following query:
+We can obtain the distribution of per-customer transaction item counts by using the following query:
 
     ```sql
     SELECT
@@ -1628,17 +1593,15 @@ Analyze the space used by tables
         T.TransactionItemsCountBucket
     ```
 
-    In the `Results` pane, switch to the `Chart` view and configure it as follows (see the options set on the right side):
+In the `Results` pane, we've switched to the `Chart` view to render a useful visualization (note the visualization options set on the right side).
 
     ![Distribution of per-customer transaction item counts](./media/lab4_transaction_items_count_distribution.png)
 
-    Without diving too much into the mathematical and statistical aspects of it, this histogram displays the reason why there is virtually no skew in the data distribution of the `Sale_Hash` table. If you haven't figured it out yet, the reason we are talking about is the cvasi-normal distribution of the per-customer transaction items counts.
+Without diving too much into the mathematical and statistical details, this histogram represents the fact there is no skew in the data distribution of the `Sale_Hash` table. This is due to the quasi-normalized distribution of the per-customer transaction item counts.
 
 ### 3.6.2. Advanced space usage analysis
 
-Use a more advanced approach to understand table space usage
-
-1. Run the following script to create the `vTableSizes` view:
+In regards to the further analysis of table space usage, we can create a helpful view that will surface useful table space usage data. We've created the `vTableSizes` view as follows:
 
     ```sql
     CREATE VIEW [wwi_perf].[vTableSizes]
@@ -1752,7 +1715,7 @@ Use a more advanced approach to understand table space usage
     FROM size
     ```
 
-    Take a moment to analyze the script above. You have encountered already some of the tables in the previous lab. Here is a short description of the tables and DMVs involved in the query:
+Introspecting the above view definition, you can see multiple tables are leveraged to obtain the space usage data. Here is a short description of the tables and DMVs involved in this view:
 
     Table Name | Description
     ---|---
@@ -1768,7 +1731,7 @@ Use a more advanced approach to understand table space usage
     sys.dm_pdw_nodes | Holds information about the nodes from the SQL pool. Filtered to include only compute nodes (`type` = `COMPUTE`).
     sys.dm_pdw_nodes_db_partition_stats | Returns page and row-count information for every partition in the current database.
 
-2. Run the following script to view the details about the structure of the tables in the `wwi_perf` schema:
+We can now leverage the `vTableSizes` view to surface advanced details about the structure of the tables. Consider this sample query that leverages this view to obtain storage details on every table in the `wwi_perf` schema:
 
     ```sql
     SELECT
@@ -1799,21 +1762,13 @@ Use a more advanced approach to understand table space usage
         table_reserved_space_GB desc
     ```
 
-    Analyze the results:
-
     ![Detailed table space usage](./media/lab4_table_space.png)
 
-    Notice the significant difference between the space used by `CLUSTERED COLUMNSTORE` and `HEAP` or `CLUSTERED` tables. This provides a clear indication on the significant advantages columnstore indexes have.
-
-    Also notice the slight increase of storage space for ordered CCI table (`Sale_Hash_Ordered`).
+Upon further analysis of this query, we can observe the significant difference between the space used by `CLUSTERED COLUMNSTORE` and `HEAP` or `CLUSTERED` tables. This provides a clear indication on the significant advantages columnstore indexes have. You can also observe the slight increase of storage space for the ordered CCI table (`Sale_Hash_Ordered`).
 
 ## 3.7. Monitor column store storage
 
-Understand column store storage details
-
-Create view for column store row group stats
-
-1. Run the following query to create the `vColumnStoreRowGroupStats`:
+We can create another view, `vColumnStoreRowGroupStats`, to analyze column store row group statistics. This view was created with the following definition.
 
     ```sql
     create view [wwi_perf].[vColumnStoreRowGroupStats]
@@ -1840,9 +1795,9 @@ Create view for column store row group stats
     from cte;
     ```
 
-    In this query we are using the `sys.dm_pdw_nodes_db_column_store_row_group_physical_stats` DMV which provides current rowgroup-level information about all of the columnstore indexes in the current database.
+In this view we are using the `sys.dm_pdw_nodes_db_column_store_row_group_physical_stats` DMV which provides current rowgroup-level information about all of the columnstore indexes in the current database.
 
-    The `state_desc` column provides useful information on the state of a row group:
+The `state_desc` column provides useful information on the state of a row group:
 
     Name | Description
     ---|---
@@ -1852,7 +1807,7 @@ Create view for column store row group stats
     `COMPRESSED` | A row group that is compressed with columnstore compression and stored in the columnstore.
     `TOMBSTONE` | A row group that was formerly in the deltastore and is no longer used.
 
-    The `trim_reason_desc` column describes the reason that triggered the `COMPRESSED` rowgroup to have less than the maximum number of rows:
+The `trim_reason_desc` column describes the reason that triggered the `COMPRESSED` rowgroup to have less than the maximum number of rows:
 
     Name | Description
     ---|---
@@ -1864,10 +1819,7 @@ Create view for column store row group stats
     `MEMORY_LIMITATION` | Not enough available memory to compress all the rows together.
     `RESIDUAL_ROW_GROUP` | Closed as part of last row group with rows < 1 million during index build operation.
 
-
-Explore column store storage details
-
-1. Explore the statistics of the columnstore for the `Sale_Partition02` table using the following query:
+We can now leverage this view to statistics of the columnstore for the `Sale_Partition02` table. Make note of the `COMPRESSED` and `OPEN` states of some of the row groups.
 
     ```sql
     SELECT
@@ -1878,13 +1830,9 @@ Explore column store storage details
         Logical_Table_Name = 'Sale_Partition02'
     ```
 
-2. Explore the results of the query:
-
     ![Column store row group statistics for Sale_Partition02](./media/lab4_column_store_row_groups.png)
 
-    Browse through the results and get an overview of the rowgroup states. Notice the `COMPRESSED` and `OPEN` states of some of the row groups.
-
-3. Explore the statistics of the columnstore for the `Sale_Hash_Ordered` table using the same query:
+We will repeat this query, but this time exploring the statistics of the columnstore for the `Sale_Hash_Ordered` table. You will notice that there is a significant difference in the rowgroup statistics from the previous one. This highlights one of the potential advantages of ordered CCIs.
 
     ```sql
     SELECT
@@ -1895,102 +1843,81 @@ Explore column store storage details
         Logical_Table_Name = 'Sale_Hash_Ordered'
     ```
 
-4. Explore the results of the query:
-
     ![Column store row group statistics for Sale_Hash_Ordered](./media/lab4_column_store_row_groups_2.png)
-
-    There is a significant difference in the rowgroup states from the previous one. This highlight one of the potential advantages of ordered CCIs.
 
 ## 3.8. Choose the right data types
 
+The column types and sizes that you use to define data warehouse tables can have a significant impact on space allocation and performance. It is a good practice to use the minimum size to fit your data. Smaller data types shortens the row length which yields better overall query performance. For instance, some guidance for character columns includes:
 
-Study the impact of wrong choices for column data types
+    - if your largest value is 25 characters, then defeine your column as VARCHAR(25)
+    - avoid using NVARCHAR, when all you need is VARCHAR
+    - avoid using VARCHAR(MAX), use VARCHAR(8000) instead
 
-Create and populate tables with optimal column data types
-
-Use the following query to create two tables (`Sale_Hash_Projection` and `Sale_Hash_Projection2`) which contain a subset of the columns from `Sale_Heap`:
-
-```sql
-CREATE TABLE [wwi_perf].[Sale_Hash_Projection]
-WITH
-(
-	DISTRIBUTION = HASH ( [CustomerId] ),
-	HEAP
-)
-AS
-SELECT
-	[CustomerId]
-	,[ProductId]
-	,[Quantity]
-FROM
-	[wwi_perf].[Sale_Heap]
-
-CREATE TABLE [wwi_perf].[Sale_Hash_Projection2]
-WITH
-(
-	DISTRIBUTION = HASH ( [CustomerId] ),
-	CLUSTERED COLUMNSTORE INDEX
-)
-AS
-SELECT
-	[CustomerId]
-	,[ProductId]
-	,[Quantity]
-FROM
-	[wwi_perf].[Sale_Heap]
-```
-
-The query should finish execution in a few minutes.
-
-Create and populate tables with sub-optimal column data types
-
-Use the following query to create two additional tables (`Sale_Hash_Projection_Big` and `Sale_Hash_Projection_Big2`) that have the same columns, but with different (sub_optimal) data types:
-
-```sql
-CREATE TABLE [wwi_perf].[Sale_Hash_Projection_Big]
-WITH
-(
-	DISTRIBUTION = HASH ( [CustomerId] ),
-	HEAP
-)
-AS
-SELECT
-	[CustomerId]
-	,CAST([ProductId] as bigint) as [ProductId]
-	,CAST([Quantity] as bigint) as [Quantity]
-FROM
-	[wwi_perf].[Sale_Heap]
-
-CREATE TABLE [wwi_perf].[Sale_Hash_Projection_Big2]
-WITH
-(
-	DISTRIBUTION = HASH ( [CustomerId] ),
-	CLUSTERED COLUMNSTORE INDEX
-)
-AS
-SELECT
-	[CustomerId]
-	,CAST([ProductId] as bigint) as [ProductId]
-	,CAST([Quantity] as bigint) as [Quantity]
-FROM
-	[wwi_perf].[Sale_Heap]
-```
-
-### Task 3 - Compare storage requirements
-
-1. Verify that the four tables have the same number of rows:
+To further demonstrate this concept, we'll look into a scenario using numeric fields. We've used the following DDL to create two tables (`Sale_Hash_Projection` and `Sale_Hash_Projection2`) which contain a subset of the columns from the `Sale_Heap` table.
 
     ```sql
-    SELECT 'Sale_Hash_Projection', COUNT_BIG(*) FROM [wwi_perf].[Sale_Hash_Projection]
-    UNION
-    SELECT 'Sale_Hash_Projection2', COUNT_BIG(*) FROM [wwi_perf].[Sale_Hash_Projection]
-    UNION
-    SELECT 'Sale_Hash_Projection_Big', COUNT_BIG(*) FROM [wwi_perf].[Sale_Hash_Projection_Big]
-    UNION
-    SELECT 'Sale_Hash_Projection_Big2', COUNT_BIG(*) FROM [wwi_perf].[Sale_Hash_Projection_Big2]
+    CREATE TABLE [wwi_perf].[Sale_Hash_Projection]
+    WITH
+    (
+        DISTRIBUTION = HASH ( [CustomerId] ),
+        HEAP
+    )
+    AS
+    SELECT
+        [CustomerId]
+        ,[ProductId]
+        ,[Quantity]
+    FROM
+        [wwi_perf].[Sale_Heap]
+
+    CREATE TABLE [wwi_perf].[Sale_Hash_Projection2]
+    WITH
+    (
+        DISTRIBUTION = HASH ( [CustomerId] ),
+        CLUSTERED COLUMNSTORE INDEX
+    )
+    AS
+    SELECT
+        [CustomerId]
+        ,[ProductId]
+        ,[Quantity]
+    FROM
+        [wwi_perf].[Sale_Heap]
     ```
 
-2. Run the following query to compare the storage requirements for the three tables:
+We'll now define two additional tables (`Sale_Hash_Projection_Big` and `Sale_Hash_Projection_Big2`) that have the same columns, but with different (sub_optimal) data types. We'll use `bigint` as it is larger than what we need in our scenario.
+
+    ```sql
+    CREATE TABLE [wwi_perf].[Sale_Hash_Projection_Big]
+    WITH
+    (
+        DISTRIBUTION = HASH ( [CustomerId] ),
+        HEAP
+    )
+    AS
+    SELECT
+        [CustomerId]
+        ,CAST([ProductId] as bigint) as [ProductId]
+        ,CAST([Quantity] as bigint) as [Quantity]
+    FROM
+        [wwi_perf].[Sale_Heap]
+
+    CREATE TABLE [wwi_perf].[Sale_Hash_Projection_Big2]
+    WITH
+    (
+        DISTRIBUTION = HASH ( [CustomerId] ),
+        CLUSTERED COLUMNSTORE INDEX
+    )
+    AS
+    SELECT
+        [CustomerId]
+        ,CAST([ProductId] as bigint) as [ProductId]
+        ,CAST([Quantity] as bigint) as [Quantity]
+    FROM
+        [wwi_perf].[Sale_Heap]
+    ```
+
+It is important to note that all four tables have the exact same number of rows. We will run a query against our `vTableSizes` view to look at the storage being used by all four tables.
 
     ```sql
     SELECT
@@ -2023,31 +1950,17 @@ FROM
         table_reserved_space_GB desc
     ```
 
-3. Analyze the results:
-
     ![Data type selection impact on table storage](./media/lab4_data_type_selection.png)
 
-    There are two important conclusions to draw here:
+There are two important conclusions to draw here:
     - In the case of `HEAP` tables, the storage impact of using `BIGINT` instead of `SMALLINT`(for `ProductId`) and `TINYINT` (for `QUANTITY`) is almost 1 GB (0.8941 GB). We're talking here about only two columns and a moderate number of rows (2.9 billion).
     - Even in the case of `CLUSTERED COLUMNSTORE` tables, where compression will offset some of the differences, there is still a difference of 12.7 MB.
 
-Minimizing the size of data types shortens the row length, which leads to better query performance. Use the smallest data type that works for your data:
-
-- Avoid defining character columns with a large default length. For example, if the longest value is 25 characters, then define your column as VARCHAR(25).
-- Avoid using [NVARCHAR][NVARCHAR] when you only need VARCHAR.
-- When possible, use NVARCHAR(4000) or VARCHAR(8000) instead of NVARCHAR(MAX) or VARCHAR(MAX).
-
->**Note**
->
->If you are using PolyBase external tables to load your SQL pool tables, the defined length of the table row cannot exceed 1 MB. When a row with variable-length data exceeds 1 MB, you can load the row with BCP, but not with PolyBase.
-
+>**Note**: If you are using PolyBase external tables to load your SQL pool tables, the defined length of the table row cannot exceed 1 MB. When a row with variable-length data exceeds 1 MB, you can load the row with BCP, but not with PolyBase.
 
 ## 3.9. Avoid extensive logging
 
-
-Avoid extensive logging
-
-Explore rules for minimally logged operations
+SQL Pools commit changes through the use of transaction logs, this guarantees that the write operation of the data to the source but also introduces overhead in the system. This impact can be minimized by writing transactionally efficient code. One way to approach this issue is by using minimally logged operations. The difference is, fully logged operations utilize the transaction log for every single row affected, whereas minimally logged operations keep track of extent allocations and meta-data changes only. This translates to minimal logging tracks only the information necessary to roll back a transaction after a rollback. This results in less information tracked in the tranaction log, better performance, and less space consumption.
 
 The following operations are capable of being minimally logged:
 
@@ -2060,9 +1973,7 @@ The following operations are capable of being minimally logged:
 - DROP TABLE
 - ALTER TABLE SWITCH PARTITION
 
-**Minimal logging with bulk load**
-  
-CTAS and INSERT...SELECT are both bulk load operations. However, both are influenced by the target table definition and depend on the load scenario. The following table explains when bulk operations are fully or minimally logged:  
+When dealing with bulk load situations such as with CTAS and INSERT...SELECT, both are influenced by the target table definition and depend on the load scenario. The following table explains when bulk operations are fully or minimally logged:  
 
 | Primary Index | Load Scenario | Logging Mode |
 | --- | --- | --- |
@@ -2075,26 +1986,13 @@ CTAS and INSERT...SELECT are both bulk load operations. However, both are influe
 
 It is worth noting that any writes to update secondary or non-clustered indexes will always be fully logged operations.
 
-> **IMPORTANT**
-> 
-> A Synapse Analytics SQL pool has 60 distributions. Therefore, assuming all rows are evenly distributed and landing in a single partition, your batch will need to contain 6,144,000 rows or larger to be minimally logged when writing to a Clustered Columnstore Index. If the table is partitioned and the rows being inserted span partition boundaries, then you will need 6,144,000 rows per partition boundary assuming even data distribution. Each partition in each distribution must independently exceed the 102,400 row threshold for the insert to be minimally logged into the distribution.
+> **IMPORTANT**: A Synapse Analytics SQL pool has 60 distributions. Therefore, assuming all rows are evenly distributed and landing in a single partition, your batch will need to contain 6,144,000 rows or larger to be minimally logged when writing to a Clustered Columnstore Index. If the table is partitioned and the rows being inserted span partition boundaries, then you will need 6,144,000 rows per partition boundary assuming even data distribution. Each partition in each distribution must independently exceed the 102,400 row threshold for the insert to be minimally logged into the distribution.
 
 Loading data into a non-empty table with a clustered index can often contain a mixture of fully logged and minimally logged rows. A clustered index is a balanced tree (b-tree) of pages. If the page being written to already contains rows from another transaction, then these writes will be fully logged. However, if the page is empty then the write to that page will be minimally logged.
 
-**Optimizing a delete operation**
+DELETE operations are fully logged operations. To improve the performance of large delete operions in a table or partition, it makes sense to SELECT the data you wish to keep, which is a minimally logged operation. Essentially what is recommended is to create a new table using CTAS with the data you want to keep, then after it is created use RENAME to fully replace the old table with the new one.
 
-1. Check the number of transaction items for customers with ids lower than 900000 using the following query:
-
-    ```sql
-    SELECT
-        COUNT_BIG(*) as TransactionItemsCount
-    FROM
-        [wwi_perf].[Sale_Hash]
-    WHERE
-        CustomerId < 900000
-    ```
-
-2. Implement a minimal logging approach to delete transaction items for customers with ids lower than 900000. Use the following CTAS query to isolate the transaction items that should be kept:
+To illustrate this concept, consider the following scenario. We wish to keep data for customers that have an id of greater than 900000. To implement a minimal logging approach to delete transaction items for customers with ids lower than 900000. We can use the following CTAS query to isolate the transaction items that should be kept:
 
     ```sql
     CREATE TABLE [wwi_perf].[Sale_Hash_v2]
@@ -2112,24 +2010,30 @@ Loading data into a non-empty table with a clustered index can often contain a m
         CustomerId >= 900000
     ```
 
-    The query should execute within a few minutes. All that would remain to complete the process would be to delete the `Sale_Heap` table and rename `Sale_Heap_v2` to `Sale_Heap`.
-
-3. Compare the previous operation with a classical delete:
-
-    ```sql
-    DELETE
-        [wwi_perf].[Sale_Hash]
-    WHERE
-        CustomerId < 900000
-    ```
-
-    >**Note**
-    >
-    >The query will run for a potentially long time. Once the time exceeds significantly the time to run the previous CTAS query, you can cancel it (as you can already see the benefit of the CTAS-based approach).
-
-
-
+Once complete, the next step would be to delete the `Sale_Heap` table and rename `Sale_Heap_v2` to `Sale_Heap`. If we were to compare this CTAS operation with a classical delete, you'd observe the query running for a time far exeeding the CTAS query.
 
 ## 3.10. Best practices
 
-https://docs.microsoft.com/en-us/azure/synapse-analytics/sql-data-warehouse/sql-data-warehouse-best-practices
+In this section, we've covered a variety of tools at your disposal that can help investigate potential performance issues. We've talked about scaling, table structure, indexing and partitioning. You've learned how to avoid the overhead of logging using minimally logged operations, and how to take advantage of materialized views. Here are some key take aways regarding the best practices surrounding getting the best performance out of your SQL Pool.
+
+- Maintain Statistics - we recommend enabling `AUTO_CREATE_STATISTICS` to keep statistics updated daily or after each load to ensure they are always up to date.
+  
+- Use DMVs to monitor and optimize queries, label your queries to assist in identifying them.
+  
+- Use minimally logged operations wherever possible.
+  
+- Use PolyBase to load and export data quickly. PolyBase has been designed to take advantage of the MPP (Massively Parallel Processing) architecture and can load data in a fraction of the time it takes other tools, remember to use CTAS to minimize transaction logging.
+
+- Load then query external tables. When reading a large number of files, the SQL Pool must manually read the entire file and store it in tempdb in order to query the data. If this data is routinely needed, it is more efficient to load this data into a local table and query it directly.
+
+- Hash distribute large tables. When tables exceed 60 million rows, it is recommended to select a column to be utilized as a hash that will will evenly distribute across all 60 distributions.
+
+- Do not over-partition. If partitions have fewer than 1 million rows, the effectiveness of the CCI is reduced. Keep in mind that if you create a table with 100 partitions, it is distributing across 60 databases and therefore yields 6000 partitions. When experimenting with partitions in your workload, it's best to start with weekly or monthly partitions versus daily partitions.
+
+- Minimize transaction sizes. The larger the transaction, the larger the transaction log overhead, and the longer it will take for the query to complete, and any rollbacks will take an equal amount of time. It is beneficial to split larger transactions into smaller ones, for instance, split a large insert method that takes an hour to complete, into four smaller ones that take 15 minutes. Consider if it's beneficial to use minimally logged operations in its place, such as the use of CTAS to write to a table the data you want to keep and swap out the table, instead of using an expensive DELETE query and deleting row by row.
+  
+- Reduce the query result sizes. Avoid client-side issues by adding `TOP N` syntax to your queries. You can also CTAS the query result to a temporary table then use PolyBase export for downlevel processing.
+
+- Use the smallest possible column size. Reducing the size of the columns, reduces the size of the rows, and reduces the size of the table on disk. Each of these improves overall query performance.
+
+- Optimize clustered columnstore indexes. Through using the investigational tools and techniques described in this section, check for segment overlaps, data skew, and consider using ordered clustered columnstore indexes where it is beneficial.
