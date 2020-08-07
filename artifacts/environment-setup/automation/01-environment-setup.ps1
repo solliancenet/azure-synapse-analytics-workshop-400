@@ -27,6 +27,13 @@ if($IsCloudLabs){
         
         Connect-AzAccount -Credential $cred | Out-Null
 
+        $resourceGroupName = (Get-AzResourceGroup | Where-Object { $_.ResourceGroupName -like "*-L400" }).ResourceGroupName
+
+        if ($resourceGroupName.Count -gt 1)
+        {
+                $resourceGroupName = $resourceGroupName[0];
+        }
+
         $ropcBodyCore = "client_id=$($clientId)&username=$($userName)&password=$($password)&grant_type=password"
         $global:ropcBodySynapse = "$($ropcBodyCore)&scope=https://dev.azuresynapse.net/.default"
         $global:ropcBodyManagement = "$($ropcBodyCore)&scope=https://management.azure.com/.default"
@@ -68,6 +75,8 @@ if($IsCloudLabs){
                 Write-Information "Selecting the $selectedSubName subscription"
                 Select-AzSubscription -SubscriptionName $selectedSubName
         }
+
+        $resourceGroupName = Read-Host "Enter the resource group name";
         
         $userName = ((az ad signed-in-user show) | ConvertFrom-JSON).UserPrincipalName
         $global:sqlPassword = Read-Host -Prompt "Enter the SQL Administrator password you used in the deployment" -AsSecureString
@@ -82,13 +91,7 @@ if($IsCloudLabs){
         $sqlScriptsPath = "..\sql"
 }
 
-$resourceGroupName = (Get-AzResourceGroup | Where-Object { $_.ResourceGroupName -like "*-L400" }).ResourceGroupName
-
-if ($resourceGroupName.Count -gt 1)
-{
-        $resourceGroupName = $resourceGroupName[0];
-        Write-Information "Using $resourceGroupName";
-}
+Write-Information "Using $resourceGroupName";
 
 $uniqueId =  (Get-AzResourceGroup -Name $resourceGroupName).Tags["DeploymentId"]
 $subscriptionId = (Get-AzContext).Subscription.Id
@@ -217,6 +220,9 @@ $destinationSasKey = New-AzStorageContainerSASToken -Container "wwi-02" -Context
 
 if ($download)
 {
+        add-content "C:\labfiles\placeholder.txt" "Hello World";
+        Set-AzStorageBlobContent -File "C:\labfiles\placeholder.txt" -Container wwi-02 -Blob 'ml/onnx/placeholder.txt' -Context $dataLakeContext.Context -Force;
+
         Write-Information "Copying single files from the public data account..."
         $singleFiles = @{
                 customer_info = "wwi-02/customer-info/customerinfo.csv"
@@ -506,6 +512,9 @@ foreach ($sqlScriptName in $sqlScripts.Keys) {
 #                         
 
 $download = $true;
+
+#generate new one just in case...
+$destinationSasKey = New-AzStorageContainerSASToken -Container "wwi-02" -Context $dataLakeContext -Permission rwdl
 
 if ($download)
 {
