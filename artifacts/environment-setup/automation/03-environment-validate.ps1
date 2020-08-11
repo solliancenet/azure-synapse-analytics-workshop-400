@@ -265,12 +265,6 @@ if ($sqlPool -eq $null) {
                         Valid = $false
                         ValidCount = $false
                 }
-                "wwi_ml.MLModelExt" = @{
-                        Count = 1
-                        StrictCount = $true
-                        Valid = $false
-                        ValidCount = $false
-                }
                 "wwi_ml.MLModel" = @{
                         Count = 0
                         StrictCount = $true
@@ -356,28 +350,6 @@ FROM
                 "$($userName)" = @{ Valid = $false }
         }
 
-$query = @"
-select name from sys.sysusers
-"@
-        #$result = Execute-SQLQuery -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -SQLQuery $query
-        $result = Invoke-SqlCmd -Query $query -ServerInstance $sqlEndpoint -Database $sqlPoolName -Username $sqlUser -Password $sqlPassword
-
-        #foreach ($dataRow in $result.data) {
-        foreach ($dataRow in $result) {
-                $name = $dataRow[0]
-
-                if ($users[$name]) {
-                        Write-Information "Found user $($name)."
-                        $users[$name]["Valid"] = $true
-                }
-        }
-
-        foreach ($name in $users.Keys) {
-                if (-not $users[$name]["Valid"]) {
-                        Write-Warning "User $($name) was not found."
-                        $overallStateIsValid = $false
-                }
-        }
 }
 
 Write-Information "Checking Spark pool $($sparkPoolName)"
