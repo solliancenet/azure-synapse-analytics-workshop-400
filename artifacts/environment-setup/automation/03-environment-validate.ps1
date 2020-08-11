@@ -9,7 +9,6 @@ $InformationPreference = "Continue"
 $iscloudlabs = $false;
 $IsCloudLabs = Test-Path C:\LabFiles\AzureCreds.ps1;
 
-
 if($IsCloudLabs){
         Remove-Module solliance-synapse-automation
         Import-Module "..\solliance-synapse-automation"
@@ -265,7 +264,6 @@ if ($sqlPool -eq $null) {
                         Valid = $false
                         ValidCount = $false
                 }
-              
                 "wwi_ml.MLModel" = @{
                         Count = 0
                         StrictCount = $true
