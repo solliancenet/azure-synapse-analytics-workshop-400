@@ -12,7 +12,7 @@ $IsCloudLabs = Test-Path C:\LabFiles\AzureCreds.ps1;
 
 if($IsCloudLabs){
         Remove-Module solliance-synapse-automation
-       Import-Module "..\solliance-synapse-automation"
+        Import-Module "..\solliance-synapse-automation"
 
         . C:\LabFiles\AzureCreds.ps1
 
@@ -380,7 +380,7 @@ if ($dataLakeAccount -eq $null) {
         Write-Information "OK"
 
         Write-Information "Checking data lake file system wwi-02"
-        $dataLakeFileSystem = Get-AzDataLakeGen2Item -Context $dataLakeAccount.Context -FileSystem "wwi-02"
+        $dataLakeFileSystem = Get-AzDataLakeGen2Item -Context $dataLakeAccount.Context -FileSystem "wwi-02" -Path "\"
         if ($dataLakeFileSystem -eq $null) {
                 Write-Warning "    The data lake file system wwi-02 was not found"
                 $overallStateIsValid = $false
