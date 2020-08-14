@@ -673,7 +673,7 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
     >
     >The operations to create result set cache and retrieve data from the cache happen on the control node of a Synapse SQL pool instance. When result set caching is turned ON, running queries that return large result set (for example, >1GB) can cause high throttling on the control node and slow down the overall query response on the instance. Those queries are commonly used during data exploration or ETL operations. To avoid stressing the control node and cause performance issue, users should turn OFF result set caching on the database before running those types of queries.
 
-2. After activating result set caching, run a query and immediately check if it hit the cache:
+2. After activating result set caching, run a query and immediately check if it hit the cache (change the database back to your SQL Pool):
 
     ```sql
     SELECT
@@ -791,7 +791,7 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
         start_time desc
     ```
 
-    The result of `SET RESULT_SET_CACHING OFF` is visible in the cache hit test results (`RESULT_CACHE_HIT` contains a `NULL` value):
+    The result of `SET RESULT_SET_CACHING OFF` is visible in the cache hit test results (The `result_cache_hit` column returns `1` for cache hit, `0` for cache miss, and *negative values* for reasons why result set caching was not used.):
 
     ![Result cache on and off](./media/lab3_result_set_cache_off.png)
 
@@ -849,7 +849,7 @@ For example, if the optimizer estimates that the date your query is filtering on
     FROM sys.databases
     ```
 
-2. See statistics that have been automatically created:
+2. See statistics that have been automatically created (change the database back to your SQL Pool):
 
     ```sql
     SELECT
@@ -884,7 +884,7 @@ For example, if the optimizer estimates that the date your query is filtering on
     DBCC SHOW_STATISTICS([wwi_perf.Sale_Hash], 'Sale_Hash_CustomerId')
     ```
 
-    In the results pane, swhitch to `Chart` display and set the category column and the legend columns as presented below:
+    In the results pane, switch to `Chart` display and set the category column and the legend columns as presented below:
 
     ![Statistics created for CustomerId](./media/lab3_statistics_customerid.png)
 
