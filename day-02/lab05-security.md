@@ -160,7 +160,9 @@ It is recommended to store any secrets that are part of your pipeline in Azure K
 
 Transparent Data Encryption (TDE) is a feature of SQL Server that provides encryption and decryption of data at rest, this includes: databases, log files, and back ups. When using this feature with ASA SQL Pools, it will use a built in symmetric Database Encryption Key (DEK) that is provided by the pool itself. With TDE, all stored data is encrypted on disk, when the data is requested, TDE will decrypt this data at the page level as it's read into memory, and vice-versa encrypting in-memory data before it gets written back to disk. As with the name, this happens transparently without affecting any application code. When creating a SQL Pool through ASA, Transparent Data Encryption is not enabled. The first part of this task will show you how to enable this feature.
 
-1. In the **Azure Portal**, locate and open the `SqlPool01` resource.
+1. In the **Azure Portal**, open your resource group, then locate and open the `SqlPool01` resource.
+
+    ![The SQLPool01 resource is highlighted in the Resource Group.](media/resource-group-sqlpool01.png "Resource Group: SQLPool01")
 
 2. On the **SQL pool** resource screen, select **Transparent data encryption** from the left menu.
    ![On the SQL pool resource screen, Transparent data encryption is selected from the menu.](media/lab5_sqlpoolresourcetransparentdataencryptionmenu.png)
@@ -169,6 +171,7 @@ Transparent Data Encryption (TDE) is a feature of SQL Server that provides encry
 
     ![On the SQL Pool Transparent Data Encryption screen, the Data Encryption toggle is set to the ON position and the Save button is highlighted in the toolbar.](media/lab5_sqlpoolenabletdeform.png)
 
+> **Note**: This operation can take several minutes to complete. You will not be able to the next exercise until this operation is completed.
 
 ## Exercise 3 - Securing Azure Synapse Analytics workspace data
 
@@ -188,7 +191,7 @@ It is important to identify data columns of that hold sensitive information. Typ
 
     ![The Synapse Studio query toolbar is shown with the Connect to dropdown list field highlighted.](media/lab5_synapsestudioquerytoolbar.png)
 
-4. In the query window, run each step individually by highlighting the statement(s) in the step in the query window, and selecting the **Run** button from the toolbar.
+4. In the query window, **run each step individually** by highlighting the statement(s) in the step in the query window, and selecting the **Run** button from the toolbar.
 
    ![The Synapse Studio toolbar is displayed with the Run button selected.](media/lab5_synapsestudioqueryruntoolbarmenu.png)
 
