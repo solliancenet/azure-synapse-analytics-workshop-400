@@ -876,7 +876,7 @@ Now that we have processed, joined, and imported the user profile data, let's an
 
     ![The Data menu item is highlighted.](media/data-hub.png "Data hub")
 
-2. Expand the `SqlPool01` database underneath the **Databases** section. Right-click the `wwi.UserTopProductPurchases` table, then select the **Load to DataFrame** menu item under the New notebook context menu.
+2. Expand the `SqlPool01` database underneath the **Databases** section. Right-click the `wwi.UserTopProductPurchases` table, then select the **Load to DataFrame** menu item under the New notebook context menu. If you don't see the table listed, select `Refresh` above.
 
     ![The load to DataFrame new notebook option is highlighted.](media/synapse-studio-usertopproductpurchases-new-notebook.png "New notebook")
 
@@ -886,7 +886,8 @@ Now that we have processed, joined, and imported the user profile data, let's an
 
 4. Select **Run all** on the notebook toolbar to execute the notebook.
 
-    > **Note:** The first time you run a notebook in a Spark pool, Synapse creates a new session. This can take approximately 3 minutes.
+    > **Note:** The first time you run a notebook in a Spark pool, Synapse creates a new session. This can take approximately 3-5 minutes.
+
     > **Note:** To run just the cell, either hover over the cell and select the _Run cell_ icon to the left of the cell, or select the cell then type **Ctrl+Enter** on your keyboard.
 
 5. Create a new cell underneath by selecting **{} Add code** when hovering over the blank space at the bottom of the notebook.
@@ -1004,11 +1005,11 @@ In this cell, we grouped the top five preferred products by product ID, summed u
 +---------+-----+
 |ProductId|Total|
 +---------+-----+
-|     1974|23444|
-|     3861|22368|
-|     2050|22050|
-|     1465|21892|
-|     4649|21784|
+|     2107| 4538|
+|     4833| 4533|
+|      347| 4523|
+|     3459| 4233|
+|     4246| 4155|
 +---------+-----+
 ```
 
@@ -1151,10 +1152,10 @@ This is the output of the query:
 +---------+-----+
 |ProductId|Total|
 +---------+-----+
-|     1974|23444|
-|     3861|22368|
-|     2050|22050|
-|     1465|21892|
-|     4649|21784|
+|     2107| 4538|
+|     4833| 4533|
+|      347| 4523|
+|     3459| 4233|
+|     4246| 4155|
 +---------+-----+
 ```
