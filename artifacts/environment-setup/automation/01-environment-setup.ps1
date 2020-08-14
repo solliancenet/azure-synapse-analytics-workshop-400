@@ -222,6 +222,7 @@ if ($download)
 {
         add-content "C:\labfiles\placeholder.txt" "Hello World";
         Set-AzStorageBlobContent -File "C:\labfiles\placeholder.txt" -Container wwi-02 -Blob 'ml/onnx/placeholder.txt' -Context $dataLakeContext.Context -Force;
+        Set-AzStorageBlobContent -File "C:\labfiles\placeholder.txt" -Container wwi-02 -Blob 'ml/onnx-hex/placeholder.txt' -Context $dataLakeContext.Context -Force;
 
         Write-Information "Copying single files from the public data account..."
         $singleFiles = @{
