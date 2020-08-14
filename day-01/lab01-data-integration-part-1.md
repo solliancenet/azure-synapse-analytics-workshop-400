@@ -181,7 +181,7 @@ When you query Parquet files using Synapse SQL Serverless, you can explore the d
 
 ### Task 2: Query sales Parquet data with Azure Synapse Spark
 
-1. Navigate to the **Data** hub, browse to the data lake storage account folder `sale-small/Year=2016/Quarter=Q4/Month=12/Day=20161231` if needed, then right-click the Parquet file and select New notebook.
+1. Navigate to the **Data** hub, browse to the data lake storage account folder `sale-small/Year=2010/Quarter=Q4/Month=12/Day=20161231` if needed, then right-click the Parquet file and select New notebook.
 
     ![The Parquet file is displayed with the New notebook menu item highlighted.](media/new-spark-notebook-sales.png "New notebook")
 
@@ -195,7 +195,7 @@ When you query Parquet files using Synapse SQL Serverless, you can explore the d
 
 5. Select **Run all** on the notebook toolbar to execute the notebook.
 
-    > **Note:** The first time you run a notebook in a Spark pool, Synapse creates a new session. This can take approximately 3 minutes.
+    > **Note:** The first time you run a notebook in a Spark pool, Synapse creates a new session. This can take approximately 3-5 minutes.
 
     > **Note:** To run just the cell, either hover over the cell and select the _Run cell_ icon to the left of the cell, or select the cell then type **Ctrl+Enter** on your keyboard.
 
@@ -248,7 +248,7 @@ profitByDateProduct.show(100)
 
 In addition to the sales data, we have customer profile data from an e-commerce system that provides top product purchases for each visitor of the site (customer) over the past 12 months. This data is stored within JSON files in the data lake. We will import this data in the next lab, but let's explore it while we're in the Spark notebook.
 
-1. Create a new cell in the Spark notebook, enter the following code, replace `<asadatalakeNNNNNN>` with your data lake name, and execute the cell:
+1. Create a new cell in the Spark notebook, enter the following code, replace `<asadatalakeNNNNNN>` with your data lake name (you can find this value in the first cell of the notebook), and execute the cell:
 
 ```python
 df = (spark.read \
@@ -291,7 +291,7 @@ Notice that the output shows nested data for `topProductPurchases`, which includ
 
 ![JSON nested output.](media/spark-json-output-nested.png "JSON output")
 
-This makes analyzing the data a bit difficult. This is because the JSON file contents looks like the following:
+This makes analyzing the data a bit difficult. This is because the JSON file contents look like the following:
 
 ```json
 [
