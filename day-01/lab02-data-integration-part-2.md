@@ -307,7 +307,7 @@ If you **did not** complete Exercise 1 in lab 1, where you configure the linked 
 
     ![The new data flow link is highlighted.](media/new-data-flow-link.png "New data flow")
 
-3. In the **General** tab of the new data flow, update the **Name** to the following: `asal400_lab2_writecampaignanalyticstoasa`.
+3. In the **General** settings of the **Properties** blade of the new data flow, update the **Name** to the following: `asal400_lab2_writecampaignanalyticstoasa`.
 
     ![The name field is populated with the defined value.](media/data-flow-campaign-analysis-name.png "Name")
 
@@ -318,6 +318,7 @@ If you **did not** complete Exercise 1 in lab 1, where you configure the linked 
 5. Under **Source settings**, configure the following:
 
     - **Output stream name**: Enter `CampaignAnalytics`.
+    - **Source type**: Select `Dataset`.
     - **Dataset**: Select `asal400_campaign_analytics_source`.
     - **Options**: Select `Allow schema drift` and leave the other options unchecked.
     - **Skip line count**: Enter `1`. This allows us to skip the header row which has two fewer columns than the rest of the rows in the CSV file, truncating the last two data columns.
@@ -329,7 +330,7 @@ If you **did not** complete Exercise 1 in lab 1, where you configure the linked 
 
     ![The import projection button is highlighted in the projection tab.](media/data-flow-import-projection.png "Import projection")
 
-7. If a data flow debug session is not currently running, select the **AzureLargeComputeOptimizedIntegrationRuntime** IR, then select **Turn on debug**.
+1. If a data flow debug session is not currently running, select the **AzureLargeComputeOptimizedIntegrationRuntime** IR, then select **Turn on debug**.
 
     ![Select the IR then select turn on debug.](media/data-flow-debug-session-large-ir.png "Data Flow Debug Session Required")
 
@@ -337,11 +338,11 @@ If you **did not** complete Exercise 1 in lab 1, where you configure the linked 
 
     ![The imported projection is displayed.](media/data-flow-campaign-analysis-source-projection.png "Projection") -->
 
-6. When you create data flows, certain features are enabled by turning on debug, such as previewing data and importing a schema (projection). Due to the amount of time it takes to enable this option, as well as environmental constraints of the lab environment, we will bypass these features. The data source has a schema we need to set. To do this, select **Script** above the design canvas.
+2. When you create data flows, certain features are enabled by turning on debug, such as previewing data and importing a schema (projection). Due to the amount of time it takes to enable this option, as well as environmental constraints of the lab environment, we will bypass these features. The data source has a schema we need to set. To do this, select **Script** above the design canvas.
 
     ![The script link is highlighted above the canvas.](media/data-flow-script.png "Script")
 
-7. Replace the script with the following to provide the column mappings (`output`), then select **OK**:
+3. Replace the script with the following to provide the column mappings (`output`), then select **OK**:
 
     ```json
     source(output(
@@ -438,6 +439,7 @@ If you **did not** complete Exercise 1 in lab 1, where you configure the linked 
 
     - **Output stream name**: Enter `CampaignAnalyticsASA`.
     - **Incoming stream**: Select `SelectCampaignAnalyticsColumns`.
+    - **Sink type**: Select `Dataset`.
     - **Dataset**: Select `asal400_wwi_campaign_analytics_asa`, which is the CampaignAnalytics SQL table.
     - **Options**: Check `Allow schema drift` and uncheck `Validate schema`.
 
