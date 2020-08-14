@@ -66,7 +66,9 @@ Having robust Internet security is a must for every technology system. One way t
 
 When dealing with connectivity to external data sources and services, sensitive connection information such as passwords and access keys should be properly handled. It is recommended that this type of information be stored in an Azure Key Vault. Leveraging Azure Key Vault not only protects against secrets being compromised, it also serves as a central source of truth; meaning that if a secret value needs to be updated (such as when cycling access keys on a storage account), it can be changed in one place and all services consuming this key will start pulling the new value immediately. Azure Key Vault encrypts and decrypts information transparently using 256-bit AES encryption, which is FIPS 140-2 compliant.
 
-1. In the **Azure Portal**, open the `Synapse-L400-Workshop-NNNNNN` resource group and from the list of resources and select the Key vault resource.
+1. In the **Azure Portal**, open the `Synapse-WS-L400-NNNNNN` resource group and from the list of resources and select the **Key vault** resource.
+
+    ![Key vault is selected in the resource group.](media/resource-group-key-vault.png "Key vault")
 
 2. From the left menu, under Settings, select **Access Policies**.
 
@@ -80,11 +82,11 @@ Linked Services are synonymous with connection strings in Azure Synapse Analytic
 
 In order to leverage Azure Key Vault in linked services, you must first add `asakeyvaultXX` as a linked service in Azure Synapse Analytics.
 
-1. In **Azure Synapse Studio**, select **Manage** from the left menu.
+1. In **Azure Synapse Studio** (<https://web.azuresynapse.net/>), select **Manage** from the left menu.
 
 2. Beneath **External Connections**, select **Linked Services**, observe that a Linked Service pointing to your Key Vault has been provided in the environment.
 
-Since we have the Azure Key Vault setup as a linked service, we can leverage it when defining new linked services. Every New linked service provides the option to retrieve secrets from Azure Key Vault. The form requests the selection of the Azure Key Vault linked service, the secret name, and (optional) specific version of the secret.
+Since we have the Azure Key Vault set up as a linked service, we can leverage it when defining new linked services. Every New linked service provides the option to retrieve secrets from Azure Key Vault. The form requests the selection of the Azure Key Vault linked service, the secret name, and (optional) specific version of the secret.
 
 ![A New linked service form is displayed with the Azure Key Vault setting highlighted with the fields described in the preceding paragraph.](media/lab5_newlinkedservicewithakv.png)
 
@@ -92,7 +94,7 @@ Since we have the Azure Key Vault setup as a linked service, we can leverage it 
 
 It is recommended to store any secrets that are part of your pipeline in Azure Key Vault. In this task you will retrieve these values using a Web activity, just to show the mechanics. The second part of this task demonstrates using a Web activity in the pipeline to retrieve a secret from the Key Vault.
 
-1. Open the `asakeyvaultXX` resource, and select **Secrets** from the left menu. From the top toolbar, select **+ Generate/Import**.
+1. Open the `asakeyvaultXX` Azure Key Vault resource, and select **Secrets** from the left menu. From the top toolbar, select **+ Generate/Import**.
 
    ![In Azure Key Vault, Secrets is selected from the left menu, and + Generate/Import is selected from the top toolbar.](media/lab5_pipelinekeyvaultsecretmenu.png)
 
@@ -130,6 +132,8 @@ It is recommended to store any secrets that are part of your pipeline in Azure K
 
 8. From the Activities pane, add a **Set variable** activity to the design surface of the pipeline.
 
+    ![An arrow goes from the set variable item under Activities to the pipeline canvas.](media/pipeline-activities-set-variable.png "Activities: Set variable")
+
 9. On the design surface of the pipeline, select the **Web1** activity and drag a **Success** activity pipeline connection (green box) to the **Set variable1** activity.
 
 10. With the pipeline selected in the designer (e.g., neither of the activities are selected), select the **Variables** tab and add a new **String** parameter named **SecretValue**.
@@ -151,7 +155,6 @@ It is recommended to store any secrets that are part of your pipeline in Azure K
     ![In the output of the pipeline, the Set variable 1 activity is selected with its input displayed. The input shows the value of NotASecret that was pulled from the key vault being assigned to the SecretValue pipeline variable.](media/lab5_pipelinesetvariableactivityinputresults.png)
 
     > **Note**: On the **Web1** activity, on the **General** tab there is a **Secure Output** checkbox that when checked will prevent the secret value from being logged in plain text, for instance in the pipeline run, you would see a masked value ***** instead of the actual value retrieved from the Key vault. Any activity that consumes this value should also have their **Secure Input** checkbox checked.
-
 
 ### Task 4 - Secure Azure Synapse Analytics SQL Pools
 
