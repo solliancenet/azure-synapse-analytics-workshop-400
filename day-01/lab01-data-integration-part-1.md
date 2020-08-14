@@ -132,7 +132,7 @@ When you query Parquet files using Synapse SQL Serverless, you can explore the d
 
     ![The Data menu item is highlighted.](media/data-hub.png "Data hub")
 
-2. Expand **Storage accounts**. Expand the `asadatalakeXX` primary ADLS Gen2 account and select `wwi-02`.
+2. Select the **Linked** tab and expand **Storage accounts**. Expand the `asaworkspaceXX` primary ADLS Gen2 account and select `wwi-02`.
 
 3. Navigate to the `sale-small/Year=2016/Quarter=Q4/Month=12/Day=20161231` folder. Right-click on the `sale-small-20161231-snappy.parquet` file, select **New SQL script**, then **Select TOP 100 rows**.
 
@@ -163,7 +163,7 @@ When you query Parquet files using Synapse SQL Serverless, you can explore the d
 
     ```sql
     SELECT
-        COUNT_BIG(*)
+        COUNT(*)
     FROM
         OPENROWSET(
             BULK 'https://asadatalakeSUFFIX.dfs.core.windows.net/wwi-02/sale-small/Year=2019/*/*/*/*',
