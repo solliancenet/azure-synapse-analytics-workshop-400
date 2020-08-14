@@ -256,7 +256,7 @@
         [wwi_perf].[Sale_Heap]
     ```
 
-    The query will take about 10 minutes to complete.
+    The query will take up to 10 minutes to complete.
 
     >Note:
     >CTAS is a more customizable version of the SELECT...INTO statement.
