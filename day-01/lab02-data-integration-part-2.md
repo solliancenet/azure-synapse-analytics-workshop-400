@@ -811,7 +811,7 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
     ![The new pipeline context menu item is selected.](media/new-pipeline.png "New pipeline")
 
-3. In the **General** tab for the new pipeline, enter the following **Name**: `ASAL400 - Lab 2 - Write User Profile Data to ASA`.
+3. In the **General** section of the **Properties** blade for the new pipeline, enter the following **Name**: `ASAL400 - Lab 2 - Write User Profile Data to ASA`.
 
 4. Expand **Move & transform** within the Activities list, then drag the **Data flow** activity onto the pipeline canvas.
 
@@ -823,7 +823,7 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
 6. Select **Finish**.
 
-7. Select the mapping data flow activity on the canvas. Select the **Settings** tab, then set the **Run on (Azure IR)** setting to the `AzureLargeComputeOptimizedIntegrationRuntime` custom IR you created in lab 1.
+7. Select the mapping data flow activity on the canvas. Select the **Settings** tab, then ensure `AutoResolveIntegrationRuntime` is selected for **Run on (Azure IR)**. Choose the `Compute Optimized` **Compute type** and select `64 (+ 16 cores)` for the **Core count**.
 
 8. Expand **PolyBase** and configure the following:
 
@@ -856,7 +856,7 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
     ![The pipeline run succeeded.](media/pipeline-user-profiles-run-complete.png "Pipeline runs")
 
-5. Select the name of the pipeline to view the pipeline's activity runs. Notice that the custom `AzureLargeComputeOptimizedIntegrationRuntime` IR was used. Hover over the data flow activity name in the `Activity runs` list, then select the **Data flow details** icon.
+5. Select the name of the pipeline to view the pipeline's activity runs. Hover over the data flow activity name in the `Activity runs` list, then select the **Data flow details** icon.
 
     ![The data flow details icon is highlighted.](media/pipeline-user-profiles-activity-runs.png "Activity runs")
 
@@ -864,7 +864,7 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
     ![The data flow details are displayed.](media/pipeline-user-profiles-data-flow-details.png "Data flow details")
 
-7. Select the `UserTopProductPurchasesASA` sink to view its details. We can see that 15,308,766 rows were calculated with a total of 30 partitions. It took around seven seconds to stage the data in ADLS Gen2 prior to writing the data to the SQL table. The total sink processing time in our case was around 45 seconds. It is also apparent that we have a hot partition that is significantly larger than the others. If we need to squeeze extra performance out of this pipeline, we can re-evaluate data partitioning to more evenly spread the partitions to better facilitate parallel data loading and filtering. We could also experiment with disabling staging to see if there's a processing time difference. Finally, the size of the SQL Pool plays a factor in how long it takes to ingest data into the sink.
+7. Select the `UserTopProductPurchasesASA` sink to view its details. We can see that 1,622,203 rows were calculated with a total of 30 partitions. It took around six seconds to stage the data in ADLS Gen2 prior to writing the data to the SQL table. The total sink processing time in our case was around 45 seconds. It is also apparent that we have a hot partition that is significantly larger than the others. If we need to squeeze extra performance out of this pipeline, we can re-evaluate data partitioning to more evenly spread the partitions to better facilitate parallel data loading and filtering. We could also experiment with disabling staging to see if there's a processing time difference. Finally, the size of the SQL Pool plays a factor in how long it takes to ingest data into the sink.
 
     ![The sink details are displayed.](media/pipeline-user-profiles-data-flow-sink-details.png "Sink details")
 
