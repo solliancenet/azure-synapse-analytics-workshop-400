@@ -54,11 +54,15 @@ For the remainder of this guide, the following terms will be used for various AS
 
 Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Cosmos DB. The linked service for ADLS Gen2 already exists as it is the primary ADLS Gen2 account for the workspace.
 
-1. Open Synapse Analytics Studio, and then navigate to the **Manage** hub.
+1. Open Synapse Analytics Studio (<https://web.azuresynapse.net/>), and then navigate to the **Manage** hub.
 
     ![The Manage menu item is highlighted.](media/manage-hub.png "Manage hub")
 
-2. Open **Linked services** and create a new linked service to the Azure Cosmos DB account for the lab. Name the linked service `asacosmosdb01` and set the **Database name** value to `CustomerProfile`.
+2. Open **Linked services** and select **+ New** to create a new linked service. Select **Azure Cosmos DB (SQL API)** in the list of options, then select **Continue**.
+
+    ![Manage, New, and the Azure Cosmos DB linked service option are highlighted.](media/create-cosmos-db-linked-service-step1.png "New linked service")
+
+3. Name the linked service `asacosmosdb01` and set the **Database name** value to `CustomerProfile`.
 
     ![New Azure Cosmos DB linked service.](media/create-cosmos-db-linked-service.png "New linked service")
 
@@ -68,7 +72,7 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
 
     ![The Data menu item is highlighted.](media/data-hub.png "Data hub")
 
-2. Select **+** in the toolbar, then select **Dataset** to create a new dataset.
+2. With the Workspace tab selected under Data, select **+** in the toolbar, then select **Dataset** to create a new dataset.
 
     ![Create new Dataset.](media/new-dataset.png "New Dataset")
 
@@ -108,7 +112,7 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
     - **File path**: Browse to the `wwi-02/online-user-profiles-02` path.
     - **Import schema**: Select `From connection/store`.
 
-9. Select **Publish all** to save your new resources.
+9. Select **Publish all**, then **Publish** to save your new resources.
 
     ![Publish all is highlighted.](media/publish-all-1.png "Publish all")
 
