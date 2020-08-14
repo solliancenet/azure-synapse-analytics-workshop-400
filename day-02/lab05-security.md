@@ -231,7 +231,7 @@ It is important to identify data columns of that hold sensitive information. Typ
 
     ![The Synapse Studio query toolbar is shown with the Connect to dropdown list field highlighted.](media/lab5_synapsestudioquerytoolbar.png)
 
-4. In the query window, run each step individually by highlighting the statement(s) for the step in the query window, and selecting the **Run** button from the toolbar.
+4. In the query window, **run each step individually** by highlighting the statement(s) for the step in the query window, and selecting the **Run** button from the toolbar.
 
    ![The Synapse Studio toolbar is displayed with the Run button selected.](media/lab5_synapsestudioqueryruntoolbarmenu.png)
 
