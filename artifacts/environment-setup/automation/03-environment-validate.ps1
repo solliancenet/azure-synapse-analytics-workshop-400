@@ -25,7 +25,8 @@ if($IsCloudLabs){
         $cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $userName, $SecurePassword
         
         Connect-AzAccount -Credential $cred | Out-Null
-
+        
+        $global:logindomain = (Get-AzContext).Tenant.Id
         $ropcBodyCore = "client_id=$($clientId)&username=$($userName)&password=$($password)&grant_type=password"
         $global:ropcBodySynapse = "$($ropcBodyCore)&scope=https://dev.azuresynapse.net/.default"
         $global:ropcBodyManagement = "$($ropcBodyCore)&scope=https://management.azure.com/.default"
