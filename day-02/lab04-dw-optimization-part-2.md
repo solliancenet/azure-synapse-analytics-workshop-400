@@ -410,7 +410,7 @@ FROM
 
 ### Task 3 - Compare storage requirements
 
-1. Verify that the four tables have the same number of rows:
+1. Verify that the four tables have the same number of rows (there should be 339,507,246 rows in each):
 
     ```sql
     SELECT 'Sale_Hash_Projection', COUNT_BIG(*) FROM [wwi_perf].[Sale_Hash_Projection]
