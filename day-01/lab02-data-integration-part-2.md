@@ -31,46 +31,7 @@ For the remainder of this guide, the following terms will be used for various AS
 
 ## Exercise 1: Create datasets and SQL tables
 
-### Task 1: Create custom Integration Runtime (IR)
-
-The Integration Runtime (IR) is the compute infrastructure used by Azure Synapse Analytics to provide data integration capabilities across different network environments. There are different types of IR, including Azure IR and self-hosted IR, which installs on-premises to bridge connectivity between your network on Azure. In this lab, we focus on the Azure IR.
-
-When you create a new linked service, Azure IR provides fully managed compute resources to perform data movement and dispatch data transformation activities for the linked service. Unless otherwise specified in the linked service settings, the default Azure IR is used. However, sometimes the default IR configuration isn't enough for highly demanding data movement and transformation activities. If this is the case, you can create a custom IR.
-
-1. Open Synapse Analytics Studio, and then navigate to the **Manage** hub.
-
-    ![The Manage menu item is highlighted.](media/manage-hub.png "Manage hub")
-
-2. Select **Integration runtimes** under the Orchestration menu section, then select **+ New** to create a new IR.
-
-    ![The New link is highlighted.](media/new-ir-link.png "Integration runtimes")
-
-3. In the `Integration runtime setup` blade, select **Azure**, then select **Continue**.
-
-    ![The form is displayed with the described configuration settings.](media/integration-runtine-setup.png "Select the Azure runtime type")
-
-4. In the `New integration runtime` form, configure the following:
-
-    - **Name**: Enter `AzureLargeComputeOptimizedIntegrationRuntime`.
-    - **Region**: Select `Auto Resolve`.
-    - **Compute type**: Select `Compute Optimized`.
-    - **Core count**: Select `64(+ 16 Driver cores)`.
-
-    ![The form is displayed with the described configuration settings.](media/new-ir-form.png "Integration runtime setup")
-
-5. Select **Create**.
-
-6. After creating the new IR, hover over the name on the list, then select the **Code** link.
-
-    ![The code link is highlighted on the new integration runtime.](media/ir-code-link.png "Code link")
-
-7. Change the `timeToLive` value to **60**. Every time you execute a pipeline that uses the IR, one of the first steps that happens in the background is to provision the IR cluster if it is idle or inactive. Here we set the `timeToLive` value to 60 minutes to keep the provisioned cluster up and running for longer periods of time so we don't need to wait for the provisioning step each subsequent pipeline execution. Please note that setting this value to 60 minutes likely comes with a cost increase if you have infrequent pipeline runs, since you are leaving it in an active state for longer periods of time.
-
-    ![The timeToLive setting is highlighted.](media/ir-code-view.png "Code editor")
-
-8. Select **OK**.
-
-### Task 2: Create SQL tables
+### Task 1: Create SQL tables
 
 1. Navigate to the **Develop** hub.
 
@@ -178,7 +139,7 @@ When you create a new linked service, Azure IR provides fully managed compute re
 
 11. Select **Run** from the toolbar menu to execute the SQL command.
 
-### Task 3: Create campaign analytics datasets
+### Task 2: Create campaign analytics datasets
 
 Your organization was provided a poorly formatted CSV file containing marketing campaign data. The file was uploaded to the data lake and now it must be imported into the data warehouse.
 
@@ -232,9 +193,9 @@ Issues include invalid characters in the revenue currency data, and misaligned c
 
     ![New dataset form is displayed with the described configuration.](media/new-dataset-campaign-analytics-asa.png "New dataset")
 
-### Task 4: Create user profile datasets
+### Task 3: Create user profile datasets
 
-User profile data comes from two different data sources. In lab 1, you created datasets for these sources: `asal400_ecommerce_userprofiles_source` and `asal400_customerprofile_cosmosdb` (*complete Task 5 below if you did not complete lab 1*). The customer profile data from an e-commerce system that provides top product purchases for each visitor of the site (customer) over the past 12 months is stored within JSON files in the data lake. User profile data containing, among other things, product preferences and product reviews is stored as JSON documents in Cosmos DB.
+User profile data comes from two different data sources. In lab 1, you created datasets for these sources: `asal400_ecommerce_userprofiles_source` and `asal400_customerprofile_cosmosdb` (*complete Task 4 below if you did not complete lab 1*). The customer profile data from an e-commerce system that provides top product purchases for each visitor of the site (customer) over the past 12 months is stored within JSON files in the data lake. User profile data containing, among other things, product preferences and product reviews is stored as JSON documents in Cosmos DB.
 
 In this task, you'll create datasets for the SQL tables that will serve as data sinks for data pipelines you'll create later in this lab.
 
@@ -260,7 +221,7 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
 
     ![Publish all is highlighted.](media/publish-all-1.png "Publish all")
 
-### Task 5: OPTIONAL - Create datasets from Lab 1
+### Task 4: OPTIONAL - Create datasets from Lab 1
 
 If you **did not** complete Exercise 1 in lab 1, where you configure the linked service and create datasets, complete the steps below to create two additional datasets for this lab (`asal400_ecommerce_userprofiles_source` and `asal400_customerprofile_cosmosdb`).
 
@@ -485,7 +446,7 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
 6. Select **Finish**.
 
-7. Select the mapping data flow activity on the canvas. Select the **Settings** tab, then set the **Run on (Azure IR)** setting to the `AzureLargeComputeOptimizedIntegrationRuntime` custom IR you created in lab 1.
+7. Select the mapping data flow activity on the canvas. Select the **Settings** tab, then ensure `AutoResolveIntegrationRuntime` is selected for **Run on (Azure IR)**. Choose the `Compute Optimized` **Compute type** and select `64 (+ 16 cores)` for the **Core count**.
 
     ![The custom IR is selected in the mapping data flow activity settings.](media/pipeline-campaign-analysis-data-flow-settings.png "Mapping data flow activity settings")
 
@@ -511,7 +472,7 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
     ![The pipeline run succeeded.](media/pipeline-campaign-analysis-run-complete.png "Pipeline runs")
 
-5. **Important:** if the pipeline run fails with `Internal Server Error:Failed to submit job on job cluster. Integration Runtime` or takes longer than **5 minutes** to complete, you are likely experiencing capacity-related issues. In this case, it is likely that changing to a different IR will also fail. If one of these cases is true, **skip ahead** to **Task 4b (fallback)** to see a successful outcome.
+5. **Important:** if the pipeline run fails with `Internal Server Error:Failed to submit job on job cluster. Integration Runtime` or takes longer than **5 minutes** to complete, you are likely experiencing capacity-related issues. If one of these cases is true, **skip ahead** to **Task 4b (fallback)** to see a successful outcome.
 
 ### Task 4: View campaign analytics table contents
 
@@ -522,6 +483,7 @@ Now that the pipeline run is complete, let's take a look at the SQL table to ver
     ![The Data menu item is highlighted.](media/data-hub.png "Data hub")
 
 2. Expand the `SqlPool01` database underneath the **Workspace** section, then expand `Tables`.
+
 3. Right-click the `wwi.CampaignAnalytics` table, then select the **Select TOP 1000 rows** menu item under the New SQL script context menu. You may need to refresh to see the new tables.
 
     ![The Select TOP 10o0 rows menu item is highlighted.](media/select-top-1000-rows-campaign-analytics.png "Select TOP 1000 rows")
