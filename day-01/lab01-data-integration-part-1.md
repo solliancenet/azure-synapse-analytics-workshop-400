@@ -487,6 +487,8 @@ You will also create a new `Sale` clustered columnstore table within the `wwi_st
 
     ![The run button is highlighted in the query toolbar.](media/synapse-studio-query-toolbar-run.png "Run")
 
+    > **Note:** If you receive the following error, continue to the next step: `Failed to execute query. Error: There is already an object named 'wwi_staging' in the database. CREATE SCHEMA failed due to previous errors.`
+
 6. In the query window, replace the script with the following to create the heap table:
 
     ```sql
