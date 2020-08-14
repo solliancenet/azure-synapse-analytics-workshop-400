@@ -190,17 +190,21 @@ Issues include invalid characters in the revenue currency data, and misaligned c
 
     ![The Data menu item is highlighted.](media/data-hub.png "Data hub")
 
-2. Create a new **Azure Data Lake Storage Gen2** dataset with the **DelimitedText** format type with the following characteristics:
+2. With the Workspace tab selected under Data, select **+** in the toolbar, then select **Dataset** to create a new dataset.
+
+    ![Create new Dataset.](media/new-dataset.png "New Dataset")
+
+3. Create a new **Azure Data Lake Storage Gen2** dataset with the **DelimitedText** format type with the following characteristics:
 
     - **Name**: Enter `asal400_campaign_analytics_source`.
-    - **Linked service**: Select the `asadatalake01` linked service.
+    - **Linked service**: Select the `asadatalakeSUFFIX` linked service.
     - **File path**: Browse to the `wwi-02/campaign-analytics/campaignanalytics.csv` path.
     - **First row as header**: Leave `unchecked`. **We are skipping the header** because there is a mismatch between the number of columns in the header and the number of columns in the data rows.
     - **Import schema**: Select `From connection/store`.
 
     ![The form properties are configured as described.](media/create-campaign-analytics-dataset.png "New delimited text dataset")
 
-3. After creating the dataset, navigate to its **Connection** tab. Leave the default settings. They should match the following configuration:
+4. After creating the dataset, navigate to its **Connection** tab. Leave the default settings. They should match the following configuration:
 
     - **Compression type**: Select `none`.
     - **Column delimiter**: Select `Comma (,)`.
@@ -213,13 +217,13 @@ Issues include invalid characters in the revenue currency data, and misaligned c
 
     ![The configuration settings under Connection are set as defined.](media/campaign-analytics-dataset-connection.png "Connection")
 
-4. Select **Preview data**.
+5. Select **Preview data**.
 
-5. Preview data displays a sample of the CSV file. You can see some of the issues shown in the screenshot at the beginning of this task. Notice that since we are not setting the first row as the header, the header columns appear as the first row. Also, notice that the city and state values seen in the earlier screenshot do not appear. This is because of the mismatch in the number of columns in the header row compared to the rest of the file. We will exclude the first row when we create the data flow in the next exercise.
+6. Preview data displays a sample of the CSV file. You can see some of the issues shown in the screenshot at the beginning of this task. Notice that since we are not setting the first row as the header, the header columns appear as the first row. Also, notice that the city and state values seen in the earlier screenshot do not appear. This is because of the mismatch in the number of columns in the header row compared to the rest of the file. We will exclude the first row when we create the data flow in the next exercise.
 
     ![A preview of the CSV file is displayed.](media/campaign-analytics-dataset-preview-data.png "Preview data")
 
-6. Create a new **Azure Synapse Analytics** dataset with the following characteristics:
+7. Create a new **Azure Synapse Analytics** dataset with the following characteristics:
 
     - **Name**: Enter `asal400_wwi_campaign_analytics_asa`.
     - **Linked service**: Select the `SqlPool01` service.
