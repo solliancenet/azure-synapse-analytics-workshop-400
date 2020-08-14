@@ -473,7 +473,7 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
     ![The new pipeline context menu item is selected.](media/new-pipeline.png "New pipeline")
 
-3. In the **General** tab for the new pipeline, enter the following **Name**: `ASAL400 - Lab 2 - Write Campaign Analytics to ASA`.
+3. In the **General** section of the **Properties** blade for the new pipeline, enter the following **Name**: `ASAL400 - Lab 2 - Write Campaign Analytics to ASA`.
 
 4. Expand **Move & transform** within the Activities list, then drag the **Data flow** activity onto the pipeline canvas.
 
