@@ -678,7 +678,7 @@ For both of the load operations above, we inserted data into the heap table. Wha
 3. In the query window, replace the script with the following to see how many rows were imported:
 
     ```sql
-    SELECT COUNT_BIG(1) FROM wwi_staging.Sale(nolock)
+    SELECT COUNT(1) FROM wwi_staging.Sale(nolock)
     ```
 
 4. Select **Run** from the toolbar menu to execute the SQL command.
