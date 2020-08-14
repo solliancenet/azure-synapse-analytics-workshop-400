@@ -35,7 +35,7 @@ Azure Synapse Analytics (ASA) is a powerful solution that handles security for m
 
  The SQL Active Directory Admin can be a user (the default) or group (best practice so that more than one user can be provided these permissions) security principal. The principal assigned to this will have administrative permissions to the SQL Pools contained in the workspace.
 
-1. In the **Azure Portal**, browse to your `*L400*` resource group and from the list of resources open your Synapse workspace (do not launch Synapse Studio).
+1. In the **Azure Portal**, browse to your `L400` resource group and from the list of resources open your Synapse workspace (do not launch Synapse Studio).
 
 2. From the left menu, select **SQL Active Directory admin** and observe who is listed as a SQL Active Directory Admin. Is it a user or group?
 
@@ -51,7 +51,7 @@ Having robust Internet security is a must for every technology system. One way t
 
    ![The Synapse Workspace screen is displayed, with the Firewalls item selected from the left menu.](media/lab5_synapseworkspacefirewallmenu.png)
 
-3. Notice that an IP Firewall rule of `Allow All` has already been craeted for you in the lab environment. If you wanted to add your specific IP address you would instead select **+ Add Client IP** from the taskbar menu (you should not do this in this lab).
+3. Notice that an IP Firewall rule of `Allow All` has already been created for you in the lab environment. If you wanted to add your specific IP address you would instead select **+ Add Client IP** from the taskbar menu (you should not do this in this lab).
 
     ![On the Synapse Workspace screen, the + Add Client IP button is selected from the toolbar menu.](media/lab5_synapsefirewalladdclientipmenu.png)  
 
