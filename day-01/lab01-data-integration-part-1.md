@@ -619,7 +619,7 @@ PolyBase requires the following elements:
 7. In the query window, replace the script with the following to see how many rows were imported:
 
     ```sql
-    SELECT COUNT_BIG(1) FROM wwi_staging.SaleHeap(nolock)
+    SELECT COUNT(1) FROM wwi_staging.SaleHeap(nolock)
     ```
 
 8. Select **Run** from the toolbar menu to execute the SQL command. You should see a result of `339507246`.
