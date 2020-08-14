@@ -550,7 +550,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The new data flow link is highlighted.](media/new-data-flow-link.png "New data flow")
 
-3. In the **General** tab of the new data flow, update the **Name** to the following: `asal400_lab2_writeuserprofiledatatoasa`.
+3. In the **General** section of the **Profiles** pane of the new data flow, update the **Name** to the following: `asal400_lab2_writeuserprofiledatatoasa`.
 
 4. Select **Add Source** on the data flow canvas.
 
@@ -559,6 +559,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 5. Under **Source settings**, configure the following:
 
     - **Output stream name**: Enter `EcommerceUserProfiles`.
+    - **Source type**: Select `Dataset`.
     - **Dataset**: Select `asal400_ecommerce_userprofiles_source`.
 
     ![The source settings are configured as described.](media/data-flow-user-profiles-source-settings.png "Source settings")
@@ -566,7 +567,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 6. Select the **Source options** tab, then configure the following:
 
     - **Wildcard paths**: Enter `online-user-profiles-02/*.json`.
-    - **JSON Settings**: Expand this section, then select the **Single document** setting. This denotes that each JSON document contains multiple rows of data.
+    - **JSON Settings**: Expand this section, then select the **Single document** setting. This denotes that each file contains a single JSON document.
 
     ![The source options are configured as described.](media/data-flow-user-profiles-source-options.png "Source options")
 
@@ -637,6 +638,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 8.  Under **Source settings**, configure the following:
 
     - **Output stream name**: Enter `UserProfiles`.
+    - **Source type**: Select `Dataset`.
     - **Dataset**: Select `asal400_customerprofile_cosmosdb`.
 
     ![The source settings are configured as described.](media/data-flow-user-profiles-source2-settings.png "Source settings")
@@ -738,7 +740,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     - **Output stream name**: Enter `DerivedColumnsForMerge`.
     - **Incoming stream**: Select `JoinTopProductsWithPreferredProducts`.
-    - **Columns**: Provide the following information:
+    - **Columns**: Provide the following information (_type in_ the _first two_ column names):
 
         | Column | Expression | Description |
         | --- | --- | --- |
