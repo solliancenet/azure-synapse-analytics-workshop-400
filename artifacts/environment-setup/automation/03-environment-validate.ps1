@@ -425,6 +425,7 @@ if ($dataLakeAccount -eq $null) {
                         "sale-small\Year=2018" = "folder path"
                         "sale-small\Year=2019" = "folder path"
                         "sale-small\Year=2016\Quarter=Q4\Month=12\Day=20161231\sale-small-20161231-snappy.parquet" = "file path"
+                        "ml\onnx-hex\product_seasonality_classifier.onnx.hex" = "file path"
                         "campaign-analytics\dailycounts.txt" = "file path"
                         "campaign-analytics\sale-20161230-snappy.parquet" = "file path"
                         "campaign-analytics\campaignanalytics.csv" = "file path"
