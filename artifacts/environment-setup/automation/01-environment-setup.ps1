@@ -222,6 +222,7 @@ if ($download)
 {
         add-content "C:\labfiles\placeholder.txt" "Hello World";
         Set-AzStorageBlobContent -File "C:\labfiles\placeholder.txt" -Container wwi-02 -Blob 'ml/onnx/placeholder.txt' -Context $dataLakeContext.Context -Force;
+        Set-AzStorageBlobContent -File "C:\labfiles\placeholder.txt" -Container wwi-02 -Blob 'ml/onnx-hex/placeholder.txt' -Context $dataLakeContext.Context -Force;
 
         Write-Information "Copying single files from the public data account..."
         $singleFiles = @{
@@ -229,6 +230,7 @@ if ($download)
                 products = "wwi-02/data-generators/generator-product/generator-product.csv"
                 dates = "wwi-02/data-generators/generator-date.csv"
                 customer = "wwi-02/data-generators/generator-customer.csv"
+                onnx = "wwi-02/ml/onnx-hex/product_seasonality_classifier.onnx.hex"
         }
 
         foreach ($singleFile in $singleFiles.Keys) {
