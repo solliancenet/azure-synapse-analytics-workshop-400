@@ -174,9 +174,7 @@ $destinationSasKey = New-AzStorageContainerSASToken -Container "wwi-02" -Context
 
 if ($download)
 {
-        add-content "C:\labfiles\placeholder.txt" "Hello World";
-        Set-AzStorageBlobContent -File "C:\labfiles\placeholder.txt" -Container wwi-02 -Blob 'ml/onnx/placeholder.txt' -Context $dataLakeContext.Context -Force;
-        Set-AzStorageBlobContent -File "C:\labfiles\placeholder.txt" -Container wwi-02 -Blob 'ml/onnx-hex/placeholder.txt' -Context $dataLakeContext.Context -Force;
+        Remove-AzStorageBlob -Container "wwi-02" -Blob "/ml/onnx-hex/placeholder.txt" -ea silentlycontinue -Context $datalakecontext
 
         Write-Information "Copying single files from the public data account..."
         $singleFiles = @{
@@ -219,5 +217,5 @@ $params = @{
         DATA_LAKE_ACCOUNT_NAME = $dataLakeAccountName  
         DATA_LAKE_ACCOUNT_KEY = $dataLakeAccountKey 
 }
-$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "05-create-tables-in-wwi-ml-schema" -Parameters $params
+$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "05-create-tables-in-wwi-ml-schema-delta" -Parameters $params
 $result
