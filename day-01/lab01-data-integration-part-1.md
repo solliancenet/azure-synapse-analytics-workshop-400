@@ -668,10 +668,10 @@ Do the number of rows match for both load operations? Which activity was fastest
 
 For both of the load operations above, we inserted data into the heap table. What if we inserted into the clustered columnstore table instead? Is there really a performance difference? Let's find out!
 
-1. In the query window, replace the script with the following to load data into the clustered columnstore `Sale` table using the COPY statement. Be sure to replace `<PrimaryStorage`>` with the default storage account name for your workspace:
+1. In the query window, replace the script with the following to load data into the clustered columnstore `Sale` table using the COPY statement. Be sure to replace `SUFFIX` with the id for your workspace:
 
     ```sql
-    -- Replace <PrimaryStorage> with the workspace default storage account name.
+    -- Replace SUFFIX with the workspace default storage account name.
     COPY INTO wwi_staging.Sale
     FROM 'https://asadatalakeSUFFIX.dfs.core.windows.net/wwi-02/sale-small%2FYear%3D2019'
     WITH (
