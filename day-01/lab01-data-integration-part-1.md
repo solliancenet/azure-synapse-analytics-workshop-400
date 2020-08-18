@@ -561,10 +561,10 @@ PolyBase requires the following elements:
 - An external file format for Parquet files
 - An external table that defines the schema for the files, as well as the location, data source, and file format
 
-1. In the query window, replace the script with the following to create the external data source. Be sure to replace `<PrimaryStorage`>` with the default storage account name for your workspace:
+1. In the query window, replace the script with the following to create the external data source. Be sure to replace `SUFFIX` with the lab workspace id:
 
     ```sql
-    -- Replace <PrimaryStorage> with the workspace default storage account name.
+    -- Replace SUFFIX with the lab workspace id.
     CREATE EXTERNAL DATA SOURCE ABSS
     WITH
     ( TYPE = HADOOP,
@@ -579,7 +579,7 @@ PolyBase requires the following elements:
     ```sql
     CREATE EXTERNAL FILE FORMAT [ParquetFormat]
     WITH (
-        FORMAT_TYPE = PARQUET, 
+        FORMAT_TYPE = PARQUET,
         DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'
     )
     GO
