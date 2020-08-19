@@ -23,6 +23,8 @@ GROUP BY
 
 You are not allowed to modify this table (in fact, **you should not modify this table** as it may affect the other labs). However, they have asked if you can **create a new table** and optimize the query such that it runs much faster than the above one. Working with your team, just how fast can you make this query return results?
 
+You must ***not* scale up the SQL Pool**! Make optimizations to improve query performance while remaining in the bounds of the current pool size. Scaling up the SQL Pool can cause resource problems in your region when running this lab with multiple participants.
+
 Share your best query time with your learning adviser who will report it back for comparison with the results from other teams.
 
 > NOTE: You can experiment in your individual environments, however when selecting the environment in which to produce your "official" results you should pick the one with the largest SQL Pool size among those available in your Table Group.
