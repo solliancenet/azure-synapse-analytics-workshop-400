@@ -189,7 +189,7 @@ When you query Parquet files using Synapse SQL Serverless, you can explore the d
 
 ### Task 2: Query sales Parquet data with Azure Synapse Spark
 
-1. Navigate to the **Data** hub, browse to the data lake storage account folder `sale-small/Year=2010/Quarter=Q4/Month=12/Day=20161231` if needed, then right-click the Parquet file and select New notebook.
+1. Navigate to the **Data** hub, browse to the data lake storage account folder `sale-small/Year=2010/Quarter=Q4/Month=12/Day=20101231` if needed, then right-click the Parquet file and select New notebook.
 
     ![The Parquet file is displayed with the New notebook menu item highlighted.](media/new-spark-notebook-sales.png "New notebook")
 
@@ -561,10 +561,10 @@ PolyBase requires the following elements:
 - An external file format for Parquet files
 - An external table that defines the schema for the files, as well as the location, data source, and file format
 
-1. In the query window, replace the script with the following to create the external data source. Be sure to replace `<PrimaryStorage`>` with the default storage account name for your workspace:
+1. In the query window, replace the script with the following to create the external data source. Be sure to replace `SUFFIX` with the lab workspace id:
 
     ```sql
-    -- Replace <PrimaryStorage> with the workspace default storage account name.
+    -- Replace SUFFIX with the lab workspace id.
     CREATE EXTERNAL DATA SOURCE ABSS
     WITH
     ( TYPE = HADOOP,
@@ -579,7 +579,7 @@ PolyBase requires the following elements:
     ```sql
     CREATE EXTERNAL FILE FORMAT [ParquetFormat]
     WITH (
-        FORMAT_TYPE = PARQUET, 
+        FORMAT_TYPE = PARQUET,
         DATA_COMPRESSION = 'org.apache.hadoop.io.compress.SnappyCodec'
     )
     GO
@@ -668,10 +668,10 @@ Do the number of rows match for both load operations? Which activity was fastest
 
 For both of the load operations above, we inserted data into the heap table. What if we inserted into the clustered columnstore table instead? Is there really a performance difference? Let's find out!
 
-1. In the query window, replace the script with the following to load data into the clustered columnstore `Sale` table using the COPY statement. Be sure to replace `<PrimaryStorage`>` with the default storage account name for your workspace:
+1. In the query window, replace the script with the following to load data into the clustered columnstore `Sale` table using the COPY statement. Be sure to replace `SUFFIX` with the id for your workspace:
 
     ```sql
-    -- Replace <PrimaryStorage> with the workspace default storage account name.
+    -- Replace SUFFIX with the workspace default storage account name.
     COPY INTO wwi_staging.Sale
     FROM 'https://asadatalakeSUFFIX.dfs.core.windows.net/wwi-02/sale-small%2FYear%3D2019'
     WITH (
