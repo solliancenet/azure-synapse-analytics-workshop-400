@@ -35,7 +35,7 @@ function InstallGit()
 function InstallAzureCli()
 {
   #install azure cli
-  Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI.msi; 
+  Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI.msi -usebasicparsing; 
   Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'; 
   rm .\AzureCLI.msi
 }
@@ -67,6 +67,14 @@ function InstallAzPowerShellModule
   Install-PackageProvider NuGet -Force
   Set-PSRepository PSGallery -InstallationPolicy Trusted
   Install-Module Az -Repository PSGallery -Force -AllowClobber
+}
+
+function InstallAzPowerShellModuleMSI
+{
+  #download and install git...		
+  Invoke-WebRequest -Uri https://github.com/Azure/azure-powershell/releases/download/v4.5.0-August2020/Az-Cmdlets-4.5.0.33237-x64.msi -usebasicparsing -OutFile .\AzurePS.msi;
+  Start-Process msiexec.exe -Wait -ArgumentList '/I AzurePS.msi /quiet'; 
+  rm .\AzurePS.msi
 }
 
 #Create-LabFilesDirectory
@@ -112,7 +120,8 @@ EnableIEFileDownload
 
 Uninstall-AzureRm
 
-InstallAzPowerShellModule
+#InstallAzPowerShellModule - seems to be broken
+InstallAzPowerShellModuleMSI
 
 InstallGit
         
