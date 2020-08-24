@@ -19,6 +19,27 @@ Param (
   $deploymentId
 )
 
+function InstallGit()
+{
+  #download and install git...		
+  $output = "$env:TEMP\git.exe";
+  Invoke-WebRequest -Uri https://github.com/git-for-windows/git/releases/download/v2.27.0.windows.1/Git-2.27.0-64-bit.exe -OutFile $output; 
+
+  $productPath = "$env:TEMP";
+  $productExec = "git.exe"	
+  $argList = "/SILENT"
+  start-process "$productPath\$productExec" -ArgumentList $argList -wait
+
+}
+
+function InstallAzureCli()
+{
+  #install azure cli
+  Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI.msi; 
+  Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'; 
+  rm .\AzureCLI.msi
+}
+
 #Disable-InternetExplorerESC
 function DisableInternetExplorerESC
 {
@@ -89,7 +110,13 @@ DisableInternetExplorerESC
 
 EnableIEFileDownload
 
+Uninstall-AzureRm
+
 InstallAzPowerShellModule
+
+InstallGit
+        
+InstallAzureCli
 
 CreateLabFilesDirectory
 
@@ -109,20 +136,6 @@ $cred = new-object -typename System.Management.Automation.PSCredential -argument
 
 Connect-AzAccount -Credential $cred | Out-Null
  
-#download and install git...		
-$output = "c:\LabFiles\git.exe";
-Invoke-WebRequest -Uri https://github.com/git-for-windows/git/releases/download/v2.27.0.windows.1/Git-2.27.0-64-bit.exe -OutFile $output; 
-
-$productPath = "c:\LabFiles";				
-$productExec = "git.exe"	
-$argList = "/SILENT"
-start-process "$productPath\$productExec" -ArgumentList $argList -wait
-        
-#install azure cli
-Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI.msi; 
-Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'; 
-rm .\AzureCLI.msi
-
 #install sql server cmdlets
 Install-Module -Name SqlServer
 
@@ -142,8 +155,6 @@ $wclient.DownloadFile($url, $output)
 New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName `
   -TemplateUri "https://raw.githubusercontent.com/solliancenet/azure-synapse-analytics-workshop-400/master/artifacts/environment-setup/automation/00-asa-workspace-core.json" `
   -TemplateParameterFile "c:\LabFiles\parameters.json"
-
-Uninstall-AzureRm
 
 #install cosmosdb
 Install-Module -Name Az.CosmosDB -AllowClobber
