@@ -278,6 +278,30 @@ if ($sqlPool -eq $null) {
                         Valid = $false
                         ValidCount = $false
                 }
+                "wwi_poc.Sales" = @{
+                        Count = 0
+                        StrictCount = $false
+                        Valid = $false
+                        ValidCount = $false
+                }
+                "wwi_poc.Product" = @{
+                        Count = 0
+                        StrictCount = $false
+                        Valid = $false
+                        ValidCount = $false
+                }
+                "wwi_poc.Customer" = @{
+                        Count = 0
+                        StrictCount = $false
+                        Valid = $false
+                        ValidCount = $false
+                }
+                "wwi_poc.Date" = @{
+                        Count = 0
+                        StrictCount = $false
+                        Valid = $false
+                        ValidCount = $false
+                }
         }
         
 $query = @"
@@ -417,6 +441,7 @@ if ($dataLakeAccount -eq $null) {
 
                 $dataLakeItems = [ordered]@{
                         "sale-small" = "folder path"
+                        "sale-poc" = "folder path"
                         "online-user-profiles-02" = "folder path"
                         "sale-small\Year=2014" = "folder path"
                         "sale-small\Year=2015" = "folder path"
