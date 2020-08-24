@@ -1,8 +1,16 @@
+Param (
+  [string]
+  $Username,
+
+  [string]
+  $Password
+)
+
 $InformationPreference = "Continue"
 
 cd "C:\github\solliancenet\azure-synapse-analytics-workshop-400\artifacts\environment-setup\automation"
 
-$lines = Get-content c:\temp\Synapse\usernames6.txt;
+$lines = Get-content c:\temp\Synapse\usernames14.txt;
 
 if(Get-Module -Name solliance-synapse-automation){
         Remove-Module solliance-synapse-automation
@@ -10,11 +18,6 @@ if(Get-Module -Name solliance-synapse-automation){
 
 Import-Module "..\solliance-synapse-automation"
 
-foreach($line in $lines)
-{
-    $vals = $line.split("`t")
-    $username = $vals[0];
-    $password = $vals[1];
     $global:sqlPassword = $password;
     $clientId = "1950a258-227b-4e31-a9cf-717495945fc2"
 
@@ -79,7 +82,7 @@ foreach($line in $lines)
     Write-Information "Create wwi_poc schema in $($sqlPoolName)"
 
     $params = @{}
-    $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "16-create-poc-schema" -Parameters $params
+    #$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "16-create-poc-schema" -Parameters $params
     $result
 
     Write-Information "Create tables in wwi_poc schema in SQL pool $($sqlPoolName)"
@@ -149,4 +152,3 @@ foreach($line in $lines)
     #
     #Control-SQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -Action pause
     #Wait-ForSQLPool -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -TargetStatus Paused
-}
