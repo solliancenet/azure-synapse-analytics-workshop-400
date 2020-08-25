@@ -21,6 +21,8 @@ Param (
 
 function InstallGit()
 {
+  Write-Host "Installing Git." -ForegroundColor Green -Verbose
+
   #download and install git...		
   $output = "$env:TEMP\git.exe";
   Invoke-WebRequest -Uri https://github.com/git-for-windows/git/releases/download/v2.27.0.windows.1/Git-2.27.0-64-bit.exe -OutFile $output; 
@@ -34,6 +36,8 @@ function InstallGit()
 
 function InstallAzureCli()
 {
+  Write-Host "Installing Azure CLI." -ForegroundColor Green -Verbose
+
   #install azure cli
   Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile .\AzureCLI.msi -usebasicparsing; 
   Start-Process msiexec.exe -Wait -ArgumentList '/I AzureCLI.msi /quiet'; 
@@ -64,6 +68,8 @@ function EnableIEFileDownload
 #Create InstallAzPowerShellModule
 function InstallAzPowerShellModule
 {
+  Write-Host "Installing Azure PowerShell (NuGet)." -ForegroundColor Green -Verbose
+
   Install-PackageProvider NuGet -Force
   Set-PSRepository PSGallery -InstallationPolicy Trusted
   Install-Module Az -Repository PSGallery -Force -AllowClobber
@@ -71,6 +77,7 @@ function InstallAzPowerShellModule
 
 function InstallAzPowerShellModuleMSI
 {
+  Write-Host "Installing Azure PowerShell (MSI)." -ForegroundColor Green -Verbose
   #download and install git...		
   Invoke-WebRequest -Uri https://github.com/Azure/azure-powershell/releases/download/v4.5.0-August2020/Az-Cmdlets-4.5.0.33237-x64.msi -usebasicparsing -OutFile .\AzurePS.msi;
   Start-Process msiexec.exe -Wait -ArgumentList '/I AzurePS.msi /quiet'; 
@@ -129,6 +136,8 @@ Uninstall-AzureRm -ea SilentlyContinue
 
 CreateLabFilesDirectory
 
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
+
 cd "c:\labfiles";
 
 CreateCredFile $azureUsername $azurePassword $azureTenantID $azureSubscriptionID $deploymentId $odlId
@@ -145,9 +154,6 @@ $cred = new-object -typename System.Management.Automation.PSCredential -argument
 
 Connect-AzAccount -Credential $cred | Out-Null
  
-#install sql server cmdlets
-Install-Module -Name SqlServer
-
 # Template deployment
 $resourceGroupName = (Get-AzResourceGroup | Where-Object { $_.ResourceGroupName -like "*-L400*" }).ResourceGroupName
 $deploymentId =  (Get-AzResourceGroup -Name $resourceGroupName).Tags["DeploymentId"]
@@ -161,23 +167,30 @@ $wclient.DownloadFile($url, $output)
 (Get-Content -Path "c:\LabFiles\parameters.json") | ForEach-Object {$_ -Replace "GET-AZUSER-PASSWORD", "$AzurePassword"} | Set-Content -Path "c:\LabFiles\parameters.json"
 (Get-Content -Path "c:\LabFiles\parameters.json") | ForEach-Object {$_ -Replace "GET-DEPLOYMENT-ID", "$deploymentId"} | Set-Content -Path "c:\LabFiles\parameters.json"
 
+Write-Host "Starting main deployment." -ForegroundColor Green -Verbose
 New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName `
   -TemplateUri "https://raw.githubusercontent.com/solliancenet/azure-synapse-analytics-workshop-400/master/artifacts/environment-setup/automation/00-asa-workspace-core.json" `
   -TemplateParameterFile "c:\LabFiles\parameters.json"
 
+Write-Host "Installing SQL Module." -ForegroundColor Green -Verbose
+#install sql server cmdlets
+Install-Module -Name SqlServer
+
 #install cosmosdb
+Write-Host "Installing CosmosDB Module." -ForegroundColor Green -Verbose
 Install-Module -Name Az.CosmosDB -AllowClobber
 Import-Module Az.CosmosDB
 
-$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
-
 #download the git repo...
+Write-Host "Download Git repo." -ForegroundColor Green -Verbose
 git clone https://github.com/solliancenet/azure-synapse-analytics-workshop-400.git synapse-ws-L400
 
 cd './synapse-ws-L400/artifacts/environment-setup/automation'
 
+Write-Host "Executing post scripts." -ForegroundColor Green -Verbose
 ./01-environment-setup.ps1
 ./03-environment-validation.ps1
 
 sleep 20
+
 Stop-Transcript
