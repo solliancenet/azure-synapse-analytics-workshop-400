@@ -291,12 +291,6 @@ $params = @{}
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "03-create-schemas" -Parameters $params
 $result
 
-Write-Information "Create wwi_poc schema in $($sqlPoolName)"
-
-$params = @{}
-$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "16-create-poc-schema" -Parameters $params
-$result
-
 Write-Information "Create tables in the [wwi] schema in $($sqlPoolName)"
 
 $params = @{}
@@ -323,11 +317,6 @@ $params = @{
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "06-create-tables-in-wwi-security-schema" -Parameters $params
 $result
 
-Write-Information "Create tables in wwi_poc schema in SQL pool $($sqlPoolName)"
-
-$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "17-create-wwi-poc-sale-heap" -Parameters $params
-$result
-
 Write-Information "Create linked service for SQL pool $($sqlPoolName) with user asa.sql.admin"
 
 $linkedServiceName = $sqlPoolName.ToLower()
@@ -341,50 +330,6 @@ $linkedServiceName = "$($sqlPoolName.ToLower())_highperf"
 $result = Create-SQLPoolKeyVaultLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $linkedServiceName -DatabaseName $sqlPoolName `
                  -UserName "asa.sql.highperf" -KeyVaultLinkedServiceName $keyVaultName -SecretName $keyVaultSQLUserSecretName
 Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
-
-<# POC - Day 4#>
-Write-Information "Create data sets for PoC data load in SQL pool $($sqlPoolName)"
-
-$loadingDatasets = @{
-        wwi02_poc_customer_adls = $dataLakeAccountName
-        wwi02_poc_customer_asa = $sqlPoolName.ToLower()
-}
-
-foreach ($dataset in $loadingDatasets.Keys) {
-        Write-Information "Creating dataset $($dataset)"
-        $result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $dataset -LinkedServiceName $loadingDatasets[$dataset]
-        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
-}
-
-Write-Information "Create pipeline to load PoC data into the SQL pool"
-
-$params = @{
-        BLOB_STORAGE_LINKED_SERVICE_NAME = $blobStorageAccountName
-}
-$loadingPipelineName = "Setup - Load SQL Pool"
-$fileName = "import_poc_customer_data"
-
-Write-Information "Creating pipeline $($loadingPipelineName)"
-
-$result = Create-Pipeline -PipelinesPath $pipelinesPath -WorkspaceName $workspaceName -Name $loadingPipelineName -FileName $fileName -Parameters $params
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
-
-Write-Information "Running pipeline $($loadingPipelineName)"
-
-$result = Run-Pipeline -WorkspaceName $workspaceName -Name $loadingPipelineName
-$result = Wait-ForPipelineRun -WorkspaceName $workspaceName -RunId $result.runId
-$result
-
-Write-Information "Deleting pipeline $($loadingPipelineName)"
-
-$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "pipelines" -Name $loadingPipelineName
-Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
-
-foreach ($dataset in $loadingDatasets.Keys) {
-        Write-Information "Deleting dataset $($dataset)"
-        $result = Delete-ASAObject -WorkspaceName $workspaceName -Category "datasets" -Name $dataset
-        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
-}
 
 <# Day 1-3#>
 
@@ -425,6 +370,61 @@ $result = Wait-ForPipelineRun -WorkspaceName $workspaceName -RunId $result.runId
 $result
 
 Ensure-ValidTokens
+
+Write-Information "Deleting pipeline $($loadingPipelineName)"
+
+$result = Delete-ASAObject -WorkspaceName $workspaceName -Category "pipelines" -Name $loadingPipelineName
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
+
+foreach ($dataset in $loadingDatasets.Keys) {
+        Write-Information "Deleting dataset $($dataset)"
+        $result = Delete-ASAObject -WorkspaceName $workspaceName -Category "datasets" -Name $dataset
+        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
+}
+
+<# POC - Day 4 - Must be run after Day 3 content/pipelines#>
+Write-Information "Create wwi_poc schema in $($sqlPoolName)"
+
+$params = @{}
+$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "16-create-poc-schema" -Parameters $params
+$result
+
+Write-Information "Create tables in wwi_poc schema in SQL pool $($sqlPoolName)"
+
+$result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "17-create-wwi-poc-sale-heap" -Parameters $params
+$result
+
+Write-Information "Create data sets for PoC data load in SQL pool $($sqlPoolName)"
+
+$loadingDatasets = @{
+        wwi02_poc_customer_adls = $dataLakeAccountName
+        wwi02_poc_customer_asa = $sqlPoolName.ToLower()
+}
+
+foreach ($dataset in $loadingDatasets.Keys) {
+        Write-Information "Creating dataset $($dataset)"
+        $result = Create-Dataset -DatasetsPath $datasetsPath -WorkspaceName $workspaceName -Name $dataset -LinkedServiceName $loadingDatasets[$dataset]
+        Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
+}
+
+Write-Information "Create pipeline to load PoC data into the SQL pool"
+
+$params = @{
+        BLOB_STORAGE_LINKED_SERVICE_NAME = $blobStorageAccountName
+}
+$loadingPipelineName = "Setup - Load SQL Pool"
+$fileName = "import_poc_customer_data"
+
+Write-Information "Creating pipeline $($loadingPipelineName)"
+
+$result = Create-Pipeline -PipelinesPath $pipelinesPath -WorkspaceName $workspaceName -Name $loadingPipelineName -FileName $fileName -Parameters $params
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
+
+Write-Information "Running pipeline $($loadingPipelineName)"
+
+$result = Run-Pipeline -WorkspaceName $workspaceName -Name $loadingPipelineName
+$result = Wait-ForPipelineRun -WorkspaceName $workspaceName -RunId $result.runId
+$result
 
 Write-Information "Deleting pipeline $($loadingPipelineName)"
 
