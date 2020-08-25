@@ -125,8 +125,8 @@ DisableInternetExplorerESC
 
 EnableIEFileDownload
 
-#InstallAzPowerShellModule - seems to be broken
-InstallAzPowerShellModuleMSI
+InstallAzPowerShellModule
+#InstallAzPowerShellModuleMSI
 
 InstallGit
         
@@ -168,9 +168,7 @@ $wclient.DownloadFile($url, $output)
 (Get-Content -Path "c:\LabFiles\parameters.json") | ForEach-Object {$_ -Replace "GET-DEPLOYMENT-ID", "$deploymentId"} | Set-Content -Path "c:\LabFiles\parameters.json"
 
 Write-Host "Starting main deployment." -ForegroundColor Green -Verbose
-New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName `
-  -TemplateUri "https://raw.githubusercontent.com/solliancenet/azure-synapse-analytics-workshop-400/master/artifacts/environment-setup/automation/00-asa-workspace-core.json" `
-  -TemplateParameterFile "c:\LabFiles\parameters.json"
+New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateUri "https://raw.githubusercontent.com/solliancenet/azure-synapse-analytics-workshop-400/master/artifacts/environment-setup/automation/00-asa-workspace-core.json" -TemplateParameterFile "c:\LabFiles\parameters.json"
 
 Write-Host "Installing SQL Module." -ForegroundColor Green -Verbose
 #install sql server cmdlets
@@ -189,7 +187,7 @@ cd './synapse-ws-L400/artifacts/environment-setup/automation'
 
 Write-Host "Executing post scripts." -ForegroundColor Green -Verbose
 ./01-environment-setup.ps1
-./03-environment-validation.ps1
+./03-environment-validate.ps1
 
 sleep 20
 
