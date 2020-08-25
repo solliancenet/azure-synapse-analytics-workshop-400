@@ -278,7 +278,7 @@ if ($sqlPool -eq $null) {
                         Valid = $false
                         ValidCount = $false
                 }
-                "wwi_poc.Sales" = @{
+                "wwi_poc.Sale" = @{
                         Count = 0
                         StrictCount = $false
                         Valid = $false
@@ -432,7 +432,7 @@ if ($dataLakeAccount -eq $null) {
         Write-Information "OK"
 
         Write-Information "Checking data lake file system wwi-02"
-        $dataLakeFileSystem = Get-AzDataLakeGen2Item -Context $dataLakeAccount.Context -FileSystem "wwi-02" -Path "\" 
+        $dataLakeFileSystem = Get-AzDataLakeGen2Item -Context $dataLakeAccount.Context -FileSystem "wwi-02"
         if ($dataLakeFileSystem -eq $null) {
                 Write-Warning "    The data lake file system wwi-02 was not found"
                 $overallStateIsValid = $false
