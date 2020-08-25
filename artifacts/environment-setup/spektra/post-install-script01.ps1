@@ -118,14 +118,14 @@ DisableInternetExplorerESC
 
 EnableIEFileDownload
 
-Uninstall-AzureRm
-
 #InstallAzPowerShellModule - seems to be broken
 InstallAzPowerShellModuleMSI
 
 InstallGit
         
 InstallAzureCli
+
+Uninstall-AzureRm -ea SilentlyContinue
 
 CreateLabFilesDirectory
 
