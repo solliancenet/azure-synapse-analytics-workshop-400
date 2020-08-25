@@ -383,13 +383,13 @@ foreach ($dataset in $loadingDatasets.Keys) {
 }
 
 <# POC - Day 4 - Must be run after Day 3 content/pipelines#>
-Write-Information "Create wwi_poc schema in $($sqlPoolName)"
+Write-Information "Create wwi_poc schema and tables in $($sqlPoolName)"
 
 $params = @{}
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "16-create-poc-schema" -Parameters $params
 $result
 
-Write-Information "Create tables in wwi_poc schema in SQL pool $($sqlPoolName)"
+Write-Information "Create the [wwi_poc.Sale] table in SQL pool $($sqlPoolName)"
 
 $result = Execute-SQLScriptFile -SQLScriptsPath $sqlScriptsPath -WorkspaceName $workspaceName -SQLPoolName $sqlPoolName -FileName "17-create-wwi-poc-sale-heap" -Parameters $params
 $result
