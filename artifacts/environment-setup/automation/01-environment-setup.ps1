@@ -1,12 +1,5 @@
 $InformationPreference = "Continue"
 
-# These need to be run only if the Az modules are not yet installed
-# Install-Module -Name Az -AllowClobber -Scope CurrentUser
-# Install-Module -Name Az.CosmosDB -AllowClobber -Scope CurrentUser
-# Import-Module Az.CosmosDB
-
-#
-# TODO: Keep all required configuration in C:\LabFiles\AzureCreds.ps1 file
 $IsCloudLabs = Test-Path C:\LabFiles\AzureCreds.ps1;
 
 if($IsCloudLabs){
@@ -39,15 +32,6 @@ if($IsCloudLabs){
         $global:ropcBodyManagement = "$($ropcBodyCore)&scope=https://management.azure.com/.default"
         $global:ropcBodySynapseSQL = "$($ropcBodyCore)&scope=https://sql.azuresynapse.net/.default"
         $global:ropcBodyPowerBI = "$($ropcBodyCore)&scope=https://analysis.windows.net/powerbi/api/.default"
-
-        <#
-        $artifactsPath = ".\artifacts"
-        $templatesPath = ".\artifacts\environment-setup\templates"
-        $datasetsPath = ".\artifacts\environment-setup\datasets"
-        $dataflowsPath = ".\artifacts\environment-setup\dataflows"
-        $pipelinesPath = ".\artifacts\environment-setup\pipelines"
-        $sqlScriptsPath = ".\artifacts\environment-setup\sql"
-        #>
 
         $artifactsPath = "..\..\"
         $reportsPath = "..\reports"
@@ -382,7 +366,7 @@ foreach ($dataset in $loadingDatasets.Keys) {
         Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 }
 
-<# POC - Day 4 - Must be run after Day 3 content/pipelines#>
+<# POC - Day 4 - Must be run after Day 3 content/pipeline loads#>
 Write-Information "Create wwi_poc schema and tables in $($sqlPoolName)"
 
 $params = @{}

@@ -170,8 +170,8 @@ $wclient.DownloadFile($url, $output)
 Write-Host "Starting main deployment." -ForegroundColor Green -Verbose
 New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName -TemplateUri "https://raw.githubusercontent.com/solliancenet/azure-synapse-analytics-workshop-400/master/artifacts/environment-setup/automation/00-asa-workspace-core.json" -TemplateParameterFile "c:\LabFiles\parameters.json"
 
-Write-Host "Installing SQL Module." -ForegroundColor Green -Verbose
 #install sql server cmdlets
+Write-Host "Installing SQL Module." -ForegroundColor Green -Verbose
 Install-Module -Name SqlServer
 
 #install cosmosdb
@@ -185,6 +185,7 @@ git clone https://github.com/solliancenet/azure-synapse-analytics-workshop-400.g
 
 cd './synapse-ws-L400/artifacts/environment-setup/automation'
 
+#execute setup scripts
 Write-Host "Executing post scripts." -ForegroundColor Green -Verbose
 ./01-environment-setup.ps1
 ./03-environment-validate.ps1
