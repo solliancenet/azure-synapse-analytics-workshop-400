@@ -8,6 +8,7 @@ For the remainder of this guide, the following terms will be used for various AS
 | --- | --- |
 | Workspace resource group | `WorkspaceResourceGroup` |
 | Workspace / workspace name | `Workspace` |
+| Power BI workspace name | `PowerBIWorkspace` |
 | Primary Storage Account | `PrimaryStorage` |
 | Default file system container | `DefaultFileSystem` |
 | SQL Pool | `SqlPool01` |
@@ -70,8 +71,39 @@ TODO: Architectural diagram of integration
 
 ### Task 5 - Create a new Power BI report in Synapse Studio
 
-1. Open the .pbids file **Power BI desktop**.
+1. In [**Azure Synapse Studio**](<https://web.azuresynapse.net/>), select **Develop** from the left menu. Select **+** to create a new SQL Script. Execute the following query to get an approximation of its execution time:
+   
+```sql
+SELECT count(*) FROM
+(
+    SELECT
+    FS.CustomerID
+    ,P.Seasonality
+    ,D.Year
+    ,D.Quarter
+    ,D.Month
+    ,FS.StoreId
+    ,avg(FS.TotalAmount) as AvgTotalAmount
+    ,avg(FS.ProfitAmount) as AvgProfitAmount
+    ,sum(FS.TotalAmount) as TotalAmount
+    ,sum(FS.ProfitAmount) as ProfitAmount
+FROM
+        wwi_pbi.SaleSmall FS
+        JOIN wwi_pbi.Product P ON P.ProductId = FS.ProductId
+        JOIN wwi_pbi.Date D ON FS.TransactionDateId = D.DateId
+    GROUP BY
+        FS.CustomerID
+        ,P.Seasonality
+        ,D.Year
+        ,D.Quarter
+        ,D.Month
+        ,FS.StoreId
+) T
+ ```
 
+2. Open the downloaded .pbids file from Task 4 in Power BI Desktop. Select **Microsoft account** and sign in with the provided credentials.
+
+3. Cancel the navigator dialog.
 
 
 ## Exercise 2 - Optimizing integration with Power BI
@@ -85,11 +117,138 @@ TODO: Architectural diagram of integration
 
 
 ### Task 2 - Improve performance with materialized views
--use report from exercise 1 with direct query
-- take note of execution time and query plan
-- create materialized view
-- take note of improved execution time and query plan
-  (lab 3 or 4 to check)
+
+1. In [**Azure Synapse Studio**](<https://web.azuresynapse.net/>), select **Develop** from the left menu. Select **+** to create a new SQL Script. Execute the following query to get an approximation of its execution time:
+
+2. Run the following query to get an estimated execution plan and observe the total cost and number of operations.
+
+```sql
+EXPLAIN
+SELECT * FROM
+(
+    SELECT
+    FS.CustomerID
+    ,P.Seasonality
+    ,D.Year
+    ,D.Quarter
+    ,D.Month
+    ,FS.StoreId
+    ,avg(FS.TotalAmount) as AvgTotalAmount
+    ,avg(FS.ProfitAmount) as AvgProfitAmount
+    ,sum(FS.TotalAmount) as TotalAmount
+    ,sum(FS.ProfitAmount) as ProfitAmount
+FROM
+        wwi_pbi.SaleSmall FS
+        JOIN wwi_pbi.Product P ON P.ProductId = FS.ProductId
+        JOIN wwi_pbi.Date D ON FS.TransactionDateId = D.DateId
+    GROUP BY
+        FS.CustomerID
+        ,P.Seasonality
+        ,D.Year
+        ,D.Quarter
+        ,D.Month
+        ,FS.StoreId
+) T
+```
+
+The results should look like this:
+
+```xml
+ <?xml version="1.0" encoding="utf-8"?>
+<dsql_query number_nodes="1" number_distributions="60" number_distributions_per_node="60">
+  <sql>SELECT count(*) FROM
+(
+    SELECT
+    FS.CustomerID
+    ,P.Seasonality
+    ,D.Year
+    ,D.Quarter
+    ,D.Month
+    ,FS.StoreId
+    ,avg(FS.TotalAmount) as AvgTotalAmount
+    ,avg(FS.ProfitAmount) as AvgProfitAmount
+    ,sum(FS.TotalAmount) as TotalAmount
+    ,sum(FS.ProfitAmount) as ProfitAmount
+FROM
+        wwi_pbi.SaleSmall FS
+        JOIN wwi_pbi.Product P ON P.ProductId = FS.ProductId
+        JOIN wwi_pbi.Date D ON FS.TransactionDateId = D.DateId
+    GROUP BY
+        FS.CustomerID
+        ,P.Seasonality
+        ,D.Year
+        ,D.Quarter
+        ,D.Month
+        ,FS.StoreId
+) T</sql>
+  <dsql_operations total_cost="10.61376" total_number_operations="12">
+```
+
+3. Create a materialized view that can support the above query:
+
+    ```sql
+    CREATE MATERIALIZED VIEW
+    wwi_pbi.mvCustomerSales
+    WITH
+    (
+        DISTRIBUTION = HASH( CustomerId )
+    )
+    AS
+    SELECT
+        FS.CustomerID
+        ,P.Seasonality
+        ,D.Year
+        ,D.Quarter
+        ,D.Month
+        ,FS.StoreId
+        ,sum(FS.TotalAmount) as TotalAmount
+        ,sum(FS.ProfitAmount) as ProfitAmount
+    FROM
+        wwi_pbi.SaleSmall FS
+        JOIN wwi_pbi.Product P ON P.ProductId = FS.ProductId
+        JOIN wwi_pbi.Date D ON FS.TransactionDateId = D.DateId
+    GROUP BY
+        FS.CustomerID
+        ,P.Seasonality
+        ,D.Year
+        ,D.Quarter
+        ,D.Month
+        ,FS.StoreId
+    ```
+
+4. Run the following query to get an estimated execution plan:
+
+```sql
+EXPLAIN
+SELECT * FROM
+(
+  SELECT
+  FS.CustomerID
+  ,P.Seasonality
+  ,D.Year
+  ,D.Quarter
+  ,D.Month
+  ,FS.StoreId
+  ,avg(FS.TotalAmount) as AvgTotalAmount
+  ,avg(FS.ProfitAmount) as AvgProfitAmount
+  ,sum(FS.TotalAmount) as TotalAmount
+  ,sum(FS.ProfitAmount) as ProfitAmount
+  FROM
+      wwi_pbi.SaleSmall FS
+      JOIN wwi_pbi.Product P ON P.ProductId = FS.ProductId
+      JOIN wwi_pbi.Date D ON FS.TransactionDateId = D.DateId
+  GROUP BY
+      FS.CustomerID
+      ,P.Seasonality
+      ,D.Year
+      ,D.Quarter
+      ,D.Month
+      ,FS.StoreId
+  ) T
+
+```
+
+
 
 ### Task 3 - Improve performance with result-set caching
 
