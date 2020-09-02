@@ -101,10 +101,25 @@ FROM
 ) T
  ```
 
-2. Open the downloaded .pbids file from Task 4 in Power BI Desktop. Select **Microsoft account** and sign in with the provided credentials.
+2. Open the downloaded .pbids file from Task 4 in Power BI Desktop. Select **Microsoft account**, sign in with the provided credentials for this lab and click **Connect**.
+   
+![Sign in with the Microsoft account and connect](media/021%20-%20ConnectionSettingsPowerBIDesktop.png)
 
-3. Cancel the navigator dialog.
+3. Select for start the `wwi_pbi.Customer` table in the navigator dialog.
 
+![Select Direct Query](media/022%20-%20Datasource%20Navigator%20.png)
+
+4. Select the Direct Query option in the connection dialog. Click OK and wait a few seconds while the connection is configured.
+
+![Select Direct Query](media/022%20-%20SelectDirectQuery.png)
+
+5. Open the Datasource settings dialog from the Transform Data top menu.
+
+![Transform Data -> Datasource settings menu](media/023%20-%20Datasource%20Settings.png)
+
+5. In the Datasource settings dialog select the Synapse connection and click on Change datasource button.
+
+![Datasource change dialog](media/024%20-%20Edit%20datasource.png)
 
 ## Exercise 2 - Optimizing integration with Power BI
 
@@ -151,72 +166,72 @@ FROM
 ) T
 ```
 
-The results should look like this:
+3. The results should look like this:
 
-```xml
- <?xml version="1.0" encoding="utf-8"?>
-<dsql_query number_nodes="1" number_distributions="60" number_distributions_per_node="60">
-  <sql>SELECT count(*) FROM
-(
-    SELECT
-    FS.CustomerID
-    ,P.Seasonality
-    ,D.Year
-    ,D.Quarter
-    ,D.Month
-    ,FS.StoreId
-    ,avg(FS.TotalAmount) as AvgTotalAmount
-    ,avg(FS.ProfitAmount) as AvgProfitAmount
-    ,sum(FS.TotalAmount) as TotalAmount
-    ,sum(FS.ProfitAmount) as ProfitAmount
-FROM
-        wwi_pbi.SaleSmall FS
-        JOIN wwi_pbi.Product P ON P.ProductId = FS.ProductId
-        JOIN wwi_pbi.Date D ON FS.TransactionDateId = D.DateId
-    GROUP BY
-        FS.CustomerID
-        ,P.Seasonality
-        ,D.Year
-        ,D.Quarter
-        ,D.Month
-        ,FS.StoreId
-) T</sql>
-  <dsql_operations total_cost="10.61376" total_number_operations="12">
-```
+  ```xml
+  <?xml version="1.0" encoding="utf-8"?>
+  <dsql_query number_nodes="1" number_distributions="60" number_distributions_per_node="60">
+    <sql>SELECT count(*) FROM
+  (
+      SELECT
+      FS.CustomerID
+      ,P.Seasonality
+      ,D.Year
+      ,D.Quarter
+      ,D.Month
+      ,FS.StoreId
+      ,avg(FS.TotalAmount) as AvgTotalAmount
+      ,avg(FS.ProfitAmount) as AvgProfitAmount
+      ,sum(FS.TotalAmount) as TotalAmount
+      ,sum(FS.ProfitAmount) as ProfitAmount
+  FROM
+          wwi_pbi.SaleSmall FS
+          JOIN wwi_pbi.Product P ON P.ProductId = FS.ProductId
+          JOIN wwi_pbi.Date D ON FS.TransactionDateId = D.DateId
+      GROUP BY
+          FS.CustomerID
+          ,P.Seasonality
+          ,D.Year
+          ,D.Quarter
+          ,D.Month
+          ,FS.StoreId
+  ) T</sql>
+    <dsql_operations total_cost="10.61376" total_number_operations="12">
+  ```
 
-3. Create a materialized view that can support the above query:
+4. Create a materialized view that can support the above query:
 
-    ```sql
-    CREATE MATERIALIZED VIEW
-    wwi_pbi.mvCustomerSales
-    WITH
-    (
-        DISTRIBUTION = HASH( CustomerId )
-    )
-    AS
-    SELECT
-        FS.CustomerID
-        ,P.Seasonality
-        ,D.Year
-        ,D.Quarter
-        ,D.Month
-        ,FS.StoreId
-        ,sum(FS.TotalAmount) as TotalAmount
-        ,sum(FS.ProfitAmount) as ProfitAmount
-    FROM
-        wwi_pbi.SaleSmall FS
-        JOIN wwi_pbi.Product P ON P.ProductId = FS.ProductId
-        JOIN wwi_pbi.Date D ON FS.TransactionDateId = D.DateId
-    GROUP BY
-        FS.CustomerID
-        ,P.Seasonality
-        ,D.Year
-        ,D.Quarter
-        ,D.Month
-        ,FS.StoreId
-    ```
+  ```sql
+  CREATE MATERIALIZED VIEW
+  wwi_pbi.mvCustomerSales
+  WITH
+  (
+      DISTRIBUTION = HASH( CustomerId )
+  )
+  AS
+  SELECT
+      FS.CustomerID
+      ,P.Seasonality
+      ,D.Year
+      ,D.Quarter
+      ,D.Month
+      ,FS.StoreId
+      ,sum(FS.TotalAmount) as TotalAmount
+      ,sum(FS.ProfitAmount) as ProfitAmount
+  FROM
+      wwi_pbi.SaleSmall FS
+      JOIN wwi_pbi.Product P ON P.ProductId = FS.ProductId
+      JOIN wwi_pbi.Date D ON FS.TransactionDateId = D.DateId
+  GROUP BY
+      FS.CustomerID
+      ,P.Seasonality
+      ,D.Year
+      ,D.Quarter
+      ,D.Month
+      ,FS.StoreId
+  ```
 
-4. Run the following query to get an estimated execution plan:
+5. Run the following query to get an estimated execution plan:
 
 ```sql
 EXPLAIN
