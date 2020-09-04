@@ -6,13 +6,10 @@ For the remainder of this guide, the following terms will be used for various AS
 
 | Azure Synapse Analytics Resource  | To be referred to |
 | --- | --- |
-| Workspace resource group | `WorkspaceResourceGroup` |
 | Workspace / workspace name | `Workspace` |
-| Power BI workspace name | `PowerBIWorkspace` |
-| Primary Storage Account | `PrimaryStorage` |
-| Default file system container | `DefaultFileSystem` |
+| Power BI workspace name | `Synapse 01` |
 | SQL Pool | `SqlPool01` |
-| Lab schema name | `_poc_` |
+| Lab schema name | `poc` |
 
 ## Exercise 1 - Power BI and Synapse workspace integration
 
@@ -21,7 +18,7 @@ For the remainder of this guide, the following terms will be used for various AS
 1. Start from  [**Azure Synapse Studio**](<https://web.azuresynapse.net/>) and open the **Manage** hub from the left menu.
 ![Manage Azure Synapse Workspace](media/001-LinkWorkspace.png)
 
-2. Beneath **External Connections**, select **Linked Services**, observe that a Linked Service pointing to a precreated Power BI workspace has already been configured in the environment.
+2. Beneath **External Connections**, select **Linked Services**, observe that a Linked Service pointing to a pre-created Power BI workspace has already been configured in the environment.
 
 ![Power BI linked service in Azure Synapse Workspace](media/002-PowerBILinkedService.png)
 
@@ -116,7 +113,7 @@ SELECT count(*) FROM
 5. In the editor, first select the wwi.SalesSmall table, then open the settings page of the first step in the query. Expand the **Advanced options** section, paste the following query and click **OK**. 
    
 ```sql
-SELECT count(*) FROM
+SELECT * FROM
 (
     SELECT
         FS.CustomerID
@@ -143,7 +140,7 @@ SELECT count(*) FROM
 
 ![Datasource change dialog](media/024%20-%20Edit%20datasource.png)
 
-Note that this step will take at least 30-40 seconds to execute, since it submits the query on the Synapse pool configured connection.
+Note that this step will take at least 30-40 seconds to execute, since it submits the query on the Synapse SQL Pool connection.
 
 6. Delete the second step in the applied steps, since it was initially querying the entire SalesSmall table. 
    
@@ -284,7 +281,7 @@ FROM
       ,D.Month
   ```
 
-5. Run the following query to get an estimated execution plan:
+5. Run the following query to check that it actually hits the created materialized view.
 
 ```sql
 EXPLAIN
@@ -314,12 +311,44 @@ SELECT * FROM
 
 ```
 
+6. Next move back to the Power BI Desktop report and hit the Refresh data button to submit the query again. 
 
+![Refresh data to hit the materialized view](media/041%20-%20Refreshdata.png)
+
+7. Check the duration of the query again in Synapse Studio, in the monitoring hub, SQL Requests monitor. Notice that now it runs almost instantly (Duration = 0s).
+
+8. Run the following query to drop the created materialized view
+
+```sql
+DROP VIEW [wwi_pbi].[mvCustomerSales]
+GO
+
+```
 
 ### Task 3 - Improve performance with result-set caching
 
--use report from exercise 1 with direct query
-- take note of execution time and query plan
-- activate result-set caching
-- take note of improved execution time and query plan
-  (lab 3 or 4 to check)
+1. Switch back to the Develop hub in Synapse Studio. Check if result set caching is on in the current SQL pool:
+
+    ```sql
+    SELECT
+        name
+        ,is_result_set_caching_on
+    FROM
+        sys.databases
+    ```
+2. If `False` is returned for your SQL pool, run the following query to activate it (you need to run it on the `master` database and replace `SQLPool01` with the name of your SQL pool):
+
+    ```sql
+    ALTER DATABASE [SQLPool01]
+    SET RESULT_SET_CACHING ON
+    ```
+
+    >**Important**
+    >
+    >The operations to create result set cache and retrieve data from the cache happen on the control node of a Synapse SQL pool instance. When result set caching is turned ON, running queries that return large result set (for example, >1GB) can cause high throttling on the control node and slow down the overall query response on the instance. Those queries are commonly used during data exploration or ETL operations. To avoid stressing the control node and cause performance issue, users should turn OFF result set caching on the database before running those types of queries.
+
+3. Next move back to the Power BI Desktop report and hit the **Refresh** button to submit the query again. 
+
+![Refresh data to hit the materialized view](media/041%20-%20Refreshdata.png)
+
+4. Check the duration of the query again in Synapse Studio, in the monitoring hub, SQL Requests monitor. Notice that now it runs almost instantly (Duration = 0s).
