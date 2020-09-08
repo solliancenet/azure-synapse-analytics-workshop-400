@@ -116,6 +116,18 @@
       }
     },
     {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "name": "[concat(variables('keyVaultName'), '/SqlPassword')]",
+      "apiVersion": "2018-02-14",
+      "location": "[variables('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+      ],
+      "properties": {
+        "value": "[parameters('sql_administrator_login_password')]"
+      }
+    },
+    {
       "type": "Microsoft.Storage/storageAccounts",
       "apiVersion": "2019-06-01",
       "name": "[variables('adlsStorageAccountName')]",

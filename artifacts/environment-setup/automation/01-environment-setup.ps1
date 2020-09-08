@@ -13,7 +13,7 @@ if($IsCloudLabs){
         $userName = $AzureUserName                # READ FROM FILE
         $password = $AzurePassword                # READ FROM FILE
         $clientId = $TokenGeneratorClientId       # READ FROM FILE
-        $global:sqlPassword = $AzureSQLPassword          # READ FROM FILE
+        #$global:sqlPassword = $AzureSQLPassword          # READ FROM FILE
 
         $securePassword = $password | ConvertTo-SecureString -AsPlainText -Force
         $cred = new-object -typename System.Management.Automation.PSCredential -argumentlist $userName, $SecurePassword
@@ -63,8 +63,9 @@ if($IsCloudLabs){
         $resourceGroupName = Read-Host "Enter the resource group name";
         
         $userName = ((az ad signed-in-user show) | ConvertFrom-JSON).UserPrincipalName
-        $global:sqlPassword = Read-Host -Prompt "Enter the SQL Administrator password you used in the deployment" -AsSecureString
-        $global:sqlPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringUni([System.Runtime.InteropServices.Marshal]::SecureStringToCoTaskMemUnicode($sqlPassword))
+        
+        #$global:sqlPassword = Read-Host -Prompt "Enter the SQL Administrator password you used in the deployment" -AsSecureString
+        #$global:sqlPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringUni([System.Runtime.InteropServices.Marshal]::SecureStringToCoTaskMemUnicode($sqlPassword))
 
         $artifactsPath = "..\..\"
         $reportsPath = "..\reports"
@@ -120,6 +121,9 @@ Assign-SynapseRole -WorkspaceName $workspaceName -RoleId "6e4bf58a-b8e1-4cc3-bbf
 Assign-SynapseRole -WorkspaceName $workspaceName -RoleId "7af0c69a-a548-47d6-aea3-d00e69bd83aa" -PrincipalId $user.id  # SQL Admin
 Assign-SynapseRole -WorkspaceName $workspaceName -RoleId "c3a6d2f1-a26f-4810-9b0f-591308d5cbf1" -PrincipalId $user.id  # Apache Spark Admin
 
+#Set the Azure AD Admin - otherwise it will bail later
+Set-SqlAdministrator $username $user.id;
+
 #add the permission to the datalake to workspace
 $id = (Get-AzADServicePrincipal -DisplayName $workspacename).id
 New-AzRoleAssignment -Objectid $id -RoleDefinitionName "Storage Blob Data Owner" -Scope "/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Storage/storageAccounts/$dataLakeAccountName" -ErrorAction SilentlyContinue;
@@ -128,6 +132,9 @@ New-AzRoleAssignment -SignInName $username -RoleDefinitionName "Storage Blob Dat
 Write-Information "Setting Key Vault Access Policy"
 Set-AzKeyVaultAccessPolicy -ResourceGroupName $resourceGroupName -VaultName $keyVaultName -UserPrincipalName $userName -PermissionsToSecrets set,delete,get,list
 Set-AzKeyVaultAccessPolicy -ResourceGroupName $resourceGroupName -VaultName $keyVaultName -ObjectId $id -PermissionsToSecrets set,delete,get,list
+
+#remove need to ask for the password in script.
+$global:sqlPassword = $(Get-AzKeyVaultSecret -VaultName $keyVaultName -Name "SqlPassword").SecretValueText
 
 Write-Information "Create SQL-USER-ASA Key Vault Secret"
 $secretValue = ConvertTo-SecureString $sqlPassword -AsPlainText -Force
@@ -367,6 +374,7 @@ foreach ($dataset in $loadingDatasets.Keys) {
 }
 
 <# POC - Day 4 - Must be run after Day 3 content/pipeline loads#>
+
 Write-Information "Create wwi_poc schema and tables in $($sqlPoolName)"
 
 $params = @{}

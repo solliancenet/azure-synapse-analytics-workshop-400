@@ -688,6 +688,31 @@ function Get-ASAObject {
     return $result
 }
 
+function Set-SqlAdministrator($username, $sid)
+{
+    $uri = "https://management.azure.com/subscriptions/$($SubscriptionId)/resourcegroups/$($ResourceGroupName)/providers/Microsoft.Synapse/workspaces/$($WorkspaceName)/administrators/activeDirectory?api-version=2019-06-01-preview";
+    $method = "PUT";
+    $json = @"
+    {
+        "id":"/subscriptions/$($subscriptionId)/resourceGroups/$($resourceGroupName)/providers/Microsoft.Synapse/workspaces/$($workspaceName)",
+        "type":"",
+        "location":"",
+        "name":"",
+        "properties":{
+            "login":"$userName",
+            "sid":"$sid",
+            "administratorType":"activeDirectory",
+            "tenantId":"$tenantId"
+        }
+    }
+"@
+    
+    Ensure-ValidTokens
+    $result = Invoke-RestMethod  -Uri $uri -Method $method -Body $json -Headers @{ Authorization="Bearer $managementToken" } -ContentType "application/json"
+
+    return $result
+}
+
 function Control-SQLPool {
 
     param(
@@ -1509,6 +1534,13 @@ function Refresh-Token2()
     $global:powerbitoken = [Microsoft.Azure.Commands.Common.Authentication.AzureSession]::Instance.AuthenticationFactory.Authenticate($context.Account, $context.Environment, $context.Tenant.Id, $null, "Never", $null, "https://analysis.windows.net/powerbi/api").AccessToken
 }
 
+#this will force refresh of all tokens
+function Refresh-Tokens {
+    for ($i = 0; $i -lt $tokenTimes.Count; $i++) {
+        Refresh-Token $($tokenTimes.Keys)[$i]
+    }
+}
+
 function Refresh-Token {
     param(
     [parameter(Mandatory=$true)]
@@ -1564,23 +1596,26 @@ function Refresh-Token {
     }
 }
 
-function Ensure-ValidTokens {
+function Ensure-ValidTokens
+{
+    param(
+        [Boolean]$force=$false
+    )
 
     for ($i = 0; $i -lt $tokenTimes.Count; $i++) {
-        Ensure-ValidToken $($tokenTimes.Keys)[$i]
+        Ensure-ValidToken $($tokenTimes.Keys)[$i] $force
     }
 }
 
 function Ensure-ValidToken {
     param(
-        [parameter(Mandatory=$true)]
-        [String]
-        $TokenName
+        [parameter(Mandatory=$true)][String]$TokenName,
+        [Boolean]$force=$false
     )
 
     $refTime = Get-Date
 
-    if (($refTime - $tokenTimes[$TokenName]).TotalMinutes -gt 30) {
+    if (($refTime - $tokenTimes[$TokenName]).TotalMinutes -gt 30 -or $force) {
         Write-Information "Refreshing $($TokenName) token."
         Refresh-Token $TokenName
         $tokenTimes[$TokenName] = $refTime
@@ -1657,3 +1692,4 @@ Export-ModuleMember -Function Count-CosmosDbDocuments
 Export-ModuleMember -Function Check-HttpRedirect
 Export-ModuleMember -Function GetCSRF
 Export-ModuleMember -Function AutoPauseAll
+Export-ModuleMember -Function Set-SqlAdministrator
