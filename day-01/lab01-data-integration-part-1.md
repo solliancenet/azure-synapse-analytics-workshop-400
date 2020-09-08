@@ -58,6 +58,8 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
 
     ![The username suffix and workspace suffix are highlighted.](media/select-workspace.png "Select workspace")
 
+    > **NOTE** You may need to logout of whatever account you are already logged into before you can gain access to the target workspace. You can also attempt to utilize a new InPrivate browser window.
+
 2. If this is your first time connecting to the Synapse Analytics workspace, you may see the _Getting started_ prompt. Select **Close** to continue.
 
     ![The Close button is highlighted on the Getting started dialog.](media/getting-started.png "Getting started")
