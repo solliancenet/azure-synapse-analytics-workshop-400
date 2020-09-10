@@ -258,11 +258,12 @@
 
     The query will take up to 10 minutes to complete.
 
-    >Note:
-    >CTAS is a more customizable version of the SELECT...INTO statement.
-    >SELECT...INTO doesn't allow you to change either the distribution method or the index type as part of the operation. You create the new table by using the >default distribution type of ROUND_ROBIN, and the default table structure of CLUSTERED COLUMNSTORE INDEX.
+    > **NOTE**
     >
-    >With CTAS, on the other hand, you can specify both the distribution of the table data as well as the table structure type.
+    > CTAS is a more customizable version of the SELECT...INTO statement.
+    > SELECT...INTO doesn't allow you to change either the distribution method or the index type as part of the operation. You create the new table by using the default distribution type of ROUND_ROBIN, and the default table structure of CLUSTERED COLUMNSTORE INDEX.
+    >
+    > With CTAS, on the other hand, you can specify both the distribution of the table data as well as the table structure type.
 
 2. Run the query again to see the performance improvements:
 
@@ -350,11 +351,11 @@
 
 Date columns are usually good candidates for partitioning tables at the distributions level. In the case of your sales data, partitioning based on the `TransactionDateId` column seems to be a good choice.
 
-Your SQL pool already contains two versions of the `Sale` table that have been partitioned using `TransactionDateId`. These tables are `[wwi_perf].[Sale_Partition01]` annd `[wwi_perf].[Sale_Partition02]`. Below are the CTAS queries that have been used to create these tables.
+Your SQL pool already contains two versions of the `Sale` table that have been partitioned using `TransactionDateId`. These tables are `[wwi_perf].[Sale_Partition01]` and `[wwi_perf].[Sale_Partition02]`. Below are the CTAS queries that have been used to create these tables.
 
->**Note**
+> **Note**
 >
->These queries have already been run on the SQL pool. If you want to test the CTAS queries yourself, make sure you replace the table names with new ones.
+> These queries have already been run on the SQL pool. If you want to test the CTAS queries yourself, make sure you replace the table names with new ones.
 
 ```sql
 CREATE TABLE [wwi_perf].[Sale_Partition01]

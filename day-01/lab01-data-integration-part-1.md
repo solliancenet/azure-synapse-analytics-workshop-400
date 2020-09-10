@@ -404,6 +404,10 @@ sortedTopPurchases.show(100)
 topPurchases.orderBy("itemsPurchasedLast12Months desc")
 ```
 
+![An error is displayed.](media/sort-desc-error.png "Sort desc error")
+
+Notice that there is an `AnalysisException` error, because `itemsPurchasedLast12Months desc` does not match up with a column name.
+
 Why does this not work?
 
 - The `DataFrames` API is built upon an SQL engine.
