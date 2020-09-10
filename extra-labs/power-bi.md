@@ -411,3 +411,9 @@ First, let's prepare the Power BI report query by exploring the data source we'l
 5. After the **Fields** menu is populated, drag a **Line chart** from the **Visualizations** toolbar menu and configure it as detailed in the image bellow, to show Profit, Amount and Transactions count by day.
 
     ![Preview data](media/040%20-%20Configure%20line%20chart%20axes.png)
+
+6. Select the line chart visualization and cofigure it to sort by Date of transaction.
+   
+     ![Sort ascending](media/041%20-%20Sort%20ascending.png)
+
+     ![Sort by Date](media/042%20-%20Sort%20by%20Date.png)
