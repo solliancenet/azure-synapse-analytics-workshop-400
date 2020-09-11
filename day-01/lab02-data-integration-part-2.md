@@ -763,6 +763,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     - **Output stream name**: Enter `UserTopProductPurchasesASA`.
     - **Incoming stream**: Select `DerivedColumnsForMerge`.
+    - **Sink type**: Select `Dataset`.
     - **Dataset**: Select `asal400_wwi_usertopproductpurchases_asa`, which is the UserTopProductPurchases SQL table.
     - **Options**: Check `Allow schema drift` and uncheck `Validate schema`.
 
