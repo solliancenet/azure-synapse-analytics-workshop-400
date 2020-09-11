@@ -151,7 +151,7 @@ Issues include invalid characters in the revenue currency data, and misaligned c
 
     ![The Data menu item is highlighted.](media/data-hub.png "Data hub")
 
-2. With the Workspace tab selected under Data, select **+** in the toolbar, then select **Dataset** to create a new dataset.
+2. With the Workspace tab selected under Data, select **+** in the toolbar, then select **Integration dataset** to create a new dataset.
 
     ![Create new Dataset.](media/new-dataset.png "New Dataset")
 

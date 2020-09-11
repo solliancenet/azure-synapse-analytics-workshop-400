@@ -82,7 +82,7 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
 
     ![The Data menu item is highlighted.](media/data-hub.png "Data hub")
 
-2. With the Workspace tab selected under Data, select **+** in the toolbar, then select **Dataset** to create a new dataset.
+2. With the Workspace tab selected under Data, select **+** in the toolbar, then select **Integration dataset** to create a new dataset.
 
     ![Create new Dataset.](media/new-dataset.png "New Dataset")
 
