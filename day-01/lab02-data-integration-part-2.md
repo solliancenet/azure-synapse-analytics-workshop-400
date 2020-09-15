@@ -751,21 +751,31 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The data preview is displayed.](media/data-flow-user-profiles-derived-column3-preview.png "Data preview")
 
-20. Select the **+** to the right of the `DerivedColumnsForMerge` step, then select the **Sink** destination from the context menu.
+20. Select the **+** to the right of the `DerivedColumnsForMerge` step, then select the **Filter** destination from the context menu.
+
+    ![The new Filter destination is highlighted.](media/data-flow-user-profiles-new-filter.png "New filter")
+
+    We are adding the Filter step to remove any records where the `ProductId` is null. The data sets have a small percentage of invalid records, and null `ProductId` values will cause errors when loading into the `UserTopProductPurchases` SQL pool table.
+
+21. Set the **Filter on** expression to **`!isNull(productId)`**.
+
+    ![The filter settings are shown.](media/data-flow-user-profiles-new-filter-settings.png "Filter settings")
+
+22. Select the **+** to the right of the `Filter1` step, then select the **Sink** destination from the context menu.
 
     ![The new Sink destination is highlighted.](media/data-flow-user-profiles-new-sink.png "New sink")
 
-21. Under **Sink**, configure the following:
+23. Under **Sink**, configure the following:
 
     - **Output stream name**: Enter `UserTopProductPurchasesASA`.
-    - **Incoming stream**: Select `DerivedColumnsForMerge`.
+    - **Incoming stream**: Select `Filter1`.
     - **Sink type**: Select `Dataset`.
     - **Dataset**: Select `asal400_wwi_usertopproductpurchases_asa`, which is the UserTopProductPurchases SQL table.
     - **Options**: Check `Allow schema drift` and uncheck `Validate schema`.
 
     ![The sink settings are shown.](media/data-flow-user-profiles-new-sink-settings.png "Sink settings")
 
-22. Select **Settings**, then configure the following:
+24. Select **Settings**, then configure the following:
 
     - **Update method**: Check `Allow insert` and leave the rest unchecked.
     - **Table action**: Select `Truncate table`.
@@ -773,7 +783,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The settings are shown.](media/data-flow-user-profiles-new-sink-settings-options.png "Settings")
 
-23. Select **Mapping**, then configure the following:
+25. Select **Mapping**, then configure the following:
 
     - **Auto mapping**: `Uncheck` this option.
     - **Columns**: Provide the following information:
@@ -788,11 +798,11 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The mapping settings are configured as described.](media/data-flow-user-profiles-new-sink-settings-mapping.png "Mapping")
 
-24. Your completed data flow should look similar to the following:
+26. Your completed data flow should look similar to the following:
 
     ![The completed data flow is displayed.](media/data-flow-user-profiles-complete.png "Completed data flow")
 
-25. Select **Publish all** to save your new data flow.
+27. Select **Publish all** to save your new data flow.
 
     ![Publish all is highlighted.](media/publish-all-1.png "Publish all")
 
