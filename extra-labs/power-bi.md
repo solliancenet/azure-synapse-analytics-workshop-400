@@ -9,7 +9,7 @@ For the remainder of this guide, the following terms will be used for various AS
 | Workspace / workspace name | `Workspace` |
 | Power BI workspace name | `Synapse 01` |
 | SQL Pool | `SqlPool01` |
-| Lab schema name | `poc` |
+| Lab schema name | `pbi` |
 
 ## Exercise 1 - Power BI and Synapse workspace integration
 
@@ -79,9 +79,9 @@ For the remainder of this guide, the following terms will be used for various AS
             ,sum(FS.TotalAmount) as TotalAmount
             ,sum(FS.ProfitAmount) as ProfitAmount
         FROM
-                wwi.SaleSmall FS
-                JOIN wwi_poc.Product P ON P.ProductId = FS.ProductId
-                JOIN wwi_poc.Date D ON FS.TransactionDateId = D.DateId
+                wwi_pbi.SaleSmall FS
+                JOIN wwi_pbi.Product P ON P.ProductId = FS.ProductId
+                JOIN wwi_pbi.Date D ON FS.TransactionDateId = D.DateId
         GROUP BY
             FS.CustomerID
             ,P.Seasonality
@@ -95,15 +95,18 @@ For the remainder of this guide, the following terms will be used for various AS
 
     ![Sign in with the Microsoft account and connect](media/021%20-%20ConnectionSettingsPowerBIDesktop.png)
 
-3. In the Navigator dialog, just select for now the `wwi_pbi.Customer` and  `wwi.SaleSmall` tables, since next we'll replace this option with the query we built earlier, on the first step of this exercise. Next, click on **Transform data**.
-
-    ![Select tables for query](media/022%20-%20Datasource%20Navigator%20.png)
-
-4. Select the **Direct Query** option in the connection settings dialog, since our intention is not to bring a copy of the data into Power BI, but to be able to query the datasource while working with the report visualizations. Click **OK** and wait a few seconds while the connection is configured.
+3. Select the **Direct Query** option in the connection settings dialog, since our intention is not to bring a copy of the data into Power BI, but to be able to query the datasource while working with the report visualizations. Click **OK** and wait a few seconds while the connection is configured.
 
     ![Select Direct Query](media/022%20-%20SelectDirectQuery.png)
 
-5. In the editor, first select the wwi.SalesSmall table, then open the settings page of the first step in the query. Expand the **Advanced options** section, paste the following query and click **OK**. 
+4. In the Navigator dialog, right click on the root database note and select **Transform data**.
+
+    ![Database navigator dialog - call transform data](media/022%20-%20Datasource%20Navigator%20.png)
+
+
+5. In the Power Query editor, open the settings page of the **Source** step in the query. Expand the **Advanced options** section, paste the following query and click **OK**. 
+
+    ![Datasource change dialog](media/024%20-%20Edit%20datasource.png)
 
     ```sql
     SELECT * FROM
@@ -119,9 +122,9 @@ For the remainder of this guide, the following terms will be used for various AS
             ,sum(FS.TotalAmount) as TotalAmount
             ,sum(FS.ProfitAmount) as ProfitAmount
         FROM
-                wwi.SaleSmall FS
-                JOIN wwi_poc.Product P ON P.ProductId = FS.ProductId
-                JOIN wwi_poc.Date D ON FS.TransactionDateId = D.DateId
+                wwi_pbi.SaleSmall FS
+                JOIN wwi_pbi.Product P ON P.ProductId = FS.ProductId
+                JOIN wwi_pbi.Date D ON FS.TransactionDateId = D.DateId
         GROUP BY
             FS.CustomerID
             ,P.Seasonality
@@ -131,23 +134,20 @@ For the remainder of this guide, the following terms will be used for various AS
     ) T
     ```
 
-    ![Datasource change dialog](media/024%20-%20Edit%20datasource.png)
+
 
     Note that this step will take at least 30-40 seconds to execute, since it submits the query directly on the Synapse SQL Pool connection.
 
-6. Delete the second step in the applied steps, since it was initially querying the entire SalesSmall table. 
 
-    ![Delete temporary table navigation step](media/025%20-%20DeleteTheNavigationStep.png)
-
-7. Select **Close & Apply** on the topmost left corner of the editor window to apply the query and fetch the initial schema in the Power BI designer window.
+6. Select **Close & Apply** on the topmost left corner of the editor window to apply the query and fetch the initial schema in the Power BI designer window.
 
     ![Save query properties](media/026%20-%20CloseAndApply.png)
 
-8. Back to the Power BI report editor, expand the **Visualizations** menu on the right, and drag a **Line and stacked column chart** on the report canvas.
+7. Back to the Power BI report editor, expand the **Visualizations** menu on the right, and drag a **Line and stacked column chart** on the report canvas.
 
     ![Create new visualization chart](media/027%20-%20CreateVisualization.png)
 
-9. Select the newly created chart to expand it's properties pane. Using the expanded **Fields** menu, configure the visualization as follows:
+8. Select the newly created chart to expand it's properties pane. Using the expanded **Fields** menu, configure the visualization as follows:
      - **Shared axis**: `Year`, `Quarter`
      - **Column series**: `Seasonality`
      - **Column values**: `TotalAmount`
@@ -155,17 +155,17 @@ For the remainder of this guide, the following terms will be used for various AS
 
     ![Configure chart properties](media/028%20-%20ConfigureVisualization.png)
 
-10. Switching back to the Azure Synapse Studio, you can check the query executed while configuring the visualization in the Power BI Desktop application. Open the **Monitor** hub, and under the **Activities** section, open the **SQL requests** monitor. Make sure you select **SQLPool01** in the Pool filter, as by default  SQL on-demand is selected.
+9. Switching back to the Azure Synapse Studio, you can check the query executed while configuring the visualization in the Power BI Desktop application. Open the **Monitor** hub, and under the **Activities** section, open the **SQL requests** monitor. Make sure you select **SQLPool01** in the Pool filter, as by default  SQL on-demand is selected.
 
     ![Open query monitoring from Synapse Studio](media/029%20-%20MonitorQueryExecution.png)
 
-11. Identify the query behind your visualization in the topmost requests you see in the log and observe the duration which is about 30 seconds. Use the **Request content** option to look into the actual query submitted from Power BI Desktop.
+10. Identify the query behind your visualization in the topmost requests you see in the log and observe the duration which is about 30 seconds. Use the **Request content** option to look into the actual query submitted from Power BI Desktop.
 
     ![Check the request content in the monitor](media/030%20-%20CheckRequestContent.png)
 
     ![View query submitted from Power BI](media/031%20-%20QueryRequestContent.png)
 
-12. Back to the Power BI Desktop application, Save and Publish the created report. Make sure that, in Power BI Desktop you are signed in  with the same account you use in the Power BI portal and in Azure Synapse. You can switch to the proper account from the right topmost corner of the window. In the **Publish to Power BI** dialog, select the workspace you linked to Synapse, named **Synapse 01** in our demonstration.
+11. Back to the Power BI Desktop application, Save and Publish the created report. Make sure that, in Power BI Desktop you are signed in  with the same account you use in the Power BI portal and in Azure Synapse. You can switch to the proper account from the right topmost corner of the window. In the **Publish to Power BI** dialog, select the workspace you linked to Synapse, named **Synapse 01** in our demonstration.
    
     ![Publish report to the linked workspace](media/032%20-%20Publish.png)
 

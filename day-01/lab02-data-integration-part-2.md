@@ -151,7 +151,7 @@ Issues include invalid characters in the revenue currency data, and misaligned c
 
     ![The Data menu item is highlighted.](media/data-hub.png "Data hub")
 
-2. With the Workspace tab selected under Data, select **+** in the toolbar, then select **Dataset** to create a new dataset.
+2. With the Workspace tab selected under Data, select **+** in the toolbar, then select **Integration dataset** to create a new dataset.
 
     ![Create new Dataset.](media/new-dataset.png "New Dataset")
 
@@ -595,7 +595,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The plus sign and the Flatten schema modifier are highlighted.](media/data-flow-user-profiles-new-flatten.png "New Flatten schema modifier")
 
-4.  Under **Flatten settings**, configure the following:
+4. Under **Flatten settings**, configure the following:
 
     - **Output stream name**: Enter `UserTopProducts`.
     - **Incoming stream**: Select `userId`.
@@ -614,11 +614,11 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-flatten-data-preview.png "Data preview")
 
-5.  Select the **+** to the right of the `UserTopProducts` step, then select the **Derived Column** schema modifier from the context menu.
+5. Select the **+** to the right of the `UserTopProducts` step, then select the **Derived Column** schema modifier from the context menu.
 
     ![The plus sign and Derived Column schema modifier are highlighted.](media/data-flow-user-profiles-new-derived-column2.png "New Derived Column")
 
-6.  Under **Derived column's settings**, configure the following:
+6. Under **Derived column's settings**, configure the following:
 
     - **Output stream name**: Enter `DeriveProductColumns`.
     - **Incoming stream**: Select `UserTopProducts`.
@@ -631,11 +631,11 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The derived column's settings are configured as described.](media/data-flow-user-profiles-derived-column2-settings.png "Derived column's settings")
 
-7.  Select **Add Source** on the data flow canvas beneath the `EcommerceUserProfiles` source.
+7. Select **Add Source** on the data flow canvas beneath the `EcommerceUserProfiles` source.
 
     ![Select Add Source on the data flow canvas.](media/data-flow-user-profiles-add-source.png "Add Source")
 
-8.  Under **Source settings**, configure the following:
+8. Under **Source settings**, configure the following:
 
     - **Output stream name**: Enter `UserProfiles`.
     - **Source type**: Select `Dataset`.
@@ -643,7 +643,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The source settings are configured as described.](media/data-flow-user-profiles-source2-settings.png "Source settings")
 
-9.  Since we are not using the data flow debugger, we need to enter the data flow's Script view to update the source projection. Select **Script** in the toolbar above the canvas.
+9. Since we are not using the data flow debugger, we need to enter the data flow's Script view to update the source projection. Select **Script** in the toolbar above the canvas.
 
     ![The Script link is highlighted above the canvas.](media/data-flow-user-profiles-script-link.png "Data flow canvas")
 
@@ -663,19 +663,15 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The script view is displayed.](media/data-flow-user-profiles-script.png "Script view")
 
-<!-- 15. Select **Projection** and inspect the inferred schema. If the `preferredProducts` type is not identified as an integer array (`[] integer`), select **Import projection**.
-
-    ![The import projection button and preferredProducts row are highlighted.](media/data-flow-user-profiles-source2-projection.png "Projection") -->
-
-17. Select **OK** to apply the script changes. The data source has now been updated with the new schema. The following screenshot shows what the source data looks like if you are able to view it with the data preview option. Using data preview requires you to enable Debug mode, which we are not enabling for this lab. *The following screenshot is for illustration only*:
+11. Select **OK** to apply the script changes. The data source has now been updated with the new schema. The following screenshot shows what the source data looks like if you are able to view it with the data preview option. Using data preview requires you to enable Debug mode, which we are not enabling for this lab. *The following screenshot is for illustration only*:
 
     ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-data-preview2.png "Data preview")
 
-19. Select the **+** to the right of the `UserProfiles` source, then select the **Flatten** schema modifier from the context menu.
+12. Select the **+** to the right of the `UserProfiles` source, then select the **Flatten** schema modifier from the context menu.
 
     ![The plus sign and the Flatten schema modifier are highlighted.](media/data-flow-user-profiles-new-flatten2.png "New Flatten schema modifier")
 
-20. Under **Flatten settings**, configure the following:
+13. Under **Flatten settings**, configure the following:
 
     - **Output stream name**: Enter `UserPreferredProducts`.
     - **Incoming stream**: Select `UserProfiles`.
@@ -693,11 +689,11 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-flatten2-data-preview.png "Data preview")
 
-21. Now it is time to join the two data sources. Select the **+** to the right of the `DeriveProductColumns` step, then select the **Join** option from the context menu.
+14. Now it is time to join the two data sources. Select the **+** to the right of the `DeriveProductColumns` step, then select the **Join** option from the context menu.
 
     ![The plus sign and new Join menu item are highlighted.](media/data-flow-user-profiles-new-join.png "New Join")
 
-22. Under **Join settings**, configure the following:
+15. Under **Join settings**, configure the following:
 
     - **Output stream name**: Enter `JoinTopProductsWithPreferredProducts`.
     - **Left stream**: Select `DeriveProductColumns`.
@@ -711,7 +707,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The join settings are configured as described.](media/data-flow-user-profiles-join-settings.png "Join settings")
 
-23. Select **Optimize** and configure the following:
+16. Select **Optimize** and configure the following:
 
     - **Broadcast**: Select `Fixed`.
     - **Broadcast options**: Check `Left: 'DeriveProductColumns'`.
@@ -724,7 +720,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     <!-- **TODO**: Add optimization description. -->
 
-24. Select the **Inspect** tab to see the join mapping, including the column feed source and whether the column is used in a join.
+17. Select the **Inspect** tab to see the join mapping, including the column feed source and whether the column is used in a join.
 
     ![The inspect blade is displayed.](media/data-flow-user-profiles-join-inspect.png "Inspect")
 
@@ -732,11 +728,11 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The data preview results are shown and the statistics for the preferredProductId column is displayed as a pie chart to the right.](media/data-flow-user-profiles-join-preview.png "Data preview")
 
-25. Select the **+** to the right of the `JoinTopProductsWithPreferredProducts` step, then select the **Derived Column** schema modifier from the context menu.
+18. Select the **+** to the right of the `JoinTopProductsWithPreferredProducts` step, then select the **Derived Column** schema modifier from the context menu.
 
     ![The plus sign and Derived Column schema modifier are highlighted.](media/data-flow-user-profiles-new-derived-column3.png "New Derived Column")
 
-26. Under **Derived column's settings**, configure the following:
+19. Under **Derived column's settings**, configure the following:
 
     - **Output stream name**: Enter `DerivedColumnsForMerge`.
     - **Incoming stream**: Select `JoinTopProductsWithPreferredProducts`.
@@ -755,20 +751,31 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The data preview is displayed.](media/data-flow-user-profiles-derived-column3-preview.png "Data preview")
 
-27. Select the **+** to the right of the `DerivedColumnsForMerge` step, then select the **Sink** destination from the context menu.
+20. Select the **+** to the right of the `DerivedColumnsForMerge` step, then select the **Filter** destination from the context menu.
+
+    ![The new Filter destination is highlighted.](media/data-flow-user-profiles-new-filter.png "New filter")
+
+    We are adding the Filter step to remove any records where the `ProductId` is null. The data sets have a small percentage of invalid records, and null `ProductId` values will cause errors when loading into the `UserTopProductPurchases` SQL pool table.
+
+21. Set the **Filter on** expression to **`!isNull(productId)`**.
+
+    ![The filter settings are shown.](media/data-flow-user-profiles-new-filter-settings.png "Filter settings")
+
+22. Select the **+** to the right of the `Filter1` step, then select the **Sink** destination from the context menu.
 
     ![The new Sink destination is highlighted.](media/data-flow-user-profiles-new-sink.png "New sink")
 
-28. Under **Sink**, configure the following:
+23. Under **Sink**, configure the following:
 
     - **Output stream name**: Enter `UserTopProductPurchasesASA`.
-    - **Incoming stream**: Select `DerivedColumnsForMerge`.
+    - **Incoming stream**: Select `Filter1`.
+    - **Sink type**: Select `Dataset`.
     - **Dataset**: Select `asal400_wwi_usertopproductpurchases_asa`, which is the UserTopProductPurchases SQL table.
     - **Options**: Check `Allow schema drift` and uncheck `Validate schema`.
 
     ![The sink settings are shown.](media/data-flow-user-profiles-new-sink-settings.png "Sink settings")
 
-29. Select **Settings**, then configure the following:
+24. Select **Settings**, then configure the following:
 
     - **Update method**: Check `Allow insert` and leave the rest unchecked.
     - **Table action**: Select `Truncate table`.
@@ -776,7 +783,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The settings are shown.](media/data-flow-user-profiles-new-sink-settings-options.png "Settings")
 
-30. Select **Mapping**, then configure the following:
+25. Select **Mapping**, then configure the following:
 
     - **Auto mapping**: `Uncheck` this option.
     - **Columns**: Provide the following information:
@@ -791,11 +798,11 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The mapping settings are configured as described.](media/data-flow-user-profiles-new-sink-settings-mapping.png "Mapping")
 
-31. Your completed data flow should look similar to the following:
+26. Your completed data flow should look similar to the following:
 
     ![The completed data flow is displayed.](media/data-flow-user-profiles-complete.png "Completed data flow")
 
-32. Select **Publish all** to save your new data flow.
+27. Select **Publish all** to save your new data flow.
 
     ![Publish all is highlighted.](media/publish-all-1.png "Publish all")
 
