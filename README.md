@@ -1,6 +1,6 @@
 # Azure Synapse Analytics Workshop (level 400, 4 days)
 
-Environment [setup checklist](artifacts/environment-setup/README.md).
+Event [preflight checklist](artifacts/environment-setup/README.md).
 
 <table>
     <thead><tr>

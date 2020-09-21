@@ -1,4 +1,4 @@
-# Environment setup checklist
+# Event preflight checklist
 
 When preparing for an L-400 event delivery, perform the following before the start of the event:
 
