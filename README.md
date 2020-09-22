@@ -1,5 +1,7 @@
 # Azure Synapse Analytics Workshop (level 400, 4 days)
 
+Event [preflight checklist](artifacts/environment-setup/README.md).
+
 <table>
     <thead><tr>
         <th colspan=5>Workshop Agenda</th>
