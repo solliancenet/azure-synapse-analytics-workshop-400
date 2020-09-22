@@ -51,7 +51,7 @@ Another aspect that should be monitored is the size of the transaction log. If i
 
 ### 3.1.3. Tempdb usage
 
-`Tempdb` is used to hold intermediate results during query execution. For each 100 cDWUs allocated in your pool, there is 399 GB of tempdb space available. By using several DMVs in conjunction with the `microsoft.vw_sql_requests` view from the [`Microsoft Toolkit for SQL`](https://github.com/Microsoft/sql-data-warehouse-samples/tree/master/solutions/monitoring), you can determine if the workload you are running is trending toward capacity.
+`Tempdb` is used to hold intermediate results during query execution. For each 100 cDWUs allocated in your pool, there is 399 GB of tempdb space available. By using several DMVs in conjunction with the `microsoft.vw_sql_requests` view you can determine if the workload you are running is trending toward capacity.
 
     ```sql
     -- Monitor tempdb
