@@ -1047,7 +1047,7 @@ The easiest way to create a new notebook to explore the `UserTopProductPurchases
 The notebook's language is set to `Spark (Scala)` by default. The first cell is populated with code that creates a new DataFrame from the `spark.read.sqlanalytics` method, which reads from the table in the SQL Pool. We update the cell to show the first 10 records (`df.head(10))` and to create a new temporary view named "df":
 
 ```java
-val df = spark.read.sqlanalytics("SQLPool02.wwi.UserTopProductPurchases") 
+val df = spark.read.sqlanalytics("SQLPool01.wwi.UserTopProductPurchases")
 df.head(10)
 
 df.createTempView("df")
