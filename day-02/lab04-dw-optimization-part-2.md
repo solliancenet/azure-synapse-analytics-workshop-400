@@ -72,7 +72,7 @@
 
     ![Distribution of per-customer transaction item counts](./media/lab4_transaction_items_count_distribution.png)
 
-    Without diving too much into the mathematical and statistical aspects of it, this histogram displays the reason why there is virtually no skew in the data distribution of the `Sale_Hash` table. If you haven't figured it out yet, the reason we are talking about is the cvasi-normal distribution of the per-customer transaction items counts.
+    Without diving too much into the mathematical and statistical aspects of it, this histogram displays the reason why there is virtually no skew in the data distribution of the `Sale_Hash` table. If you haven't figured it out yet, the reason we are talking about is the quasi-normal distribution of the per-customer transaction items counts.
 
 ### Task 2 - Use a more advanced approach to understand table space usage
 
