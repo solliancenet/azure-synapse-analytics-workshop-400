@@ -44,7 +44,7 @@
 
     ![Customers with most sale transaction items](./media/lab4_data_skew_2.png)
 
-    Notice the largest number of transaction items is 9465 and the smallest is 184.
+    Notice the largest number of transaction items is 69 and the smallest is 16.
 
     Let's find now the distribution of per-customer transaction item counts. Run the following query:
 
@@ -56,7 +56,7 @@
         (
             SELECT
                 CustomerId,
-                (count(*) - 184) / 100 as TransactionItemsCountBucket
+                (count(*) - 16) / 100 as TransactionItemsCountBucket
             FROM
                 [wwi_perf].[Sale_Hash]
             GROUP BY
@@ -302,7 +302,7 @@
 
 ### Task 2 - Explore column store storage details
 
-1. Explore the statistics of the columnstore for the `Sale_Partition02` table using the following query:
+1. Explore the statistics of the columnstore for the `Sale_Partition01` table using the following query:
 
     ```sql
     SELECT
@@ -310,12 +310,12 @@
     FROM
         [wwi_perf].[vColumnStoreRowGroupStats]
     WHERE
-        Logical_Table_Name = 'Sale_Partition02'
+        Logical_Table_Name = 'Sale_Partition01'
     ```
 
 2. Explore the results of the query:
 
-    ![Column store row group statistics for Sale_Partition02](./media/lab4_column_store_row_groups.png)
+    ![Column store row group statistics for Sale_Partition01](./media/lab4_column_store_row_groups.png)
 
     Browse through the results and get an overview of the rowgroup states. Notice the `COMPRESSED` and `OPEN` states of some of the row groups.
 
@@ -334,7 +334,7 @@
 
     ![Column store row group statistics for Sale_Hash_Ordered](./media/lab4_column_store_row_groups_2.png)
 
-    There is a significant difference in the rowgroup states from the previous one. This highlight one of the potential advantages of ordered CCIs.
+    There is a significant difference in the rowgroup states from the previous one. This highlights one of the potential advantages of ordered CCIs.
 
 ## Exercise 3 - Study the impact of wrong choices for column data types
 

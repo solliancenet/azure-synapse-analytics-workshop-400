@@ -12,8 +12,6 @@ C) Integration Runtime
 
 E) It depends
 
-A: It's a trick question meant to get you thinking about how you make this decision. The question really does not provide enough context about the data schema and format, nor does it provide details on the kind of transformations you can accomplish and how you want to implement those transformations. Let's talk about some more detailed scenarios.
-
 ## Audience Poll 2
 
 Q: You are performing initial exploration of the data and experimenting with the necessary transformations. Which option should you use to run the transformations (pick only one)?
@@ -23,8 +21,6 @@ A) Synapse SQL Pool / SQL Serverless
 B) Synapse Spark Pool
 
 C) Integration Runtime
-
-A: Start with T-SQL, generally.
 
 ## Audience Poll 3
 
@@ -36,8 +32,6 @@ B) Synapse Spark Pool
 
 C) Integration Runtime
 
-A: Use SQL Pools or SQL Serverless to run T-SQL code that uses the **OPENROWSET** statement with wildcards (*) in the path.
-
 ## Audience Poll 4
 
 Q: You need to transform the data on-premises or within a specific VNET before loading it. Which option should you use to run the transformations (pick only one)?
@@ -47,8 +41,6 @@ A) Synapse SQL Pool / SQL Serverless
 B) Synapse Spark Pool
 
 C) Integration Runtime
-
-A: Use a **Self-Hosted Integration Runtime** on-premises. Note that with this approach, you will not be able to use a Mapping Data Flow.
 
 ## Audience Poll 5
 
@@ -60,8 +52,6 @@ B) Synapse Spark Pool
 
 C) Integration Runtime
 
-A: Use Azure Synapse SQL Pools or serverless along with the T-SQL OPENJSON, JSON_VALUE, and JSON_QUERY statements.
-
 ## Audience Poll 6
 
 Q: You are handling file formats other than delimited (CSV), JSON or Parquet. Which option should you use to run the transformations (pick only one)?
@@ -72,8 +62,6 @@ B) Synapse Spark Pool
 
 C) Integration Runtime
 
-A: Use **Spark** to handle the broadest set of file formats (e.g., Orc, Avro, others).
-
 ## Audience Poll 7
 
 Q: The delimited data is badly formatted. Which option should you use to run the transformations (pick only one)?
@@ -83,8 +71,6 @@ A) Synapse SQL Pool / SQL Serverless
 B) Synapse Spark Pool
 
 C) Integration Runtime
-
-A: Use **Spark** to handle particularly poorly formatted files.
 
 ## Decision Matrix Summary
 

@@ -10,8 +10,6 @@ B) Monitoring Hub SQL requests
 
 C) Query the `sys.dm_pdw_exec_requests` DMV
 
-A: Answer (B) is correct. You can monitor active SQL requests using the SQL requests area of the Monitor Hub. This includes details like the pool, submitter, duration, queued duration, workload group assigned, importance and the request content. While you are able to monitor using the DMV, this does not provide the UI as was requested by the question.
-
 ## Audience Poll 2
 
 Q: What information is NOT provided when querying the `sys.dm_pdw_exec_requests` DMV (pick only one)?
@@ -21,8 +19,6 @@ A) Count of sessions by user
 B) Queued, active or complete queries
 
 C) Query command text
-
-A: Answer (A) is correct. You should query `sys.dm_pdw_exec_sessions` to list open and closed sessions, and retrieve the count of sessions by user. The other items ARE information provided in the results of `sys.dm_pdw_exec_requests`.
 
 ## Audience Poll 3
 
@@ -34,8 +30,6 @@ B) SQL request
 
 C) Notebook executions
 
-A: Answer (C) is correct. The Monitor Hub allows you to examine the status of running notebooks *indirectly* by examining Spark applications. There is a one to one relationship between a notebook being run by a given user and a Spark application. The Spark application reflects the Spark session being used by the notebook.
-
 ## Audience Poll 4
 
 Q: How do users release Spark resources used by their notebook (pick only one)?
@@ -45,8 +39,6 @@ A) Stop any cells running in the notebook
 B) Publish the notebook
 
 C) Close the notebook in Studio
-
-A: Answer (C) is correct. To release resources reserved for a Spark Session within a Spark Application, users should close the notebook. This will effectively terminate the Spark application and release Spark pool resources. Stopping cells from running does not free up any resources.
 
 ## Audience Poll 5
 
@@ -58,8 +50,6 @@ B) A role with high importance
 
 C) A role with a resource class of `largerc`
 
-A: Answer (A) is correct. Database user classification takes precedence over role membership classification. When multiple classes might be applicable to a user, user is given highest resource class assignment. Higher importance requests will always run before requests with lower importance. Under the same importance, Azure Synapse Analytics optimizes for throughput. When mixed size requests (such as smallrc or mediumrc) are queued, Synapse will choose the earliest arriving request that fits within the available resources.
-
 ## Audience Poll 6
 
 Q: The customer is claiming that they are running multiple requests in a single session, but getting different classification results, is this possible (pick only one)?
@@ -67,8 +57,6 @@ Q: The customer is claiming that they are running multiple requests in a single 
 A) Yes
 
 B) No
-
-A: Answer (A) is correct. Classification is evaluated on a per request basis. Multiple requests in a single session can be classified differently.
 
 ## Audience Poll 7
 
@@ -79,8 +67,6 @@ A) It cannot be controlled
 B) Assign the query requests to a user with normal importance
 
 C) Assign the locking requests to a user with above_normal or high importance
-
-A: Answer (C) is correct. By default Azure Synapse Analytics optimizes for throughput, so even though a higher locking need request might be scheduled first, other requests with lower locking needs may bypass it. Workload importance can be used to ensure the order, such that requests with high locking needs occur first by assigning those requests higher importance than other requests. Higher importance requests will always run before requests with lower importance.
 
 ## Discussion Points
 
