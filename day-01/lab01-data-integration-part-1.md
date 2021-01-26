@@ -106,7 +106,7 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
 
     ![The inferred schema for the Azure Cosmos DB documents is displayed.](media/cosmos-db-dataset-schema.png "Schema")
 
-7. Create a new **Azure Data Lake Storage Gen2** dataset with the **Parquet** format type with the following characteristics:
+7. Create a new **Azure Data Lake Storage Gen2** dataset with the **Parquet** format type with the following characteristics (remember, you can create integration datasets in the Data Hub):
 
     - **Name**: Enter `asal400_sales_adlsgen2`.
     - **Linked service**: Select the `asadatalakeXX` linked service that already exists.
@@ -148,7 +148,7 @@ When you query Parquet files using Synapse SQL Serverless, you can explore the d
 
     ![The Data hub is displayed with the options highlighted.](media/data-hub-parquet-select-rows.png "Select TOP 100 rows")
 
-4. Ensure **SQL on-demand** is selected in the `Connect to` dropdown list above the query window, then run the query. Data is loaded by the Synapse SQL Serverless endpoint and processed as if was coming from any regular relational database.
+4. Ensure **Built-in** is selected in the `Connect to` dropdown list above the query window, then run the query. Data is loaded by the Synapse SQL Serverless endpoint and processed as if was coming from any regular relational database.
 
     ![The SQL on-demand connection is highlighted.](media/sql-on-demand-selected.png "SQL on-demand")
 
