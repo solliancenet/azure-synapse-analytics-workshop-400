@@ -150,7 +150,33 @@ In this task, you will author a T-SQL query that uses the previously trained mod
 
    ![Showing the context menu, selecting New SQL Script, Empty Script](media/lab06-new-sql-script.png "Create new script")
 
-3. Replace the contents of this script with following:
+3. Replace the contents of this script with the following - this will cast the columns of our input data to the values expected by the model:
+
+   ```sql
+    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f00] [real] NULL;
+    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f01] [real] NULL;
+    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f02] [real] NULL;
+    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f03] [real] NULL;
+    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f04] [real] NULL;
+    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f05] [real] NULL;
+    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f06] [real] NULL;
+    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f07] [real] NULL;
+    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f08] [real] NULL;
+    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f09] [real] NULL;
+    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f10] [real] NULL;
+    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f11] [real] NULL;
+    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f12] [real] NULL;
+    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f13] [real] NULL;
+    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f14] [real] NULL;
+    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f15] [real] NULL;
+    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f16] [real] NULL;
+    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f17] [real] NULL;
+    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f18] [real] NULL;
+    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f19] [real] NULL;
+    GO
+    ```
+
+4. Delete the query you just executed, and replace the contents of this script with following:
 
     ```sql
     SELECT TOP 100
@@ -163,25 +189,21 @@ In this task, you will author a T-SQL query that uses the previously trained mod
 
     This is the input data you will use to make the predictions.
 
-    >**NOTE**:
-    > Due to capacity constraints limiting the number of environments that can be whitelisted to use the `PREDICT` function, the final three steps in this exercise cannot be executed. They are provided below to help you understand the use of the `PREDICT` function in T-SQL.
-    >
-
-4. Select **Run** from the menubar.
+5. Select **Run** from the menubar.
 
    ![The Run button](media/lab06-select-run.png "Select Run")
 
-5. Create another new SQL script and replace the contents with the following:
+6. Create another new SQL script and replace the contents with the following:
 
    ```sql
-   -- Retrieve the latest hex encoded ONNX model from the table
-   DECLARE @model varbinary(max) = (SELECT Model FROM [wwi_ml].[MLModel] WHERE Id = (SELECT Top(1) max(ID) FROM [wwi_ml].[MLModel]));
-
-   -- Run a prediction query
-   SELECT d.*, p.*
-   FROM PREDICT(MODEL = @model, DATA = [wwi_ml].[ProductPCA] AS d) WITH (prediction real) AS p;
+    -- Retrieve the latest hex encoded ONNX model from the table
+    DECLARE @model varbinary(max) = (SELECT Model FROM [wwi_ml].[MLModel] WHERE Id = (SELECT Top(1) max(ID) FROM [wwi_ml].[MLModel]));
+    -- Run a prediction query
+    SELECT d.*, p.*
+    FROM PREDICT(MODEL = @model, DATA = [wwi_ml].[ProductPCA] AS d,
+        RUNTIME = ONNX) WITH ([label] bigint) AS p;
    ```
 
-6. Run the script and view the results, notice that the `Prediction` column is the model's prediction of the `Seasonality` property of each product.
+7. Run the script and view the results, notice that the `Prediction` column is the model's prediction of the `Seasonality` property of each product, this will value is located in the last column.
 
    ![Viewing the prediction results in the query result pane](media/lab06-view-prediction-results.png "View prediction results")

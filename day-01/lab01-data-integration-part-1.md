@@ -2,7 +2,7 @@
 
 <!-- Integrating Data Sources
 Using Data Hub: Preview blob & DB data, T-SQL (On-Demand) and PySpark DataFrame
-Orchestrate Hub: Connectors, Copy data
+Integrate Hub: Connectors, Copy data
 
 Studio - Manage Hub
 Studio - Linked services
@@ -871,7 +871,7 @@ To run loads with appropriate compute resources, create loading users designated
 
 ### Task 2: Create pipeline with copy activity
 
-1. Navigate to the **Orchestrate** hub.
+1. Navigate to the **Integrate** hub.
 
     ![The Orchestrate hub is highlighted.](media/orchestrate-hub.png "Orchestrate hub")
 
