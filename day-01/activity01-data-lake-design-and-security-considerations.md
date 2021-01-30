@@ -1,6 +1,6 @@
 # Activity 01: Data Lake Design & Security Considerations
 
-Wide World Importers is ready to build a pipeline that copies their sales transactions from a table in an Oracle database to the data lake. 
+Wide World Importers is ready to build a pipeline that copies their sales transactions from a table in an Oracle database to the data lake.
 
 **Requirements**
 

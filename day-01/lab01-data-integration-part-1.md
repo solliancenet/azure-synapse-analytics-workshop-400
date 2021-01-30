@@ -72,7 +72,7 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
 
     ![Manage, New, and the Azure Cosmos DB linked service option are highlighted.](media/create-cosmos-db-linked-service-step1.png "New linked service")
 
-5. Name the linked service `asacosmosdb01` and set the **Database name** value to `CustomerProfile`.
+5. Name the linked service `asacosmosdb01`. Set the **Account selection method** to `From Azure subscription` and select the `Azure Labs X` subscription. For **Azure Cosmos DB account name** select `asacosmosdb{Suffix}` and set the **Database name** value to `CustomerProfile`.
 
     ![New Azure Cosmos DB linked service.](media/create-cosmos-db-linked-service.png "New linked service")
 
@@ -106,7 +106,7 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
 
     ![The inferred schema for the Azure Cosmos DB documents is displayed.](media/cosmos-db-dataset-schema.png "Schema")
 
-7. Create a new **Azure Data Lake Storage Gen2** dataset with the **Parquet** format type with the following characteristics (remember, you can create integration datasets in the Data Hub):
+7. Remaining in the **Data Hub**, on the **Data** blade, expand the **+** menu, and select **Integration dataset**. Create a new **Azure Data Lake Storage Gen2** dataset with the **Parquet** format type with the following characteristics (remember, you can create integration datasets in the Data Hub):
 
     - **Name**: Enter `asal400_sales_adlsgen2`.
     - **Linked service**: Select the `asadatalakeXX` linked service that already exists.
@@ -115,7 +115,7 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
 
     ![The create ADLS Gen2 dataset form is displayed.](media/create-adls-dataset.png "Create ADLS Gen2 dataset")
 
-8. Create a new **Azure Data Lake Storage Gen2** dataset with the **JSON** format type with the following characteristics:
+8. Remaining in the **Data Hub**, on the **Data** blade, expand the **+** menu, and select **Integration dataset**. Create a new **Azure Data Lake Storage Gen2** integration dataset with the **JSON** format type with the following characteristics (Data Hub + New Integration Dataset):
 
     - **Name**: Enter `asal400_ecommerce_userprofiles_source`.
     - **Linked service**: Select the `asadatalakeXX` linked service that already exists.
@@ -130,13 +130,13 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
 
 Understanding data through data exploration is one of the core challenges faced today by data engineers and data scientists as well. Depending on the underlying structure of the data as well as the specific requirements of the exploration process, different data processing engines will offer varying degrees of performance, complexity, and flexibility.
 
-In Azure Synapse Analytics, you have the possibility of using either the Synapse SQL Serverless engine, the big-data Spark engine, or both.
+In Azure Synapse Analytics, you have the possibility of using either the Synapse serverless SQL engine, the big-data Spark engine, or both.
 
 In this exercise, you will explore the data lake using both options.
 
-### Task 1: Query sales Parquet data with Synapse SQL Serverless
+### Task 1: Query sales Parquet data with a serverless SQL pool
 
-When you query Parquet files using Synapse SQL Serverless, you can explore the data with T-SQL syntax.
+When you query Parquet files using a serverless SQL pool, you can explore the data with T-SQL syntax.
 
 1. In Synapse Analytics Studio, navigate to the **Data** hub.
 
@@ -191,7 +191,7 @@ When you query Parquet files using Synapse SQL Serverless, you can explore the d
 
 ### Task 2: Query sales Parquet data with Azure Synapse Spark
 
-1. Navigate to the **Data** hub, browse to the data lake storage account folder `sale-small/Year=2010/Quarter=Q4/Month=12/Day=20101231` if needed, then right-click the Parquet file and select New notebook.
+1. Navigate to the **Data** hub, browse to the data lake storage account folder `sale-small/Year=2010/Quarter=Q4/Month=12/Day=20101231` if needed, then right-click the Parquet file and select New notebook, then Load to DataFrame.
 
     ![The Parquet file is displayed with the New notebook menu item highlighted.](media/new-spark-notebook-sales.png "New notebook")
 
@@ -215,242 +215,242 @@ When you query Parquet files using Synapse SQL Serverless, you can explore the d
 
 7. The Spark engine can analyze the Parquet files and infer the schema. To do this, enter the following in the new cell:
 
-```python
-df.printSchema()
-```
+    ```python
+    df.printSchema()
+    ```
 
-Your output should look like the following:
+    Your output should look like the following:
 
-```text
-root
-    |-- TransactionId: string (nullable = true)
-    |-- CustomerId: integer (nullable = true)
-    |-- ProductId: short (nullable = true)
-    |-- Quantity: short (nullable = true)
-    |-- Price: decimal(29,2) (nullable = true)
-    |-- TotalAmount: decimal(29,2) (nullable = true)
-    |-- TransactionDate: integer (nullable = true)
-    |-- ProfitAmount: decimal(29,2) (nullable = true)
-    |-- Hour: byte (nullable = true)
-    |-- Minute: byte (nullable = true)
-    |-- StoreId: short (nullable = true)
-```
+    ```text
+    root
+        |-- TransactionId: string (nullable = true)
+        |-- CustomerId: integer (nullable = true)
+        |-- ProductId: short (nullable = true)
+        |-- Quantity: short (nullable = true)
+        |-- Price: decimal(29,2) (nullable = true)
+        |-- TotalAmount: decimal(29,2) (nullable = true)
+        |-- TransactionDate: integer (nullable = true)
+        |-- ProfitAmount: decimal(29,2) (nullable = true)
+        |-- Hour: byte (nullable = true)
+        |-- Minute: byte (nullable = true)
+        |-- StoreId: short (nullable = true)
+    ```
 
-8. Now let's use the dataframe to perform the same grouping and aggregate query we performed with the SQL Serverless pool. Create a new cell and enter the following:
+8. Now let's use the dataframe to perform the same grouping and aggregate query we performed with the serverless SQL pool. Create a new cell and enter the following:
 
-```python
-from pyspark.sql import SparkSession
-from pyspark.sql.types import *
-from pyspark.sql.functions import *
+    ```python
+    from pyspark.sql import SparkSession
+    from pyspark.sql.types import *
+    from pyspark.sql.functions import *
 
-profitByDateProduct = (df.groupBy("TransactionDate","ProductId")
-    .agg(
-        sum("ProfitAmount").alias("(sum)ProfitAmount"),
-        round(avg("Quantity"), 4).alias("(avg)Quantity"),
-        sum("Quantity").alias("(sum)Quantity"))
-    .orderBy("TransactionDate"))
-profitByDateProduct.show(100)
-```
+    profitByDateProduct = (df.groupBy("TransactionDate","ProductId")
+        .agg(
+            sum("ProfitAmount").alias("(sum)ProfitAmount"),
+            round(avg("Quantity"), 4).alias("(avg)Quantity"),
+            sum("Quantity").alias("(sum)Quantity"))
+        .orderBy("TransactionDate"))
+    profitByDateProduct.show(100)
+    ```
 
  > We import required Python libraries to use aggregation functions and types defined in the schema to successfully execute the query.
 
-### Task 3: Query user profile JSON data with Azure Synapse Spark
+### Task 3: Query user profile JSON data with Apache Spark in Azure Synapse Analytics
 
 In addition to the sales data, we have customer profile data from an e-commerce system that provides top product purchases for each visitor of the site (customer) over the past 12 months. This data is stored within JSON files in the data lake. We will import this data in the next lab, but let's explore it while we're in the Spark notebook.
 
 1. Create a new cell in the Spark notebook, enter the following code, replace `<asadatalakeNNNNNN>` with your data lake name (you can find this value in the first cell of the notebook), and execute the cell:
 
-```python
-df = (spark.read \
-        .option("inferSchema", "true") \
-        .json("abfss://wwi-02@asadatalakeSUFFIX.dfs.core.windows.net/online-user-profiles-02/*.json", multiLine=True)
-    )
+    ```python
+    df = (spark.read \
+            .option("inferSchema", "true") \
+            .json("abfss://wwi-02@asadatalakeSUFFIX.dfs.core.windows.net/online-user-profiles-02/*.json", multiLine=True)
+        )
 
-df.printSchema()
-```
+    df.printSchema()
+    ```
 
-Your output should look like the following:
+    Your output should look like the following:
 
-```text
-root
-|-- topProductPurchases: array (nullable = true)
-|    |-- element: struct (containsNull = true)
-|    |    |-- itemsPurchasedLast12Months: long (nullable = true)
-|    |    |-- productId: long (nullable = true)
-|-- visitorId: long (nullable = true)
-```
+    ```text
+    root
+    |-- topProductPurchases: array (nullable = true)
+    |    |-- element: struct (containsNull = true)
+    |    |    |-- itemsPurchasedLast12Months: long (nullable = true)
+    |    |    |-- productId: long (nullable = true)
+    |-- visitorId: long (nullable = true)
+    ```
 
-> Notice that we are selecting all JSON files within the `online-user-profiles-02` directory. Each JSON file contains several rows, which is why we specified the `multiLine=True` option. Also, we set the `inferSchema` option to `true`, which instructs the Spark engine to review the files and create a schema based on the nature of the data.
+    > Notice that we are selecting all JSON files within the `online-user-profiles-02` directory. Each JSON file contains several rows, which is why we specified the `multiLine=True` option. Also, we set the `inferSchema` option to `true`, which instructs the Spark engine to review the files and create a schema based on the nature of the data.
 
 2. We have been using Python code in these cells up to this point. If we want to query the files using SQL syntax, one option is to create a temporary view of the data within the dataframe. Execute the following in a new cell to create a view named `user_profiles`:
 
-```python
-# create a view called user_profiles
-df.createOrReplaceTempView("user_profiles")
-```
+    ```python
+    # create a view called user_profiles
+    df.createOrReplaceTempView("user_profiles")
+    ```
 
 3. Create a new cell. Since we want to use SQL instead of Python, we use the `%%sql` magic to set the language of the cell to SQL. Execute the following code in the cell:
 
-```sql
-%%sql
+    ```sql
+    %%sql
 
-SELECT * FROM user_profiles LIMIT 10
-```
+    SELECT * FROM user_profiles LIMIT 10
+    ```
 
-Notice that the output shows nested data for `topProductPurchases`, which includes an array of `productId` and `itemsPurchasedLast12Months` values. You can expand the fields by clicking the right triangle in each row.
+    Notice that the output shows nested data for `topProductPurchases`, which includes an array of `productId` and `itemsPurchasedLast12Months` values. You can expand the fields by clicking the right triangle in each row.
 
-![JSON nested output.](media/spark-json-output-nested.png "JSON output")
+    ![JSON nested output.](media/spark-json-output-nested.png "JSON output")
 
-This makes analyzing the data a bit difficult. This is because the JSON file contents look like the following:
+    This makes analyzing the data a bit difficult. This is because the JSON file contents look like the following:
 
-```json
-[
-{
-    "visitorId": 9529082,
-    "topProductPurchases": [
+    ```json
+    [
     {
-        "productId": 4679,
-        "itemsPurchasedLast12Months": 26
+        "visitorId": 9529082,
+        "topProductPurchases": [
+        {
+            "productId": 4679,
+            "itemsPurchasedLast12Months": 26
+        },
+        {
+            "productId": 1779,
+            "itemsPurchasedLast12Months": 32
+        },
+        {
+            "productId": 2125,
+            "itemsPurchasedLast12Months": 75
+        },
+        {
+            "productId": 2007,
+            "itemsPurchasedLast12Months": 39
+        },
+        {
+            "productId": 1240,
+            "itemsPurchasedLast12Months": 31
+        },
+        {
+            "productId": 446,
+            "itemsPurchasedLast12Months": 39
+        },
+        {
+            "productId": 3110,
+            "itemsPurchasedLast12Months": 40
+        },
+        {
+            "productId": 52,
+            "itemsPurchasedLast12Months": 2
+        },
+        {
+            "productId": 978,
+            "itemsPurchasedLast12Months": 81
+        },
+        {
+            "productId": 1219,
+            "itemsPurchasedLast12Months": 56
+        },
+        {
+            "productId": 2982,
+            "itemsPurchasedLast12Months": 59
+        }
+        ]
     },
     {
-        "productId": 1779,
-        "itemsPurchasedLast12Months": 32
+        ...
     },
     {
-        "productId": 2125,
-        "itemsPurchasedLast12Months": 75
-    },
-    {
-        "productId": 2007,
-        "itemsPurchasedLast12Months": 39
-    },
-    {
-        "productId": 1240,
-        "itemsPurchasedLast12Months": 31
-    },
-    {
-        "productId": 446,
-        "itemsPurchasedLast12Months": 39
-    },
-    {
-        "productId": 3110,
-        "itemsPurchasedLast12Months": 40
-    },
-    {
-        "productId": 52,
-        "itemsPurchasedLast12Months": 2
-    },
-    {
-        "productId": 978,
-        "itemsPurchasedLast12Months": 81
-    },
-    {
-        "productId": 1219,
-        "itemsPurchasedLast12Months": 56
-    },
-    {
-        "productId": 2982,
-        "itemsPurchasedLast12Months": 59
+        ...
     }
     ]
-},
-{
-    ...
-},
-{
-    ...
-}
-]
-```
+    ```
 
 4. PySpark contains a special [`explode` function](https://spark.apache.org/docs/latest/api/python/pyspark.sql.html?highlight=explode#pyspark.sql.functions.explode), which returns a new row for each element of the array. This will help flatten the `topProductPurchases` column for better readability or for easier querying. Execute the following in a new cell:
 
-```python
-from pyspark.sql.functions import udf, explode
+    ```python
+    from pyspark.sql.functions import udf, explode
 
-flat=df.select('visitorId',explode('topProductPurchases').alias('topProductPurchases_flat'))
-flat.show(100)
-```
+    flat=df.select('visitorId',explode('topProductPurchases').alias('topProductPurchases_flat'))
+    flat.show(100)
+    ```
 
-In this cell, we created a new dataframe named `flat` that includes the `visitorId` field and a new aliased field named `topProductPurchases_flat`. As you can see, the output is a bit easier to read and, by extension, easier to query.
+    In this cell, we created a new dataframe named `flat` that includes the `visitorId` field and a new aliased field named `topProductPurchases_flat`. As you can see, the output is a bit easier to read and, by extension, easier to query.
 
-![The improved output is displayed.](media/spark-explode-output.png "Spark explode output")
+    ![The improved output is displayed.](media/spark-explode-output.png "Spark explode output")
 
 5. Create a new cell and execute the following code to create a new flattened version of the dataframe that extracts the `topProductPurchases_flat.productId` and `topProductPurchases_flat.itemsPurchasedLast12Months` fields to create new rows for each data combination:
 
-```python
-topPurchases = (flat.select('visitorId','topProductPurchases_flat.productId','topProductPurchases_flat.itemsPurchasedLast12Months')
-    .orderBy('visitorId'))
+    ```python
+    topPurchases = (flat.select('visitorId','topProductPurchases_flat.productId','topProductPurchases_flat.itemsPurchasedLast12Months')
+        .orderBy('visitorId'))
 
-topPurchases.show(100)
-```
+    topPurchases.show(100)
+    ```
 
-In the output, notice that we now have multiple rows for each `visitorId`.
+    In the output, notice that we now have multiple rows for each `visitorId`.
 
-![The vistorId rows are highlighted.](media/spark-toppurchases-output.png "topPurchases output")
+    ![The vistorId rows are highlighted.](media/spark-toppurchases-output.png "topPurchases output")
 
 6. Let's order the rows by the number of items purchased in the last 12 months. Create a new cell and execute the following code:
 
-```python
-# Let's order by the number of items purchased in the last 12 months
-sortedTopPurchases = topPurchases.orderBy("itemsPurchasedLast12Months")
+    ```python
+    # Let's order by the number of items purchased in the last 12 months
+    sortedTopPurchases = topPurchases.orderBy("itemsPurchasedLast12Months")
 
-sortedTopPurchases.show(100)
-```
+    sortedTopPurchases.show(100)
+    ```
 
 7. How do we sort in reverse order? One might conclude that we could make a call like this: `topPurchases.orderBy("itemsPurchasedLast12Months desc")`. Try it in a new cell:
 
-```python
-topPurchases.orderBy("itemsPurchasedLast12Months desc")
-```
+    ```python
+    topPurchases.orderBy("itemsPurchasedLast12Months desc")
+    ```
 
-![An error is displayed.](media/sort-desc-error.png "Sort desc error")
+    ![An error is displayed.](media/sort-desc-error.png "Sort desc error")
 
-Notice that there is an `AnalysisException` error, because `itemsPurchasedLast12Months desc` does not match up with a column name.
+    Notice that there is an `AnalysisException` error, because `itemsPurchasedLast12Months desc` does not match up with a column name.
 
-Why does this not work?
+    Why does this not work?
 
-- The `DataFrames` API is built upon an SQL engine.
-- There is a lot of familiarity with this API and SQL syntax in general.
-- The problem is that `orderBy(..)` expects the name of the column.
-- What we specified was an SQL expression in the form of **requests desc**.
-- What we need is a way to programmatically express such an expression.
-- This leads us to the second variant, `orderBy(Column)` and more specifically, the class `Column`.
+    - The `DataFrames` API is built upon an SQL engine.
+    - There is a lot of familiarity with this API and SQL syntax in general.
+    - The problem is that `orderBy(..)` expects the name of the column.
+    - What we specified was an SQL expression in the form of **requests desc**.
+    - What we need is a way to programmatically express such an expression.
+    - This leads us to the second variant, `orderBy(Column)` and more specifically, the class `Column`.
 
 8. The **Column** class is an object that encompasses more than just the name of the column, but also column-level-transformations, such as sorting in a descending order. Execute the following code in a new cell:
 
-```python
-sortedTopPurchases = (topPurchases
-    .orderBy( col("itemsPurchasedLast12Months").desc() ))
+    ```python
+    sortedTopPurchases = (topPurchases
+        .orderBy( col("itemsPurchasedLast12Months").desc() ))
 
-sortedTopPurchases.show(100)
-```
+    sortedTopPurchases.show(100)
+    ```
 
 9. How many *types* of products did each customer purchase? To figure this out, we need to group by `visitorId` and aggregate on the number of rows per customer. Execute the following code in a new cell:
 
-```python
-groupedTopPurchases = (sortedTopPurchases.select("visitorId")
-    .groupBy("visitorId")
-    .agg(count("*").alias("total"))
-    .orderBy("visitorId") )
+    ```python
+    groupedTopPurchases = (sortedTopPurchases.select("visitorId")
+        .groupBy("visitorId")
+        .agg(count("*").alias("total"))
+        .orderBy("visitorId") )
 
-groupedTopPurchases.show(100)
-```
+    groupedTopPurchases.show(100)
+    ```
 
-![The query output is displayed.](media/spark-grouped-top-purchases.png "Grouped top purchases output")
+    ![The query output is displayed.](media/spark-grouped-top-purchases.png "Grouped top purchases output")
 
 10. How many *total items* did each customer purchase? To figure this out, we need to group by `visitorId` and aggregate on the sum of `itemsPurchasedLast12Months` values per customer. Execute the following code in a new cell:
 
-```python
-groupedTopPurchases = (sortedTopPurchases.select("visitorId","itemsPurchasedLast12Months")
-    .groupBy("visitorId")
-    .agg(sum("itemsPurchasedLast12Months").alias("totalItemsPurchased"))
-    .orderBy("visitorId") )
+    ```python
+    groupedTopPurchases = (sortedTopPurchases.select("visitorId","itemsPurchasedLast12Months")
+        .groupBy("visitorId")
+        .agg(sum("itemsPurchasedLast12Months").alias("totalItemsPurchased"))
+        .orderBy("visitorId") )
 
-groupedTopPurchases.show(100)
-```
+    groupedTopPurchases.show(100)
+    ```
 
-![The query output is displayed.](media/spark-grouped-top-purchases-total-items.png "Grouped top total items output")
+    ![The query output is displayed.](media/spark-grouped-top-purchases-total-items.png "Grouped top total items output")
 
 ## Exercise 3: Import sales data with PolyBase and COPY using T-SQL
 
@@ -460,14 +460,14 @@ However, even with their familiarity with SQL, there are some things to consider
 
 | PolyBase | COPY |
 | --- | --- |
-| GA, stable | Currently in preview |
+| GA, stable | GA, stable |
 | Needs `CONTROL` permission | Relaxed permission |
 | Has row width limits | No row width limit |
 | No delimiters within text | Supports delimiters in text |
 | Fixed line delimiter | Supports custom column and row delimiters |
 | Complex to set up in code | Reduces amount of code |
 
-WWI has heard that PolyBase is generally faster than COPY, especially when working with large data sets. 
+WWI has heard that PolyBase is generally faster than COPY, especially when working with large data sets.
 
 In this exercise, you will help WWI compare ease of setup, flexibility, and speed between these loading strategies.
 
@@ -642,13 +642,13 @@ PolyBase requires the following elements:
 
 Now let's see how to perform the same load operation with the COPY statement.
 
-1. In the query window, replace the script with the following to truncate the heap table and load data using the COPY statement. Be sure to replace `<PrimaryStorage`>` with the default storage account name for your workspace:
+1. In the query window, replace the script with the following to truncate the heap table and load data using the COPY statement. Be sure to replace `SUFFIX` with the id from your workspace:
 
     ```sql
     TRUNCATE TABLE wwi_staging.SaleHeap;
     GO
 
-    -- Replace <PrimaryStorage> with the workspace default storage account name.
+    -- Replace SUFFIX with the id from your workspace.
     COPY INTO wwi_staging.SaleHeap
     FROM 'https://asadatalakeSUFFIX.dfs.core.windows.net/wwi-02/sale-small%2FYear%3D2019'
     WITH (
@@ -873,7 +873,7 @@ To run loads with appropriate compute resources, create loading users designated
 
 1. Navigate to the **Integrate** hub.
 
-    ![The Orchestrate hub is highlighted.](media/orchestrate-hub.png "Orchestrate hub")
+    ![The Integrate hub is highlighted.](media/orchestrate-hub.png "Orchestrate hub")
 
 2. Select + then **Pipeline** to create a new pipeline.
 
@@ -895,7 +895,7 @@ To run loads with appropriate compute resources, create loading users designated
 
 8. Choose the **Parquet** format, then select **Continue**.
 
-9. In the properties, set the name to **asal400_december_sales** and select the **asadatalakeNNNNNN** linked service. Browse to the `wwi-02/campaign-analytics/sale-20161230-snappy.parquet` file location, select **From sample file** for schema import. [Download this sample file](https://github.com/solliancenet/azure-synapse-analytics-workshop-400/blob/master/day-01/media/sale-small-20100102-snappy.parquet?raw=true) to your computer, then browse to it in the **Select file** field. Select **OK**.
+9. In the properties, set the name to **asal400_december_sales** and select the **asadatalakeSUFFIX** linked service. Browse to the `wwi-02/campaign-analytics/sale-20161230-snappy.parquet` file location, select **From sample file** for schema import. [Download this sample file](https://github.com/solliancenet/azure-synapse-analytics-workshop-400/blob/master/day-01/media/sale-small-20100102-snappy.parquet?raw=true) to your computer, then browse to it in the **Select file** field. Select **OK**.
 
     ![The properties are displayed.](media/pipeline-copy-sales-source-dataset.png "Dataset properties")
 
