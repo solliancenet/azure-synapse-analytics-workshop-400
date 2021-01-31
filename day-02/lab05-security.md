@@ -66,13 +66,13 @@ Having robust Internet security is a must for every technology system. One way t
 
 When dealing with connectivity to external data sources and services, sensitive connection information such as passwords and access keys should be properly handled. It is recommended that this type of information be stored in an Azure Key Vault. Leveraging Azure Key Vault not only protects against secrets being compromised, it also serves as a central source of truth; meaning that if a secret value needs to be updated (such as when cycling access keys on a storage account), it can be changed in one place and all services consuming this key will start pulling the new value immediately. Azure Key Vault encrypts and decrypts information transparently using 256-bit AES encryption, which is FIPS 140-2 compliant.
 
-1. In the **Azure Portal**, open the `Synapse-WS-L400-NNNNNN` resource group and from the list of resources and select the **Key vault** resource.
+1. In the **Azure Portal**, open the `Synapse-WS-L400-SUFFIX` resource group and from the list of resources and select the **Key vault** resource.
 
     ![Key vault is selected in the resource group.](media/resource-group-key-vault.png "Key vault")
 
 2. From the left menu, under Settings, select **Access Policies**.
 
-3. Observe that Managed Service Identity (MSI) representing your Synapse workpace (it has a name similar to `asaworkspaceNNNNNN`) has already been listed under Application and it has 4 selected Secret Permissions.
+3. Observe that Managed Service Identity (MSI) representing your Synapse workpace (it has a name similar to `asaworkspaceSUFFIX`) has already been listed under Application and it has 4 selected Secret Permissions.
 
 4. Select the drop-down that reads `4 selected` under `Secret Permissions`, observe that Get (which allows your workspace to retrieve the values of secrets from Key Vault) and List (which allows your workspace to enumerate secrets) are set.
 
@@ -80,7 +80,7 @@ When dealing with connectivity to external data sources and services, sensitive 
 
 Linked Services are synonymous with connection strings in Azure Synapse Analytics. Azure Synapse Analytics linked services provides the ability to connect to nearly 100 different types of external services ranging from Azure Storage Accounts to Amazon S3 and more. When connecting to external services, having secrets related to connection information is almost guaranteed. The best place to store these secrets is the Azure Key Vault. Azure Synapse Analytics provides the ability to configure all linked service connections with values from Azure Key Vault.
 
-In order to leverage Azure Key Vault in linked services, you must first add `asakeyvaultXX` as a linked service in Azure Synapse Analytics.
+In order to leverage Azure Key Vault in linked services, you must first add `asakeyvaultSUFFIX` as a linked service in Azure Synapse Analytics.
 
 1. In **Azure Synapse Studio** (<https://web.azuresynapse.net/>), select **Manage** from the left menu.
 
@@ -94,7 +94,7 @@ Since we have the Azure Key Vault set up as a linked service, we can leverage it
 
 It is recommended to store any secrets that are part of your pipeline in Azure Key Vault. In this task you will retrieve these values using a Web activity, just to show the mechanics. The second part of this task demonstrates using a Web activity in the pipeline to retrieve a secret from the Key Vault.
 
-1. Open the `asakeyvaultXX` Azure Key Vault resource, and select **Secrets** from the left menu. From the top toolbar, select **+ Generate/Import**.
+1. Open the `asakeyvaultSUFFIX` Azure Key Vault resource, and select **Secrets** from the left menu. From the top toolbar, select **+ Generate/Import**.
 
    ![In Azure Key Vault, Secrets is selected from the left menu, and + Generate/Import is selected from the top toolbar.](media/lab5_pipelinekeyvaultsecretmenu.png)
 

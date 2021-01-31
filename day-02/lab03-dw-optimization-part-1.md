@@ -4,7 +4,7 @@
 
 ### Task 1 - Identify performance issues related to tables
 
-1. In `Synapse Studio`, open a new SQL script and run the following statement (make sure you run queries on **SQLPool01** as opposed to `SQL on-demand`):
+1. In `Synapse Studio`, open a new SQL script and run the following statement (make sure you run queries on **SQLPool01** as opposed to `Built-in`):
 
     ```sql
     SELECT  
