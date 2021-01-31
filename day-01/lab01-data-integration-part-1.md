@@ -934,3 +934,10 @@ To run loads with appropriate compute resources, create loading users designated
 19. Select **Pipeline Runs**. You can see the status of your pipeline run here. Note that you may need to refresh the view. Once the pipeline run is complete, you can query the `wwi_staging.SaleHeap` table to view the imported data.
 
     ![The completed pipeline run is displayed.](media/pipeline-copy-sales-pipeline-run.png "Pipeline runs")
+
+20. Clean up! In a SQL script, execute the following:
+
+    ```sql
+    DROP WORKLOAD CLASSIFIER HeavyLoader;
+    DROP WORKLOAD GROUP BigDataLoad;
+    ```

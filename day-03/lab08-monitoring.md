@@ -58,7 +58,11 @@ Setting importance in Synapse SQL for Azure Synapse allows you to influence the 
 
     ![The add trigger and trigger now menu items are highlighted.](media/trigger-data-analyst-and-ceo-queries-pipeline.png "Add trigger")
 
-7. Let's see what happened to all the queries we just triggered as they flood the system. In the query window, replace the script with the following:
+7. Navigate to the **Monitor** hub, select **Pipeline runs**, and view the status of the current pipeline run. **Let the Pipeline run for 30 seconds to one minute**, then select **Cancel recursive** for the Lab 08 pipeline.
+
+    ![The cancel recursive option is shown.](media/cancel-recursive.png "Pipeline runs - Cancel recursive")
+
+8. Let's see what happened to all the queries we just triggered as they flood the system. Return to the query window, replace the script with the following:
 
     ```sql
     SELECT s.login_name, r.[Status], r.Importance, submit_time, start_time ,s.session_id FROM sys.dm_pdw_exec_sessions s 
@@ -68,11 +72,11 @@ Setting importance in Synapse SQL for Azure Synapse allows you to influence the 
     ORDER BY submit_time ,status
     ```
 
-8. Select **Run** from the toolbar menu to execute the SQL command. You should see an output similar to the following:
+9. Select **Run** from the toolbar menu to execute the SQL command. You should see an output similar to the following:
 
     ![SQL query results.](media/sql-query-2-results.png "SQL script")
 
-9. We will give our `asa.sql.workload01` user queries priority by implementing the **Workload Importance** feature. In the query window, replace the script with the following:
+10. We will give our `asa.sql.workload01` user queries priority by implementing the **Workload Importance** feature. Return to the query window, replace the script with the following:
 
     ```sql
     IF EXISTS (SELECT * FROM sys.workload_management_workload_classifiers WHERE name = 'CEO')
@@ -84,11 +88,11 @@ Setting importance in Synapse SQL for Azure Synapse allows you to influence the 
       ,MEMBERNAME = 'asa.sql.workload01',IMPORTANCE = High);
     ```
 
-10. Select **Run** from the toolbar menu to execute the SQL command.
+11. Select **Run** from the toolbar menu to execute the SQL command.
 
-11. Let's flood the system again with queries and see what happens this time for `asa.sql.workload01` and `asa.sql.workload02` queries. To do this, we'll run an Azure Synapse Pipeline which triggers queries. **Select** the `Integrate` hub, **run** the **Lab 08 - Execute Data Analyst and CEO Queries** Pipeline, which will run / trigger the `asa.sql.workload01` and `asa.sql.workload02` queries.
+12. Let's flood the system again with queries and see what happens this time for `asa.sql.workload01` and `asa.sql.workload02` queries. To do this, we'll run an Azure Synapse Pipeline which triggers queries. **Select** the `Integrate` hub, **run** the **Lab 08 - Execute Data Analyst and CEO Queries** Pipeline, which will run / trigger the `asa.sql.workload01` and `asa.sql.workload02` queries. **Please let this run for 30 seconds to one minute, then cancel recursively just as you have done before.**
 
-12. In the query window, replace the script with the following to see what happens to the `asa.sql.workload01` queries this time:
+13. In the query window, replace the script with the following to see what happens to the `asa.sql.workload01` queries this time:
 
     ```sql
     SELECT s.login_name, r.[Status], r.Importance, submit_time, start_time ,s.session_id FROM sys.dm_pdw_exec_sessions s 
@@ -98,13 +102,9 @@ Setting importance in Synapse SQL for Azure Synapse allows you to influence the 
     ORDER BY submit_time ,status desc
     ```
 
-13. Select **Run** from the toolbar menu to execute the SQL command. You should see an output similar to the following that shows query executions for the `asa.sql.workload01` user having a **high** importance.
+14. Select **Run** from the toolbar menu to execute the SQL command. You should see an output similar to the following that shows query executions for the `asa.sql.workload01` user having a **high** importance.
 
     ![SQL query results.](media/sql-query-4-results.png "SQL script")
-
-14. Navigate to the **Monitor** hub, select **Pipeline runs**, and then select **Cancel recursive** for each running Lab 08 pipelines. This will help speed up the remaining tasks.
-
-    ![The cancel recursive option is shown.](media/cancel-recursive.png "Pipeline runs - Cancel recursive")
 
 ### Task 2 - Workload Isolation
 
@@ -168,7 +168,9 @@ Users should avoid a workload management solution that configures 100% workload 
     ORDER BY submit_time, status
     ```
 
-9. Let's flood the system with queries and see what happens for `asa.sql.workload02`. To do this, we will run an Azure Synapse Pipeline which triggers queries. Select the `Integrate` hub. **Run** the **Lab 08 - Execute Business Analyst Queries** Pipeline, which will run / trigger  `asa.sql.workload02` queries.
+    > **Note**: There still may be queries left over from previous activities. You can choose to wait for them to complete, or access the SQL requests in the **Manage Hub** and cancel each session manually. Queries that are queued after the creation of the workload group and workload classifier will automatically have this workload management assigned to them.
+
+9. Let's flood the system with queries and see what happens for `asa.sql.workload02`. To do this, we will run an Azure Synapse Pipeline which triggers queries. Select the `Integrate` hub. **Run** the **Lab 08 - Execute Business Analyst Queries** Pipeline, which will run / trigger  `asa.sql.workload02` queries. Ple**ase let this pipeline run for 30 seconds to one minute, then cancel it recursively**.
 
 10. In the query window, replace the script with the following to see what happened to all the `asa.sql.workload02` queries we just triggered as they flood the system:
 
@@ -185,11 +187,7 @@ Users should avoid a workload management solution that configures 100% workload 
 
     ![The script results show that each session was executed with below normal importance.](media/sql-result-below-normal.png "SQL script")
 
-12. Navigate to the **Monitor** hub, select **Pipeline runs**, and then select **Cancel recursive** for each running Lab 08 pipelines. This will help speed up the remaining tasks.
-
-    ![The cancel recursive option is shown.](media/cancel-recursive-ba.png "Pipeline runs - Cancel recursive")
-
-13. In the query window, replace the script with the following to set 3.25% minimum resources per request:
+12. In the query window, replace the script with the following to set 3.25% minimum resources per request:
 
     ```sql
     IF  EXISTS (SELECT * FROM sys.workload_management_workload_classifiers where group_name = 'CEODemo')
@@ -209,12 +207,12 @@ Users should avoid a workload management solution that configures 100% workload 
     ```
 
     > **Note**: Configuring workload containment implicitly defines a maximum level of concurrency. With a CAP_PERCENTAGE_RESOURCE set to 60% and a REQUEST_MIN_RESOURCE_GRANT_PERCENT set to 1%, up to a 60-concurrency level is allowed for the workload group. Consider the method included below for determining the maximum concurrency:
-    > 
+    >
     > [Max Concurrency] = [CAP_PERCENTAGE_RESOURCE] / [REQUEST_MIN_RESOURCE_GRANT_PERCENT]
 
-14. Let's flood the system again and see what happens for `asa.sql.workload02`. To do this, we will run an Azure Synapse Pipeline which triggers queries. Select the `Integrate` hub. **Run** the **Lab 08 - Execute Business Analyst Queries** Pipeline, which will run / trigger  `asa.sql.workload02` queries.
+13. Let's flood the system again and see what happens for `asa.sql.workload02`. To do this, we will run an Azure Synapse Pipeline which triggers queries. Select the `Integrate` hub. **Run** the **Lab 08 - Execute Business Analyst Queries** Pipeline, which will run / trigger  `asa.sql.workload02` queries. **Please let this run for 30 seconds to one minute, then cancel it recursively**.
 
-15. In the query window, replace the script with the following to see what happened to all of the `asa.sql.workload02` queries we just triggered as they flood the system:
+14. In the query window, replace the script with the following to see what happened to all of the `asa.sql.workload02` queries we just triggered as they flood the system:
 
     ```sql
     SELECT s.login_name, r.[Status], r.Importance, submit_time,
@@ -225,11 +223,11 @@ Users should avoid a workload management solution that configures 100% workload 
     ORDER BY submit_time, status
     ```
 
-16. Select **Run** from the toolbar menu to execute the SQL command.
+15. Select **Run** from the toolbar menu to execute the SQL command.
 
 ## Exercise 2 - Workload Monitoring
 
-Azure Synapse Analytics provides a rich monitoring experience within the Azure portal to surface insights regarding your data warehouse workload. The Azure portal is the recommended tool when monitoring your data warehouse as it provides configurable retention periods, alerts, recommendations, and customizable charts and dashboards for metrics and logs. The portal also enables you to integrate with other Azure monitoring services such as Azure Monitor (logs) with Log analytics to provide a holistic monitoring experience for not only your data warehouse but also your entire Azure analytics platform for an integrated monitoring experience. 
+Azure Synapse Analytics provides a rich monitoring experience within the Azure portal to surface insights regarding your data warehouse workload. The Azure portal is the recommended tool when monitoring your data warehouse as it provides configurable retention periods, alerts, recommendations, and customizable charts and dashboards for metrics and logs. The portal also enables you to integrate with other Azure monitoring services such as Azure Monitor (logs) with Log analytics to provide a holistic monitoring experience for not only your data warehouse but also your entire Azure analytics platform for an integrated monitoring experience.
 
 For a programmatic experience when monitoring SQL Analytics via T-SQL, the service provides a set of Dynamic Management Views (DMVs). These views are useful when actively troubleshooting and identifying performance bottlenecks with your workload.
 
@@ -259,7 +257,7 @@ All logins to your data warehouse are logged to `sys.dm_pdw_exec_sessions`. This
 
 5. Select **Run** from the toolbar menu to execute the SQL command.
 
-6. Let's flood the system with queries to create operations to monitor. To do this, we will run a Azure Synapse Pipeline which triggers queries. Select the `Integrate` hub. **Run** the **Lab 08 - Execute Business Analyst Queries** Pipeline, which will run / trigger  `asa.sql.workload02` queries.
+6. Let's flood the system with queries to create operations to monitor. To do this, we will run a Azure Synapse Pipeline which triggers queries. Select the `Integrate` hub. **Run** the **Lab 08 - Execute Business Analyst Queries** Pipeline, which will run / trigger  `asa.sql.workload02` queries. **Please let this pipeline run for 30 seconds to one minute, then cancel it recursively**.
 
 7. In the query window, replace the script with the following:
 
@@ -335,7 +333,7 @@ All logins to your data warehouse are logged to `sys.dm_pdw_exec_sessions`. This
 
 ### Task 3 - Monitoring SQL Requests with the Monitor Hub
 
-1. Let's run a pipeline to monitor its execution in the next step. To do this, select the `Integrate` hub. **Run** the **Lab 08 - Execute Business Analyst Queries** Pipeline.
+1. Let's run a pipeline to monitor its execution in the next step. To do this, select the `Integrate` hub. **Run** the **Lab 08 - Execute Business Analyst Queries** Pipeline. **Let this pipeline run for 30 seconds to one minute, then cancel it recursively**.
 
     ![The add trigger and trigger now menu items are highlighted.](media/ex02-task03-01.png "Add trigger")
 
@@ -351,7 +349,7 @@ All logins to your data warehouse are logged to `sys.dm_pdw_exec_sessions`. This
 
 ## Resources
 
-- [Workload Group Isolation (Preview)](https://docs.microsoft.com/azure/synapse-analytics/sql-data-warehouse/sql-data-warehouse-workload-isolation)
+- [Workload Group Isolation](https://docs.microsoft.com/azure/synapse-analytics/sql-data-warehouse/sql-data-warehouse-workload-isolation)
 - [Workload Isolation](https://docs.microsoft.com/azure/synapse-analytics/sql-data-warehouse/sql-data-warehouse-workload-isolation)
 - [Workload Importance](https://docs.microsoft.com/azure/synapse-analytics/sql-data-warehouse/sql-data-warehouse-workload-importance)
 - [Workload Classification](https://docs.microsoft.com/azure/synapse-analytics/sql-data-warehouse/sql-data-warehouse-workload-classification)
