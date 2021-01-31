@@ -155,7 +155,7 @@ Issues include invalid characters in the revenue currency data, and misaligned c
 
     ![Create new Dataset.](media/new-dataset.png "New Dataset")
 
-3. Create a new **Azure Data Lake Storage Gen2** dataset with the **DelimitedText** format type with the following characteristics:
+3. Create a new **Azure Data Lake Storage Gen2** integration dataset with the **DelimitedText** format type with the following characteristics:
 
     - **Name**: Enter `asal400_campaign_analytics_source`.
     - **Linked service**: Select the `asadatalakeSUFFIX` linked service.
@@ -170,7 +170,7 @@ Issues include invalid characters in the revenue currency data, and misaligned c
     - **Compression type**: Select `none`.
     - **Column delimiter**: Select `Comma (,)`.
     - **Row delimiter**: Select `Auto detect (\r,\n, or \r\n)`.
-    - **Encoding**: Select `Default(UTF-8).
+    - **Encoding**: Select `Default(UTF-8)`.
     - **Escape character**: Select `Backslash (\)`.
     - **Quote character**: Select `Double quote (")`.
     - **First row as header**: Leave `unchecked`.
@@ -184,7 +184,7 @@ Issues include invalid characters in the revenue currency data, and misaligned c
 
     ![A preview of the CSV file is displayed.](media/campaign-analytics-dataset-preview-data.png "Preview data")
 
-7. Create a new **Azure Synapse Analytics** dataset with the following characteristics:
+7. Create a new **Azure Synapse Analytics** integration dataset with the following characteristics:
 
     - **Name**: Enter `asal400_wwi_campaign_analytics_asa`.
     - **Linked service**: Select the `SqlPool01` service.
@@ -199,7 +199,7 @@ User profile data comes from two different data sources. In lab 1, you created d
 
 In this task, you'll create datasets for the SQL tables that will serve as data sinks for data pipelines you'll create later in this lab.
 
-1. Create a new **Azure Synapse Analytics** dataset with the following characteristics:
+1. Create a new **Azure Synapse Analytics** integration dataset with the following characteristics:
 
     - **Name**: Enter `asal400_wwi_userproductreviews_asa`.
     - **Linked service**: Select the `SqlPool01` service.
@@ -208,7 +208,7 @@ In this task, you'll create datasets for the SQL tables that will serve as data 
 
     ![New dataset form is displayed with the described configuration.](media/new-dataset-userproductreviews.png "New dataset")
 
-2. Create a new **Azure Synapse Analytics** dataset with the following characteristics:
+2. Create a new **Azure Synapse Analytics** integration dataset with the following characteristics:
 
     - **Name**: Enter `asal400_wwi_usertopproductpurchases_asa`.
     - **Linked service**: Select the `SqlPool01` service.
@@ -287,23 +287,11 @@ If you **did not** complete Exercise 1 in lab 1, where you configure the linked 
 
     ![The form is configured with the defined settings.](media/data-flow-campaign-analysis-source-settings.png "Source settings")
 
-<!-- 6. Select the **Projection** tab, then select **Import projection**.
-
-    ![The import projection button is highlighted in the projection tab.](media/data-flow-import-projection.png "Import projection")
-
-1. If a data flow debug session is not currently running, select the **AzureLargeComputeOptimizedIntegrationRuntime** IR, then select **Turn on debug**.
-
-    ![Select the IR then select turn on debug.](media/data-flow-debug-session-large-ir.png "Data Flow Debug Session Required")
-
-    The projection should display the following schema:
-
-    ![The imported projection is displayed.](media/data-flow-campaign-analysis-source-projection.png "Projection") -->
-
-2. When you create data flows, certain features are enabled by turning on debug, such as previewing data and importing a schema (projection). Due to the amount of time it takes to enable this option, as well as environmental constraints of the lab environment, we will bypass these features. The data source has a schema we need to set. To do this, select **Script** above the design canvas.
+6. When you create data flows, certain features are enabled by turning on debug, such as previewing data and importing a schema (projection). Due to the amount of time it takes to enable this option, as well as environmental constraints of the lab environment, we will bypass these features. The data source has a schema we need to set. To do this, select **Script** above the design canvas.
 
     ![The script link is highlighted above the canvas.](media/data-flow-script.png "Script")
 
-3. Replace the script with the following to provide the column mappings (`output`), then select **OK**:
+7. Replace the script with the following to provide the column mappings (`output`), then select **OK**:
 
     ```json
     source(output(
@@ -326,10 +314,6 @@ If you **did not** complete Exercise 1 in lab 1, where you configure the linked 
     Your script should match the following:
 
     ![The script columns are highlighted.](media/data-flow-script-columns.png "Script")
-
-<!-- 8. Select the **Data preview** tab, then select **Refresh** to display data from the CSV file. If you scroll to the right, you should see that the City and State columns are now included.
-
-    ![The data preview is displayed.](media/data-flow-campaign-analysis-source-preview.png "Data preview") -->
 
 8. Select the **CampaignAnalytics** data source, then select **Projection**. The projection should display the following schema:
 
@@ -374,10 +358,6 @@ If you **did not** complete Exercise 1 in lab 1, where you configure the linked 
         | RevenueTarget | `toDecimal(replace(concat(toString(RevenueTargetPart1), toString(RevenueTarget)), '\\', ''), 10, 2, '$###,###.##')` | Concatenate the `RevenueTargetPart1` and `RevenueTarget` fields, replace the invalid `\` character, then convert and format the data to a decimal type. |
 
     ![The derived column's settings are displayed as described.](media/data-flow-campaign-analysis-derived-column-settings.png "Derived column's settings")
-
-<!-- 13. Select **Data preview** and select **Refresh** to verify the expressions work as expected.
-
-    ![The data preview is displayed.](media/data-flow-campaign-analysis-derived-column-preview.png "Data preview") -->
 
 13. Select the **+** to the right of the `ConvertColumnTypesAndValues` step, then select the **Select** schema modifier from the context menu.
 
@@ -426,7 +406,7 @@ If you **did not** complete Exercise 1 in lab 1, where you configure the linked 
 
 In order to run the new data flow, you need to create a new pipeline and add a data flow activity to it.
 
-1. Navigate to the **Orchestrate** hub.
+1. Navigate to the **Integrate** hub.
 
     ![The Orchestrate hub is highlighted.](media/orchestrate-hub.png "Orchestrate hub")
 
@@ -446,7 +426,7 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
 6. Select **Finish**.
 
-7. Select the mapping data flow activity on the canvas. Select the **Settings** tab, then ensure `AutoResolveIntegrationRuntime` is selected for **Run on (Azure IR)**. Choose the `Compute Optimized` **Compute type** and select `64 (+ 16 cores)` for the **Core count**.
+7. Select the mapping data flow activity on the canvas. Select the **Settings** tab, then ensure `AutoResolveIntegrationRuntime` is selected for **Run on (Azure IR)**. Choose the `Compute Optimized` **Compute type** and select `32 (+ 16 cores)` for the **Core count**.
 
     ![The custom IR is selected in the mapping data flow activity settings.](media/pipeline-campaign-analysis-data-flow-settings.png "Mapping data flow activity settings")
 
@@ -484,9 +464,9 @@ Now that the pipeline run is complete, let's take a look at the SQL table to ver
 
 2. Expand the `SqlPool01` database underneath the **Workspace** section, then expand `Tables`.
 
-3. Right-click the `wwi.CampaignAnalytics` table, then select the **Select TOP 1000 rows** menu item under the New SQL script context menu. You may need to refresh to see the new tables.
+3. Right-click the `wwi.CampaignAnalytics` table, then select the **Select TOP 100 rows** menu item under the New SQL script context menu. You may need to refresh to see the new tables.
 
-    ![The Select TOP 10o0 rows menu item is highlighted.](media/select-top-1000-rows-campaign-analytics.png "Select TOP 1000 rows")
+    ![The Select TOP 100 rows menu item is highlighted.](media/select-top-1000-rows-campaign-analytics.png "Select TOP 100 rows")
 
 4. The properly transformed data should appear in the query results.
 
@@ -534,10 +514,6 @@ The query results output includes the standard Table view, as well as a Chart vi
 
 ![The new query and chart view are displayed.](media/campaign-analytics-query-results-chart.png "Chart view")
 
-<!-- Exercise 3: Create data pipeline to import user reviews
-
-**TODO**: Add if there's time. -->
-
 ## Exercise 3: Create data pipeline to join disparate data sources
 
 ### Task 1: Create user profile data flow
@@ -571,15 +547,11 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The source options are configured as described.](media/data-flow-user-profiles-source-options.png "Source options")
 
-<!-- 7. Select **Data preview** and select **Refresh** to display the data. Select a row under the `topProductPurchases` column to see an expanded view of the array.
-
-    ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-data-preview.png "Data preview") -->
-
-1. Select the **+** to the right of the `EcommerceUserProfiles` source, then select the **Derived Column** schema modifier from the context menu.
+7. Select the **+** to the right of the `EcommerceUserProfiles` source, then select the **Derived Column** schema modifier from the context menu.
 
     ![The plus sign and Derived Column schema modifier are highlighted.](media/data-flow-user-profiles-new-derived-column.png "New Derived Column")
 
-2. Under **Derived column's settings**, configure the following:
+8. Under **Derived column's settings**, configure the following:
 
     - **Output stream name**: Enter `userId`.
     - **Incoming stream**: Select `EcommerceUserProfiles`.
@@ -591,11 +563,11 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The derived column's settings are configured as described.](media/data-flow-user-profiles-derived-column-settings.png "Derived column's settings")
 
-3. Select the **+** to the right of the `userId` step, then select the **Flatten** schema modifier from the context menu.
+9. Select the **+** to the right of the `userId` step, then select the **Flatten** schema modifier from the context menu.
 
     ![The plus sign and the Flatten schema modifier are highlighted.](media/data-flow-user-profiles-new-flatten.png "New Flatten schema modifier")
 
-4. Under **Flatten settings**, configure the following:
+10. Under **Flatten settings**, configure the following:
 
     - **Output stream name**: Enter `UserTopProducts`.
     - **Incoming stream**: Select `userId`.
@@ -614,11 +586,11 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-flatten-data-preview.png "Data preview")
 
-5. Select the **+** to the right of the `UserTopProducts` step, then select the **Derived Column** schema modifier from the context menu.
+11. Select the **+** to the right of the `UserTopProducts` step, then select the **Derived Column** schema modifier from the context menu.
 
     ![The plus sign and Derived Column schema modifier are highlighted.](media/data-flow-user-profiles-new-derived-column2.png "New Derived Column")
 
-6. Under **Derived column's settings**, configure the following:
+12. Under **Derived column's settings**, configure the following:
 
     - **Output stream name**: Enter `DeriveProductColumns`.
     - **Incoming stream**: Select `UserTopProducts`.
@@ -631,11 +603,11 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The derived column's settings are configured as described.](media/data-flow-user-profiles-derived-column2-settings.png "Derived column's settings")
 
-7. Select **Add Source** on the data flow canvas beneath the `EcommerceUserProfiles` source.
+13. Select **Add Source** on the data flow canvas beneath the `EcommerceUserProfiles` source.
 
     ![Select Add Source on the data flow canvas.](media/data-flow-user-profiles-add-source.png "Add Source")
 
-8. Under **Source settings**, configure the following:
+14. Under **Source settings**, configure the following:
 
     - **Output stream name**: Enter `UserProfiles`.
     - **Source type**: Select `Dataset`.
@@ -643,11 +615,11 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The source settings are configured as described.](media/data-flow-user-profiles-source2-settings.png "Source settings")
 
-9. Since we are not using the data flow debugger, we need to enter the data flow's Script view to update the source projection. Select **Script** in the toolbar above the canvas.
+15. Since we are not using the data flow debugger, we need to enter the data flow's Script view to update the source projection. Select **Script** in the toolbar above the canvas.
 
     ![The Script link is highlighted above the canvas.](media/data-flow-user-profiles-script-link.png "Data flow canvas")
 
-10. Locate the **UserProfiles** `source` in the script and replace its script block with the following to set `preferredProducts` as an `integer[]` array and ensure the data types within the `productReviews` array are correctly defined:
+16. Locate the **UserProfiles** `source` in the script and replace its script block with the following to set `preferredProducts` as an `integer[]` array and ensure the data types within the `productReviews` array are correctly defined:
 
     ```json
     source(output(
@@ -663,15 +635,15 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The script view is displayed.](media/data-flow-user-profiles-script.png "Script view")
 
-11. Select **OK** to apply the script changes. The data source has now been updated with the new schema. The following screenshot shows what the source data looks like if you are able to view it with the data preview option. Using data preview requires you to enable Debug mode, which we are not enabling for this lab. *The following screenshot is for illustration only*:
+17. Select **OK** to apply the script changes. The data source has now been updated with the new schema. The following screenshot shows what the source data looks like if you are able to view it with the data preview option. Using data preview requires you to enable Debug mode, which we are not enabling for this lab. *The following screenshot is for illustration only*:
 
     ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-data-preview2.png "Data preview")
 
-12. Select the **+** to the right of the `UserProfiles` source, then select the **Flatten** schema modifier from the context menu.
+18. Select the **+** to the right of the `UserProfiles` source, then select the **Flatten** schema modifier from the context menu.
 
     ![The plus sign and the Flatten schema modifier are highlighted.](media/data-flow-user-profiles-new-flatten2.png "New Flatten schema modifier")
 
-13. Under **Flatten settings**, configure the following:
+19. Under **Flatten settings**, configure the following:
 
     - **Output stream name**: Enter `UserPreferredProducts`.
     - **Incoming stream**: Select `UserProfiles`.
@@ -689,11 +661,11 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-flatten2-data-preview.png "Data preview")
 
-14. Now it is time to join the two data sources. Select the **+** to the right of the `DeriveProductColumns` step, then select the **Join** option from the context menu.
+20. Now it is time to join the two data sources. Select the **+** to the right of the `DeriveProductColumns` step, then select the **Join** option from the context menu.
 
     ![The plus sign and new Join menu item are highlighted.](media/data-flow-user-profiles-new-join.png "New Join")
 
-15. Under **Join settings**, configure the following:
+21. Under **Join settings**, configure the following:
 
     - **Output stream name**: Enter `JoinTopProductsWithPreferredProducts`.
     - **Left stream**: Select `DeriveProductColumns`.
@@ -707,7 +679,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The join settings are configured as described.](media/data-flow-user-profiles-join-settings.png "Join settings")
 
-16. Select **Optimize** and configure the following:
+22. Select **Optimize** and configure the following:
 
     - **Broadcast**: Select `Fixed`.
     - **Broadcast options**: Check `Left: 'DeriveProductColumns'`.
@@ -718,9 +690,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The join optimization settings are configured as described.](media/data-flow-user-profiles-join-optimize.png "Optimize")
 
-    <!-- **TODO**: Add optimization description. -->
-
-17. Select the **Inspect** tab to see the join mapping, including the column feed source and whether the column is used in a join.
+23. Select the **Inspect** tab to see the join mapping, including the column feed source and whether the column is used in a join.
 
     ![The inspect blade is displayed.](media/data-flow-user-profiles-join-inspect.png "Inspect")
 
@@ -728,11 +698,11 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The data preview results are shown and the statistics for the preferredProductId column is displayed as a pie chart to the right.](media/data-flow-user-profiles-join-preview.png "Data preview")
 
-18. Select the **+** to the right of the `JoinTopProductsWithPreferredProducts` step, then select the **Derived Column** schema modifier from the context menu.
+24. Select the **+** to the right of the `JoinTopProductsWithPreferredProducts` step, then select the **Derived Column** schema modifier from the context menu.
 
     ![The plus sign and Derived Column schema modifier are highlighted.](media/data-flow-user-profiles-new-derived-column3.png "New Derived Column")
 
-19. Under **Derived column's settings**, configure the following:
+25. Under **Derived column's settings**, configure the following:
 
     - **Output stream name**: Enter `DerivedColumnsForMerge`.
     - **Incoming stream**: Select `JoinTopProductsWithPreferredProducts`.
@@ -751,21 +721,21 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The data preview is displayed.](media/data-flow-user-profiles-derived-column3-preview.png "Data preview")
 
-20. Select the **+** to the right of the `DerivedColumnsForMerge` step, then select the **Filter** destination from the context menu.
+26. Select the **+** to the right of the `DerivedColumnsForMerge` step, then select the **Filter** destination from the context menu.
 
     ![The new Filter destination is highlighted.](media/data-flow-user-profiles-new-filter.png "New filter")
 
     We are adding the Filter step to remove any records where the `ProductId` is null. The data sets have a small percentage of invalid records, and null `ProductId` values will cause errors when loading into the `UserTopProductPurchases` SQL pool table.
 
-21. Set the **Filter on** expression to **`!isNull(productId)`**.
+27. Set the **Filter on** expression to **`!isNull(productId)`**.
 
     ![The filter settings are shown.](media/data-flow-user-profiles-new-filter-settings.png "Filter settings")
 
-22. Select the **+** to the right of the `Filter1` step, then select the **Sink** destination from the context menu.
+28. Select the **+** to the right of the `Filter1` step, then select the **Sink** destination from the context menu.
 
     ![The new Sink destination is highlighted.](media/data-flow-user-profiles-new-sink.png "New sink")
 
-23. Under **Sink**, configure the following:
+29. Under **Sink**, configure the following:
 
     - **Output stream name**: Enter `UserTopProductPurchasesASA`.
     - **Incoming stream**: Select `Filter1`.
@@ -775,7 +745,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The sink settings are shown.](media/data-flow-user-profiles-new-sink-settings.png "Sink settings")
 
-24. Select **Settings**, then configure the following:
+30. Select **Settings**, then configure the following:
 
     - **Update method**: Check `Allow insert` and leave the rest unchecked.
     - **Table action**: Select `Truncate table`.
@@ -783,7 +753,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The settings are shown.](media/data-flow-user-profiles-new-sink-settings-options.png "Settings")
 
-25. Select **Mapping**, then configure the following:
+31. Select **Mapping**, then configure the following:
 
     - **Auto mapping**: `Uncheck` this option.
     - **Columns**: Provide the following information:
@@ -798,11 +768,11 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The mapping settings are configured as described.](media/data-flow-user-profiles-new-sink-settings-mapping.png "Mapping")
 
-26. Your completed data flow should look similar to the following:
+32. Your completed data flow should look similar to the following:
 
     ![The completed data flow is displayed.](media/data-flow-user-profiles-complete.png "Completed data flow")
 
-27. Select **Publish all** to save your new data flow.
+33. Select **Publish all** to save your new data flow.
 
     ![Publish all is highlighted.](media/publish-all-1.png "Publish all")
 
@@ -810,9 +780,9 @@ The query results output includes the standard Table view, as well as a Chart vi
 
 In order to run the new data flow, you need to create a new pipeline and add a data flow activity to it.
 
-1. Navigate to the **Orchestrate** hub.
+1. Navigate to the **Integrate** hub.
 
-    ![The Orchestrate hub is highlighted.](media/orchestrate-hub.png "Orchestrate hub")
+    ![The Integrate hub is highlighted.](media/orchestrate-hub.png "Integrate hub")
 
 2. Select + then **Pipeline** to create a new pipeline.
 
@@ -830,9 +800,9 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
 6. Select **Finish**.
 
-7. Select the mapping data flow activity on the canvas. Select the **Settings** tab, then ensure `AutoResolveIntegrationRuntime` is selected for **Run on (Azure IR)**. Choose the `Compute Optimized` **Compute type** and select `64 (+ 16 cores)` for the **Core count**.
+7. Select the mapping data flow activity on the canvas. Select the **Settings** tab, then ensure `AutoResolveIntegrationRuntime` is selected for **Run on (Azure IR)**. Choose the `Compute Optimized` **Compute type** and select `32 (+ 16 cores)` for the **Core count**.
 
-8. Expand **PolyBase** and configure the following:
+8. Expand **staging** and configure the following:
 
     - **Staging linked service**: Select the `asadatalakeSUFFIX` linked service.
     - **Staging storage folder**: Enter `staging/userprofiles`. The `userprofiles` folder will be automatically created for you during the first pipeline run.
@@ -867,11 +837,11 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
     ![The data flow details icon is highlighted.](media/pipeline-user-profiles-activity-runs.png "Activity runs")
 
-6. The data flow details displays the data flow steps and processing details. In our example, processing time took around 45 seconds to process and output around 15 million rows. You can see which activities took longest to complete. The cluster startup time contributed almost three minutes to the total pipeline run.
+6. The data flow details displays the data flow steps and processing details. In our example, processing time took around 30 seconds to process and output around 510k rows. You can see which activities took longest to complete. The cluster startup time contributed almost three and a half minutes to the total pipeline run.
 
     ![The data flow details are displayed.](media/pipeline-user-profiles-data-flow-details.png "Data flow details")
 
-7. Select the `UserTopProductPurchasesASA` sink to view its details. We can see that 1,622,203 rows were calculated with a total of 30 partitions. It took around six seconds to stage the data in ADLS Gen2 prior to writing the data to the SQL table. The total sink processing time in our case was around 45 seconds. It is also apparent that we have a hot partition that is significantly larger than the others. If we need to squeeze extra performance out of this pipeline, we can re-evaluate data partitioning to more evenly spread the partitions to better facilitate parallel data loading and filtering. We could also experiment with disabling staging to see if there's a processing time difference. Finally, the size of the SQL Pool plays a factor in how long it takes to ingest data into the sink.
+7. Select the `UserTopProductPurchasesASA` sink to view its details. We can see that 501,795 rows were calculated with a total of 30 partitions. It took around 3 seconds to stage the data in ADLS Gen2 prior to writing the data to the SQL table. The total sink processing time in our case was around 30 seconds. It is also apparent that we have a hot partition that is significantly larger than the others. If we need to squeeze extra performance out of this pipeline, we can re-evaluate data partitioning to more evenly spread the partitions to better facilitate parallel data loading and filtering. We could also experiment with disabling staging to see if there's a processing time difference. Finally, the size of the SQL Pool plays a factor in how long it takes to ingest data into the sink.
 
     ![The sink details are displayed.](media/pipeline-user-profiles-data-flow-sink-details.png "Sink details")
 
@@ -903,122 +873,121 @@ Now that we have processed, joined, and imported the user profile data, let's an
 
 6. Enter and execute the following in the new cell to show the first 10 rows and to create a new temporary view named `df`:
 
-```python
-df.head(10)
+    ```python
+    df.head(10)
 
-df.createTempView("df")
-```
+    df.createTempView("df")
+    ```
 
-The output should look similar to the following:
+    The output should look similar to the following:
 
-```text
-res4: Array[org.apache.spark.sql.Row] = Array([9065916,3020,null,false,true], [9065916,2735,null,false,true], [9065916,1149,null,false,true], [9065916,2594,null,false,true], [9065916,4591,null,false,true], [9065916,3012,null,false,true], [9065916,1985,null,false,true], [9065916,1773,null,false,true], [9065916,380,null,false,true], [9068349,4383,null,false,true])
-```
+    ```text
+    res3: Array[org.apache.spark.sql.Row] = Array([89792,2700,null,false,true], [89792,2338,null,false,true], [89792,4401,null,false,true], [89792,4423,null,false,true], [89792,1380,null,false,true], [6953,1296,null,false,true], [6953,1675,null,false,true], [20934,1395,null,false,true], [20934,891,null,false,true], [20934,657,null,false,true])
+    ```
 
 7. Notice that the language for this notebook is Spark Scala. We want to use Python to explore the data. To do this, we load the data into a temporary view, then we can load the view's contents into a DataFrame in a new PySpark cell. To do this, execute the following in a new cell:
 
-```python
-%%pyspark
-# Calling the DataFrame df created in Scala to Python
-df = sqlContext.table("df")
-# *********************
+    ```python
+    %%pyspark
+    # Calling the DataFrame df created in Scala to Python
+    df = sqlContext.table("df")
+    # *********************
 
-topPurchases = df.select(
-    "UserId", "ProductId",
-    "ItemsPurchasedLast12Months", "IsTopProduct",
-    "IsPreferredProduct")
+    topPurchases = df.select(
+        "UserId", "ProductId",
+        "ItemsPurchasedLast12Months", "IsTopProduct",
+        "IsPreferredProduct")
 
-topPurchases.show(100)
-```
+    topPurchases.show(100)
+    ```
 
-We set the language of the cell to PySpark with the `%%pyspark` magic. Then we loaded the `df` view into a new DataFrame. Finally, we created a new DataFrame named `topPurchases` and displayed its contents.
+    We set the language of the cell to PySpark with the `%%pyspark` magic. Then we loaded the `df` view into a new DataFrame. Finally, we created a new DataFrame named `topPurchases` and displayed its contents.
 
-![The cell code and output are displayed.](media/notebook-top-products-load-python-df.png "Load Python DataFrame")
+    ![The cell code and output are displayed.](media/notebook-top-products-load-python-df.png "Load Python DataFrame")
 
-8. Execute the following in a new cell to create a new DataFrame to hold only top preferred products where both `IsTopProduct` and `IsPreferredProduct` are true:
+8. Execute the following in a new cell to create a new DataFrame to hold only top preferred products where `IsTopProduct` is true:
 
-```python
-%%pyspark
-from pyspark.sql.functions import *
+    ```python
+    %%pyspark
+    from pyspark.sql.functions import *
 
-topPreferredProducts = (topPurchases
-    .filter( col("IsTopProduct") == True)
-    .filter( col("IsPreferredProduct") == True)
-    .orderBy( col("ItemsPurchasedLast12Months").desc() ))
+    topPreferredProducts = (topPurchases
+        .filter( col("IsTopProduct") == True)       
+        .orderBy( col("ItemsPurchasedLast12Months").desc() ))
 
-topPreferredProducts.show(100)
-```
+    topPreferredProducts.show(100)
+    ```
 
-![The cell code and output are displayed.](media/notebook-top-products-top-preferred-df.png "Notebook cell")
+    ![The cell code and output are displayed.](media/notebook-top-products-top-preferred-df.png "Notebook cell")
 
 9. Execute the following in a new cell to create a new temporary view by using SQL:
 
-```sql
-%%sql
+    ```sql
+    %%sql
 
-CREATE OR REPLACE TEMPORARY VIEW top_5_products
-AS
-    select UserId, ProductId, ItemsPurchasedLast12Months
-    from (select *,
-                row_number() over (partition by UserId order by ItemsPurchasedLast12Months desc) as seqnum
-        from df
-        ) a
-    where seqnum <= 5 and IsTopProduct == true and IsPreferredProduct = true
-    order by a.UserId
-```
+    CREATE OR REPLACE TEMPORARY VIEW top_5_products
+    AS
+        select UserId, ProductId, ItemsPurchasedLast12Months
+        from (select *,
+                    row_number() over (partition by UserId order by ItemsPurchasedLast12Months desc) as seqnum
+            from df
+            ) a
+        where seqnum <= 5 and IsTopProduct == true
+        order by a.UserId
+    ```
 
-*Note that there is no output for the above query.* The query uses the `df` temporary view as a source and applies a `row_number() over` method to apply a row number for the records for each user where `ItemsPurchasedLast12Months` is greatest. The `where` clause filters the results so we only retrieve up to five products where both `IsTopProduct` and `IsPreferredProduct` are set to true. This gives us the top five most purchased products for each user where those products are _also_ identified as their favorite products, according to their user profile stored in Azure Cosmos DB.
+    *Note that there is no output for the above query.* The query uses the `df` temporary view as a source and applies a `row_number() over` method to apply a row number for the records for each user where `ItemsPurchasedLast12Months` is greatest. The `where` clause filters the results so we only retrieve up to five products where both `IsTopProduct` and `IsPreferredProduct` are set to true. This gives us the top five most purchased products for each user where those products are _also_ identified as their favorite products, according to their user profile stored in Azure Cosmos DB.
 
 10. Execute the following in a new cell to create and display a new DataFrame that stores the results of the `top_5_products` temporary view you created in the previous cell:
 
-```python
-%%pyspark
+    ```python
+    %%pyspark
 
-top5Products = sqlContext.table("top_5_products")
+    top5Products = sqlContext.table("top_5_products")
 
-top5Products.show(100)
-```
+    top5Products.show(100)
+    ```
 
-You should see an output similar to the following, which displays the top five preferred products per user:
+    You should see an output similar to the following, which displays the top five preferred products per user:
 
-![The top five preferred products are displayed per user.](media/notebook-top-products-top-5-preferred-output.png "Top 5 preferred products")
+    ![The top five preferred products are displayed per user.](media/notebook-top-products-top-5-preferred-output.png "Top 5 preferred products")
 
 11. Execute the following in a new cell to compare the number of top preferred products to the top five preferred products per customer:
 
-```python
-%%pyspark
-print('before filter: ', topPreferredProducts.count(), ', after filter: ', top5Products.count())
-```
+    ```python
+    %%pyspark
+    print('before filter: ', topPreferredProducts.count(), ', after filter: ', top5Products.count())
+    ```
 
-The output should be similar to `before filter:  9662384 , after filter:  822044`.
+    The output should be similar to `before filter:  7, after filter:  5`.
 
 12. Finally, let's calculate the top five products overall, based on those that are both preferred by customers and purchased the most. To do this, execute the following in a new cell:
 
-```python
-%%pyspark
+    ```python
+    %%pyspark
 
-top5ProductsOverall = (top5Products.select("ProductId","ItemsPurchasedLast12Months")
-    .groupBy("ProductId")
-    .agg( sum("ItemsPurchasedLast12Months").alias("Total") )
-    .orderBy( col("Total").desc() )
-    .limit(5))
+    top5ProductsOverall = (top5Products.select("ProductId","ItemsPurchasedLast12Months")
+        .groupBy("ProductId")
+        .agg( sum("ItemsPurchasedLast12Months").alias("Total") )
+        .orderBy( col("Total").desc() )
+        .limit(5))
 
-top5ProductsOverall.show()
-```
+    top5ProductsOverall.show()
+    ```
 
-In this cell, we grouped the top five preferred products by product ID, summed up the total items purchased in the last 12 months, sorted that value in descending order, and returned the top five results. Your output should be similar to the following:
+    In this cell, we grouped the top five preferred products by product ID, summed up the total items purchased in the last 12 months, sorted that value in descending order, and returned the top five results. Your output should be similar to the following:
 
-```text
-+---------+-----+
-|ProductId|Total|
-+---------+-----+
-|     2107| 4538|
-|     4833| 4533|
-|      347| 4523|
-|     3459| 4233|
-|     4246| 4155|
-+---------+-----+
-```
+    ```text
+    +---------+-----+
+    |ProductId|Total|
+    +---------+-----+
+    |     2107| 91  |
+    |     4833| 83  |
+    |      347| 53  |
+    |     3459| 32  |
+    |     4246| 28  |
+    +---------+-----+
+    ```
 
 ## Exercise 4b (fallback) Monitor and analyze the user profile data pipeline and create Synapse Spark notebook to find top products
 
@@ -1030,7 +999,7 @@ The **Monitor** hub contains, among other things, pipeline runs. When the pipeli
 
 ![The data flow details icon is highlighted.](media/pipeline-user-profiles-activity-runs.png "Activity runs")
 
-The data flow details displays the data flow steps and processing details. In our example, processing time took around 45 seconds to process and output around 15 million rows. You can see which activities took longest to complete. The cluster startup time contributed almost three minutes to the total pipeline run.
+The data flow details displays the data flow steps and processing details. In our example, processing time took around 30 seconds to process and output around 510k rows. You can see which activities took longest to complete. The cluster startup time contributed almost three and a half minutes to the total pipeline run.
 
 ![The data flow details are displayed.](media/pipeline-user-profiles-data-flow-details.png "Data flow details")
 
@@ -1056,11 +1025,10 @@ df.createTempView("df")
 The output looks like the following:
 
 ```text
-df: org.apache.spark.sql.DataFrame = [UserId: int, ProductId: int ... 3 more fields]
-res2: Array[org.apache.spark.sql.Row] = Array([9527760,3414,null,false,true], [9527760,684,null,false,true], [9527760,179,null,false,true], [9527760,2390,null,false,true], [9527760,2680,null,false,true], [9527760,2264,null,false,true], [9434312,3623,null,false,true], [9434312,3654,null,false,true], [9434312,1968,null,false,true], [9434312,4107,null,false,true])
+res3: Array[org.apache.spark.sql.Row] = Array([89792,2700,null,false,true], [89792,2338,null,false,true], [89792,4401,null,false,true], [89792,4423,null,false,true], [89792,1380,null,false,true], [6953,1296,null,false,true], [6953,1675,null,false,true], [20934,1395,null,false,true], [20934,891,null,false,true], [20934,657,null,false,true])
 ```
 
-Although the language for this notebook is Scala, want to use Python to explore the data. To do this, we load the data into a temporary view, then we can load the view's contents into a DataFrame in a new PySpark cell. To do this, we execute the following in a new cell:
+Notice that the language for this notebook is Spark Scala. We want to use Python to explore the data. To do this, we load the data into a temporary view, then we can load the view's contents into a DataFrame in a new PySpark cell.
 
 ```python
 %%pyspark
@@ -1080,15 +1048,14 @@ We set the language of the cell to PySpark with the `%%pyspark` magic. Then we l
 
 ![The cell code and output are displayed.](media/notebook-top-products-load-python-df.png "Load Python DataFrame")
 
-Since we want to work from a DataFrame that holds only top preferred products, as indicated where both `IsTopProduct` and `IsPreferredProduct` are true, we execute the following in a new cell:
+The following cell creates a new DataFrame to hold only top preferred products where `IsTopProduct` is true:
 
 ```python
 %%pyspark
 from pyspark.sql.functions import *
 
 topPreferredProducts = (topPurchases
-    .filter( col("IsTopProduct") == True)
-    .filter( col("IsPreferredProduct") == True)
+    .filter( col("IsTopProduct") == True)       
     .orderBy( col("ItemsPurchasedLast12Months").desc() ))
 
 topPreferredProducts.show(100)
@@ -1096,7 +1063,7 @@ topPreferredProducts.show(100)
 
 ![The cell code and output are displayed.](media/notebook-top-products-top-preferred-df.png "Notebook cell")
 
-Synapse notebooks allows you to switch the language for a given cell. We want to use SQL syntax to easily perform aggregates and store the results in a new temporary view:
+This cell creates a new temporary view by using SQL:
 
 ```sql
 %%sql
@@ -1108,13 +1075,13 @@ AS
                 row_number() over (partition by UserId order by ItemsPurchasedLast12Months desc) as seqnum
         from df
         ) a
-    where seqnum <= 5 and IsTopProduct == true and IsPreferredProduct = true
+    where seqnum <= 5 and IsTopProduct == true
     order by a.UserId
 ```
 
-*There is no output for the above query.* The query uses the `df` temporary view as a source and applies a `row_number() over` method to apply a row number for the records for each user where `ItemsPurchasedLast12Months` is greatest. The `where` clause filters the results so we only retrieve up to five products where both `IsTopProduct` and `IsPreferredProduct` are set to true. This gives us the top five most purchased products for each user where those products are _also_ identified as their favorite products, according to their user profile stored in Azure Cosmos DB.
+*Note that there is no output for the above query.* The query uses the `df` temporary view as a source and applies a `row_number() over` method to apply a row number for the records for each user where `ItemsPurchasedLast12Months` is greatest. The `where` clause filters the results so we only retrieve up to five products where both `IsTopProduct` and `IsPreferredProduct` are set to true. This gives us the top five most purchased products for each user where those products are _also_ identified as their favorite products, according to their user profile stored in Azure Cosmos DB.
 
-We can use the following method like we did earlier to create and display a new DataFrame that stores the results of the temporary view. The following code declares a `top_5_products` DataFrame and populates it with results of the temporary view we created in the previous cell:
+The following cell creates and displays a new DataFrame that stores the results of the `top_5_products` temporary view that was created in the previous cell:
 
 ```python
 %%pyspark
@@ -1124,20 +1091,20 @@ top5Products = sqlContext.table("top_5_products")
 top5Products.show(100)
 ```
 
-This results in the following output, which displays the top five preferred products per user:
+The output displays the top five preferred products per user:
 
 ![The top five preferred products are displayed per user.](media/notebook-top-products-top-5-preferred-output.png "Top 5 preferred products")
 
-Next, we create a new cell to compare the number of top preferred products to the top five preferred products per customer:
+This cell compares the number of top preferred products to the top five preferred products per customer:
 
 ```python
 %%pyspark
 print('before filter: ', topPreferredProducts.count(), ', after filter: ', top5Products.count())
 ```
 
-The output of this cell is: `before filter:  9662384 , after filter:  822044`.
+The output is `before filter:  7, after filter:  5`.
 
-Finally, we calculate the top five products overall, based on those that are both preferred by customers and purchased the most:
+Finally, this cell calculates the top five products overall, based on those that are both preferred by customers and purchased the most.
 
 ```python
 %%pyspark
@@ -1151,18 +1118,16 @@ top5ProductsOverall = (top5Products.select("ProductId","ItemsPurchasedLast12Mont
 top5ProductsOverall.show()
 ```
 
-In this cell, we grouped the top five preferred products by product ID, summed up the total items purchased in the last 12 months, sorted that value in descending order, and returned the top five results.
-
-This is the output of the query:
+We grouped the top five preferred products by product ID, summed up the total items purchased in the last 12 months, sorted that value in descending order, and returned the top five results. The output is:
 
 ```text
 +---------+-----+
 |ProductId|Total|
 +---------+-----+
-|     2107| 4538|
-|     4833| 4533|
-|      347| 4523|
-|     3459| 4233|
-|     4246| 4155|
+|     2107| 91  |
+|     4833| 83  |
+|      347| 53  |
+|     3459| 32  |
+|     4246| 28  |
 +---------+-----+
 ```
