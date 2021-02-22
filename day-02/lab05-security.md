@@ -167,11 +167,9 @@ Transparent Data Encryption (TDE) is a feature of SQL Server that provides encry
 2. On the **SQL pool** resource screen, select **Transparent data encryption** from the left menu.
    ![On the SQL pool resource screen, Transparent data encryption is selected from the menu.](media/lab5_sqlpoolresourcetransparentdataencryptionmenu.png)
 
-3. If your SQL Pool is not currently taking advantage of TDE, slide the **Data encryption** slider to the **ON** position, and select **Save**.
+3. This is where you see if your database is taking advantage of TDE. For the sake of time, we will **leave TDE off**.
 
     ![On the SQL Pool Transparent Data Encryption screen, the Data Encryption toggle is set to the ON position and the Save button is highlighted in the toolbar.](media/lab5_sqlpoolenabletdeform.png)
-
-> **Note**: This operation can take several minutes to complete. You will not be able to the next exercise until this operation is completed.
 
 ## Exercise 3 - Securing Azure Synapse Analytics workspace data
 
