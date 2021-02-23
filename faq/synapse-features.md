@@ -66,7 +66,7 @@
 
 ---
 
-### **Q**: _What is technically behind this SQL On-Demand endpoint? A shared cross-customer SQL Pool?_
+### **Q**: _What is technically behind this serverless SQL endpoint? A shared cross-customer SQL Pool?_
 
 **A**: The resources are on-demand but dedicated to the customer at the workspace level. That's why the first query takes ~25-30 seconds. It allocates the resources.
 
@@ -244,7 +244,7 @@ We currently don't plan to provide UI widgets as a way of interacting with those
 
 ### **Q**: _All that we can do with the new Synapse Studio, will we be able to do with Azure Data Studio or SQL Management Studio?_
 
-**A**: You can connect to the SQL On-demand and SQL Pool endpoints in Azure Data Studio and SSMS to submit queries. Further integration is on the roadmap right now. (May 2020)
+**A**: You can connect to the serverless SQL and SQL Pool endpoints in Azure Data Studio and SSMS to submit queries. Further integration is on the roadmap right now. (May 2020)
 
 ---
 

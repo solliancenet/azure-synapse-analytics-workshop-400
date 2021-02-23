@@ -204,6 +204,6 @@ In this task, you will author a T-SQL query that uses the previously trained mod
         RUNTIME = ONNX) WITH ([label] bigint) AS p;
    ```
 
-7. Run the script and view the results, notice that the `Prediction` column is the model's prediction of the `Seasonality` property of each product, this will value is located in the last column.
+7. Run the script and view the results, notice that the `Label` column is the model's prediction of the `Seasonality` property of each product, this will value is located in the last column.
 
    ![Viewing the prediction results in the query result pane](media/lab06-view-prediction-results.png "View prediction results")

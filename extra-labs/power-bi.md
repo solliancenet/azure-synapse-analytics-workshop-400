@@ -155,7 +155,7 @@ For the remainder of this guide, the following terms will be used for various AS
 
     ![Configure chart properties](media/028%20-%20ConfigureVisualization.png)
 
-9. Switching back to the Azure Synapse Studio, you can check the query executed while configuring the visualization in the Power BI Desktop application. Open the **Monitor** hub, and under the **Activities** section, open the **SQL requests** monitor. Make sure you select **SQLPool01** in the Pool filter, as by default  SQL on-demand is selected.
+9. Switching back to the Azure Synapse Studio, you can check the query executed while configuring the visualization in the Power BI Desktop application. Open the **Monitor** hub, and under the **Activities** section, open the **SQL requests** monitor. Make sure you select **SQLPool01** in the Pool filter, as by default Built-in is selected.
 
     ![Open query monitoring from Synapse Studio](media/029%20-%20MonitorQueryExecution.png)
 
@@ -357,13 +357,13 @@ First, let's prepare the Power BI report query by exploring the data source we'l
 
 1. In [Azure Synapse Studio](https://web.azuresynapse.net), navigate to the **Data** hub and select the **Linked** sources tab.
 
-    ![Explore parquet file structure in SQL on-demand](media/032%20-%20Open%20Data%20Linked.png)
+    ![Explore parquet file structure in serverless SQL](media/032%20-%20Open%20Data%20Linked.png)
 
 2. Under the **Azure Data Lake Storage Gen2** group, select the Primary Data Lake (first node) and expand to the **wwi-02** file system. Follow this path: `wwi-02/sale-small/Year=2019/Quarter=Q1/Month=1/Day=20190101` to explore the folders structure.
 
     ![Explore Data Lake filesystem structure](media/033%20-%20ExploreFileSystemStructure.png)
 
-3. Right-click on the parquet file and select **New SQL Script -> Select TOP 100 Rows**. 
+3. Right-click on the parquet file and select **New SQL Script -> Select TOP 100 Rows**.
 
     ![Generate select top script to query parquet file structure](media/034%20-%20Generate%20select%20script.png)
 
@@ -391,18 +391,18 @@ First, let's prepare the Power BI report query by exploring the data source we'l
             result.filename()
     ```
 
-### Task 2 - Create a Power BI report using SQL Serverless
+### Task 2 - Create a Power BI report using serverless SQL
 
-1. In the [Azure Portal](https://portal.azure.com), navigate to your Synapse Workspace, in **Overview** tab and copy the SQL on-demand endpoint as in the image bellow:
-   
-    ![Identify endpoint for SQL on-demand](media/036%20-%20Configure%20Connection%20to%20SqlOnDemand.png)
+1. In the [Azure Portal](https://portal.azure.com), navigate to your Synapse Workspace, in **Overview** tab and copy the serverless SQL endpoint as in the image bellow:
+
+    ![Identify endpoint for serverless SQL](media/036%20-%20Configure%20Connection%20to%20SqlOnDemand.png)
 
 2. In Power BI desktop, create a new empty report, and next, in the top menu go to **Home** -> **Get Data**. Select **Azure** -> **Azure Synapse Analytics (SQL DW)** as in the image bellow and then click **Connect**:
-   
-    ![Identify endpoint for SQL on-demand](media/037%20-%20GetData.png)
 
-3. Enter the endpoint to SQL on-demand identified at the first step and paste the prepared query in the expanded **Advanced options** section of the SQL Server database dialog:
-   
+    ![Identify endpoint for serverless SQL](media/037%20-%20GetData.png)
+
+3. Enter the endpoint to serverless SQL identified at the first step and paste the prepared query in the expanded **Advanced options** section of the SQL Server database dialog:
+
     ![SQL Connection dialog](media/038%20-%20Configure%20Connection.png)
 
 4. Select **Load** in the preview data window and wait for the connection to be configured.

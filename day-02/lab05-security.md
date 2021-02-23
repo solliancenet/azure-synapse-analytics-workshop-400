@@ -251,4 +251,4 @@ It is important to identify data columns of that hold sensitive information. Typ
 - [Managing access to workspaces, data and pipelines](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/access-control)
 - [Analyze with Apache Spark](https://docs.microsoft.com/en-us/azure/synapse-analytics/get-started-analyze-spark)
 - [Visualize data with Power BI](https://docs.microsoft.com/en-us/azure/synapse-analytics/get-started-visualize-power-bi)
-- [Control storage account access for SQL on-demand](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/develop-storage-files-storage-access-control)
+- [Control storage account access for serverless SQL](https://docs.microsoft.com/en-us/azure/synapse-analytics/sql/develop-storage-files-storage-access-control)

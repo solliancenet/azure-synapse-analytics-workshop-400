@@ -1,7 +1,7 @@
 # Data Integration Part 1
 
 <!-- Integrating Data Sources
-Using Data Hub: Preview blob & DB data, T-SQL (On-Demand) and PySpark DataFrame
+Using Data Hub: Preview blob & DB data, T-SQL (Serverless) and PySpark DataFrame
 Integrate Hub: Connectors, Copy data
 
 Studio - Manage Hub
@@ -150,7 +150,7 @@ When you query Parquet files using a serverless SQL pool, you can explore the da
 
 4. Ensure **Built-in** is selected in the `Connect to` dropdown list above the query window, then run the query. Data is loaded by the Synapse SQL Serverless endpoint and processed as if was coming from any regular relational database.
 
-    ![The SQL on-demand connection is highlighted.](media/sql-on-demand-selected.png "SQL on-demand")
+    ![The serverless SQL connection is highlighted.](media/sql-on-demand-selected.png "serverless SQL")
 
 5. Modify the SQL query to perform aggregates and grouping operations to better understand the data. Replace the query with the following, making sure that the file path in `OPENROWSET` matches your current file path:
 
