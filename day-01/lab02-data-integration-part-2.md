@@ -426,7 +426,7 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
 6. Select **Finish**.
 
-7. Select the mapping data flow activity on the canvas. Select the **Settings** tab, then ensure `AutoResolveIntegrationRuntime` is selected for **Run on (Azure IR)**. Choose the `Compute Optimized` **Compute type** and select `32 (+ 16 cores)` for the **Core count**.
+7. Select the mapping data flow activity on the canvas. Select the **Settings** tab, then ensure `AutoResolveIntegrationRuntime` is selected for **Run on (Azure IR)**. Choose the `Compute Optimized` **Compute type** and select `16 (+ 16 cores)` for the **Core count**.
 
     ![The custom IR is selected in the mapping data flow activity settings.](media/pipeline-campaign-analysis-data-flow-settings.png "Mapping data flow activity settings")
 
@@ -800,9 +800,9 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
 6. Select **Finish**.
 
-7. Select the mapping data flow activity on the canvas. Select the **Settings** tab, then ensure `AutoResolveIntegrationRuntime` is selected for **Run on (Azure IR)**. Choose the `Compute Optimized` **Compute type** and select `32 (+ 16 cores)` for the **Core count**.
+7. Select the mapping data flow activity on the canvas. Select the **Settings** tab, then ensure `AutoResolveIntegrationRuntime` is selected for **Run on (Azure IR)**. Choose the `Compute Optimized` **Compute type** and select `16 (+ 16 cores)` for the **Core count**.
 
-8. Expand **staging** and configure the following:
+8. Expand **PolyBase** and configure the following:
 
     - **Staging linked service**: Select the `asadatalakeSUFFIX` linked service.
     - **Staging storage folder**: Enter `staging/userprofiles`. The `userprofiles` folder will be automatically created for you during the first pipeline run.
