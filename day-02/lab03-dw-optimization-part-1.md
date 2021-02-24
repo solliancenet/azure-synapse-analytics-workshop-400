@@ -13,7 +13,7 @@
         [wwi_perf].[Sale_Heap]
     ```
 
-    The script takes up to 30 seconds to execute and returns a count of ~ 340 million rows in the table.
+    The script takes up to 15 seconds to execute and returns a count of ~ 340 million rows in the table.
 
 2. Run the following (more complex) statement:
 
@@ -31,7 +31,7 @@
     OPTION (LABEL = 'Lab03: Heap')
     ```
 
-    The script takes up to a couple of minutes to execute and returns the result. There is clearly something wrong with the `Sale_Heap` table that induces the performance hit.
+    The script takes up to a 30 seconds to execute and returns the result. There is clearly something wrong with the `Sale_Heap` table that induces the performance hit.
 
     > Note the OPTION clause used in the statement. This comes in handy when you're looking to identify your query in the [sys.dm_pdw_exec_requests](https://docs.microsoft.com/en-us/sql/relational-databases/system-dynamic-management-views/sys-dm-pdw-exec-requests-transact-sql) DMV.
     >
@@ -95,51 +95,36 @@
     Your query should return something similar to:
 
     ```xml
-    <?xml version=""1.0"" encoding=""utf-8""?>
-    <dsql_query number_nodes=""4"" number_distributions=""60"" number_distributions_per_node=""15"">
-    <sql>SELECT TOP 1000 * FROM
-    (
-        SELECT
-            S.CustomerId
-            ,SUM(S.TotalAmount) as TotalAmount
-        FROM
-            [wwi_perf].[Sale_Heap] S
-        GROUP BY
-            S.CustomerId
-    ) T</sql>
+    <?xml version="1.0" encoding="utf-8"?>
+    <dsql_query number_nodes="1" number_distributions="60" number_distributions_per_node="60">
+    <sql>SELECT TOP 1000 * FROM (SELECTS.CustomerId,SUM(S.TotalAmount) as TotalAmountFROM[wwi_perf].[Sale_Heap] SGROUP BYS.CustomerId ) T</sql>
     <materialized_view_candidates>
-        <materialized_view_candidates with_constants=""False"">CREATE MATERIALIZED VIEW View1 WITH (DISTRIBUTION = HASH([Expr0])) AS
-    SELECT [S].[CustomerId] AS [Expr0],
-        SUM([S].[TotalAmount]) AS [Expr1]
-    FROM [wwi_perf].[Sale_Heap]
-    GROUP BY [S].[CustomerId]</materialized_view_candidates>
+        <materialized_view_candidates with_constants="False">CREATE MATERIALIZED VIEW View1 WITH (DISTRIBUTION = HASH([Expr0])) AS SELECT [S].[CustomerId] AS [Expr0],SUM([S].[TotalAmount]) AS [Expr1] FROM [wwi_perf].[Sale_Heap] GROUP BY [S].[CustomerId]</materialized_view_candidates>
     </materialized_view_candidates>
-    <dsql_operations total_cost=""8.583172"" total_number_operations=""5"">
-        <dsql_operation operation_type=""RND_ID"">
-        <identifier>TEMP_ID_76</identifier>
+    <dsql_operations total_cost="4.6605624" total_number_operations="5">
+        <dsql_operation operation_type="RND_ID">
+        <identifier>TEMP_ID_5</identifier>
         </dsql_operation>
-        <dsql_operation operation_type=""ON"">
-        <location permanent=""false"" distribution=""AllDistributions"" />
+        <dsql_operation operation_type="ON">
+        <location permanent="false" distribution="AllDistributions" />
         <sql_operations>
-            <sql_operation type=""statement"">CREATE TABLE [qtabledb].[dbo].[TEMP_ID_76] ([CustomerId] INT NOT NULL, [col] DECIMAL(38, 2) NOT NULL ) WITH(DISTRIBUTED_MOVE_FILE='');</sql_operation>
+            <sql_operation type="statement">CREATE TABLE [qtabledb].[dbo].[TEMP_ID_5] ([CustomerId] INT NOT NULL, [col] DECIMAL(38, 2) NOT NULL ) WITH(DISTRIBUTED_MOVE_FILE='');</sql_operation>
         </sql_operations>
         </dsql_operation>
-        <dsql_operation operation_type=""SHUFFLE_MOVE"">
-        <operation_cost cost=""8.583172"" accumulative_cost=""8.583172"" average_rowsize=""13"" output_rows=""41265.25"" GroupNumber=""11"" />
-        <source_statement>SELECT [T1_1].[CustomerId] AS [CustomerId], [T1_1].[col] AS [col] FROM (SELECT SUM([T2_1].[TotalAmount]) AS [col], [T2_1].[CustomerId] AS [CustomerId] FROM [SQLPool01].[wwi_perf].[Sale_Heap] AS T2_1 GROUP BY [T2_1].[CustomerId]) AS T1_1
-    OPTION (MAXDOP 4, MIN_GRANT_PERCENT = [MIN_GRANT], DISTRIBUTED_MOVE(N''))</source_statement>
-        <destination_table>[TEMP_ID_76]</destination_table>
+        <dsql_operation operation_type="SHUFFLE_MOVE">
+        <operation_cost cost="4.6605624" accumulative_cost="4.6605624" average_rowsize="13" output_rows="89626.2" GroupNumber="11" />
+        <source_statement>SELECT [T1_1].[CustomerId] AS [CustomerId], [T1_1].[col] AS [col] FROM (SELECT SUM([T2_1].[TotalAmount]) AS [col], [T2_1].[CustomerId] AS [CustomerId] FROM [SQLPool01].[wwi_perf].[Sale_Heap] AS T2_1 GROUP BY [T2_1].[CustomerId]) AS T1_1 OPTION (MAXDOP 4, MIN_GRANT_PERCENT = [MIN_GRANT], DISTRIBUTED_MOVE(N''))</source_statement>
+        <destination_table>[TEMP_ID_5]</destination_table>
         <shuffle_columns>CustomerId;</shuffle_columns>
         </dsql_operation>
-        <dsql_operation operation_type=""RETURN"">
-        <location distribution=""AllDistributions"" />
-        <select>SELECT [T1_1].[CustomerId] AS [CustomerId], [T1_1].[col] AS [col] FROM (SELECT TOP (CAST ((1000) AS BIGINT)) SUM([T2_1].[col]) AS [col], [T2_1].[CustomerId] AS [CustomerId] FROM [qtabledb].[dbo].[TEMP_ID_76] AS T2_1 GROUP BY [T2_1].[CustomerId]) AS T1_1
-    OPTION (MAXDOP 4, MIN_GRANT_PERCENT = [MIN_GRANT])</select>
+        <dsql_operation operation_type="RETURN">
+        <location distribution="AllDistributions" />
+        <select>SELECT [T1_1].[CustomerId] AS [CustomerId], [T1_1].[col] AS [col] FROM (SELECT TOP (CAST ((1000) AS BIGINT)) SUM([T2_1].[col]) AS [col], [T2_1].[CustomerId] AS [CustomerId] FROM [qtabledb].[dbo].[TEMP_ID_5] AS T2_1 GROUP BY [T2_1].[CustomerId]) AS T1_1 OPTION (MAXDOP 4, MIN_GRANT_PERCENT = [MIN_GRANT])</select>
         </dsql_operation>
-        <dsql_operation operation_type=""ON"">
-        <location permanent=""false"" distribution=""AllDistributions"" />
+        <dsql_operation operation_type="ON">
+        <location permanent="false" distribution="AllDistributions" />
         <sql_operations>
-            <sql_operation type=""statement"">DROP TABLE [qtabledb].[dbo].[TEMP_ID_76]</sql_operation>
+            <sql_operation type="statement">DROP TABLE [qtabledb].[dbo].[TEMP_ID_5]</sql_operation>
         </sql_operations>
         </dsql_operation>
     </dsql_operations>
@@ -148,9 +133,15 @@
 
     Notice the details of the internal layout of the MPP system:
 
+    `<dsql_query number_nodes="1" number_distributions="60" number_distributions_per_node="60">`
+ 
+    This layout is given by the current Date Warehouse Units (DWU) setting. In the setup used for the example above, we were running at `DW500c` which means that there is a single physical node to service the 60 distributions, giving a number of, again, 60 distributions per physical node. Depending on your own DWU settings, these numbers will vary.
+
+    Here is an example layout we would get if we were running at `DW2000c`.
+
     `<dsql_query number_nodes=""4"" number_distributions=""60"" number_distributions_per_node=""15"">`
 
-    This layout is given by the current Date Warehouse Units (DWU) setting. In the setup used for the example above, we were running at `DW2000c` which means that there are 4 physical nodes to service the 60 distributions, giving a number of 15 distributions per physical node. Depending on your own DWU settings, these numbers will vary.
+    In this case, we have four physical nodes to service the 60 distributions, giving a number of 15 distributions per physical node.
 
     The query plan indicates data movement is required. This is indicated by the `SHUFFLE_MOVE` distributed SQL operation. Data movement is an operation where parts of the distributed tables are moved to different nodes during query execution. This operation is required where the data is not available on the target node, most commonly when the tables do not share the distribution key. The most common data movement operation is shuffle. During shuffle, for each input row, Synapse computes a hash value using the join columns and then sends that row to the node that owns that hash value. Either one or both sides of join can participate in the shuffle. The diagram below displays shuffle to implement join between tables T1 and T2 where neither of the tables is distributed on the join column col2.
 
@@ -256,7 +247,7 @@
         [wwi_perf].[Sale_Heap]
     ```
 
-    The query will take up to 10 minutes to complete.
+    The query will take up to 5 minutes to complete.
 
     > **NOTE**
     >
@@ -300,22 +291,12 @@
 
     ```xml
     <?xml version="1.0" encoding="utf-8"?>
-    <dsql_query number_nodes="5" number_distributions="60" number_distributions_per_node="12">
-    <sql>SELECT TOP 1000 * FROM
-    (
-        SELECT
-            S.CustomerId
-            ,SUM(S.TotalAmount) as TotalAmount
-        FROM
-            [wwi_perf].[Sale_Hash] S
-        GROUP BY
-            S.CustomerId
-    ) T</sql>
+    <dsql_query number_nodes="1" number_distributions="60" number_distributions_per_node="60">
+    <sql>SELECT TOP 1000 * FROM (SELECTS.CustomerId,SUM(S.TotalAmount) as TotalAmountFROM[wwi_perf].[Sale_Hash] SGROUP BYS.CustomerId ) T</sql>
     <dsql_operations total_cost="0" total_number_operations="1">
         <dsql_operation operation_type="RETURN">
         <location distribution="AllDistributions" />
-        <select>SELECT [T1_1].[CustomerId] AS [CustomerId], [T1_1].[col] AS [col] FROM (SELECT TOP (CAST ((1000) AS BIGINT)) SUM([T2_1].[TotalAmount]) AS [col], [T2_1].[CustomerId] AS [CustomerId] FROM [SQLPool01].[wwi_perf].[Sale_Hash] AS T2_1 GROUP BY [T2_1].[CustomerId]) AS T1_1
-    OPTION (MAXDOP 6)</select>
+        <select>SELECT [T1_1].[CustomerId] AS [CustomerId], [T1_1].[col] AS [col] FROM (SELECT TOP (CAST ((1000) AS BIGINT)) SUM([T2_1].[TotalAmount]) AS [col], [T2_1].[CustomerId] AS [CustomerId] FROM [SQLPool01].[wwi_perf].[Sale_Hash] AS T2_1 GROUP BY [T2_1].[CustomerId]) AS T1_1 OPTION (MAXDOP 4)</select>
         </dsql_operation>
     </dsql_operations>
     </dsql_query>
@@ -525,28 +506,12 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
 
     ```xml
     <?xml version="1.0" encoding="utf-8"?>
-    <dsql_query number_nodes="5" number_distributions="60" number_distributions_per_node="12">
-    <sql>SELECT TOP 1000 * FROM
-    (
-        SELECT
-            S.CustomerId
-            ,D.Year
-            ,D.Quarter
-            ,SUM(S.TotalAmount) as TotalAmount
-        FROM
-            [wwi_perf].[Sale_Partition02] S
-            join [wwi].[Date] D on
-                S.TransactionDateId = D.DateId
-        GROUP BY
-            S.CustomerId
-            ,D.Year
-            ,D.Quarter
-    ) T</sql>
+    <dsql_query number_nodes="1" number_distributions="60" number_distributions_per_node="60">
+    <sql>SELECT TOP 1000 * FROM (SELECTS.CustomerId,D.Year,D.Quarter,SUM(S.TotalAmount) as TotalAmountFROM[wwi_perf].[Sale_Partition02] Sjoin [wwi].[Date] D onS.TransactionDateId = D.DateIdGROUP BYS.CustomerId,D.Year,D.Quarter ) T</sql>
     <dsql_operations total_cost="0" total_number_operations="1">
         <dsql_operation operation_type="RETURN">
         <location distribution="AllDistributions" />
-        <select>SELECT [T1_1].[CustomerId] AS [CustomerId], [T1_1].[Year] AS [Year], [T1_1].[Quarter] AS [Quarter], [T1_1].[col] AS [col] FROM (SELECT TOP (CAST ((1000) AS BIGINT)) [T2_1].[CustomerId] AS [CustomerId], [T2_1].[Year] AS [Year], [T2_1].[Quarter] AS [Quarter], [T2_1].[col1] AS [col] FROM (SELECT ISNULL([T3_1].[col1], CONVERT (BIGINT, 0, 0)) AS [col], [T3_1].[CustomerId] AS [CustomerId], [T3_1].[Year] AS [Year], [T3_1].[Quarter] AS [Quarter], [T3_1].[col] AS [col1] FROM (SELECT SUM([T4_1].[TotalAmount]) AS [col], SUM([T4_1].[cb]) AS [col1], [T4_1].[CustomerId] AS [CustomerId], [T4_1].[Year] AS [Year], [T4_1].[Quarter] AS [Quarter] FROM (SELECT [T5_1].[CustomerId] AS [CustomerId], [T5_1].[TotalAmount] AS [TotalAmount], [T5_1].[cb] AS [cb], [T5_1].[Quarter] AS [Quarter], [T5_1].[Year] AS [Year] FROM [SQLPool01].[wwi_perf].[mvCustomerSales] AS T5_1) AS T4_1 GROUP BY [T4_1].[CustomerId], [T4_1].[Year], [T4_1].[Quarter]) AS T3_1) AS T2_1 WHERE ([T2_1].[col] != CAST ((0) AS BIGINT))) AS T1_1
-    OPTION (MAXDOP 6)</select>
+        <select>SELECT [T1_1].[CustomerId] AS [CustomerId], [T1_1].[Year] AS [Year], [T1_1].[Quarter] AS [Quarter], [T1_1].[col] AS [col] FROM (SELECT TOP (CAST ((1000) AS BIGINT)) [T2_1].[CustomerId] AS [CustomerId], [T2_1].[Year] AS [Year], [T2_1].[Quarter] AS [Quarter], [T2_1].[col1] AS [col] FROM (SELECT ISNULL([T3_1].[col], CONVERT (BIGINT, 0, 0)) AS [col], [T3_1].[CustomerId] AS [CustomerId], [T3_1].[Year] AS [Year], [T3_1].[Quarter] AS [Quarter], [T3_1].[col1] AS [col1] FROM (SELECT SUM([T4_1].[cb]) AS [col], SUM([T4_1].[TotalAmount]) AS [col1], [T4_1].[CustomerId] AS [CustomerId], [T4_1].[Year] AS [Year], [T4_1].[Quarter] AS [Quarter] FROM (SELECT [T5_1].[CustomerId] AS [CustomerId], [T5_1].[TotalAmount] AS [TotalAmount], [T5_1].[cb] AS [cb], [T5_1].[Quarter] AS [Quarter], [T5_1].[Year] AS [Year] FROM [SQLPool01].[wwi_perf].[mvCustomerSales] AS T5_1) AS T4_1 GROUP BY [T4_1].[CustomerId], [T4_1].[Year], [T4_1].[Quarter]) AS T3_1) AS T2_1 WHERE ([T2_1].[col] != CAST ((0) AS BIGINT))) AS T1_1 OPTION (MAXDOP 4)</select>
         </dsql_operation>
     </dsql_operations>
     </dsql_query>
@@ -578,28 +543,12 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
 
     ```xml
     <?xml version="1.0" encoding="utf-8"?>
-    <dsql_query number_nodes="5" number_distributions="60" number_distributions_per_node="12">
-    <sql>SELECT TOP 1000 * FROM
-    (
-        SELECT
-            S.CustomerId
-            ,D.Year
-            ,D.Month
-            ,SUM(S.ProfitAmount) as TotalProfit
-        FROM
-            [wwi_perf].[Sale_Partition02] S
-            join [wwi].[Date] D on
-                S.TransactionDateId = D.DateId
-        GROUP BY
-            S.CustomerId
-            ,D.Year
-            ,D.Month
-    ) T</sql>
+    <dsql_query number_nodes="1" number_distributions="60" number_distributions_per_node="60">
+    <sql>SELECT TOP 1000 * FROM (SELECTS.CustomerId,D.Year,D.Month,SUM(S.ProfitAmount) as TotalProfitFROM[wwi_perf].[Sale_Partition02] Sjoin [wwi].[Date] D onS.TransactionDateId = D.DateIdGROUP BYS.CustomerId,D.Year,D.Month ) T</sql>
     <dsql_operations total_cost="0" total_number_operations="1">
         <dsql_operation operation_type="RETURN">
         <location distribution="AllDistributions" />
-        <select>SELECT [T1_1].[CustomerId] AS [CustomerId], [T1_1].[Year] AS [Year], [T1_1].[Month] AS [Month], [T1_1].[col] AS [col] FROM (SELECT TOP (CAST ((1000) AS BIGINT)) [T2_1].[CustomerId] AS [CustomerId], [T2_1].[Year] AS [Year], [T2_1].[Month] AS [Month], [T2_1].[col1] AS [col] FROM (SELECT ISNULL([T3_1].[col1], CONVERT (BIGINT, 0, 0)) AS [col], [T3_1].[CustomerId] AS [CustomerId], [T3_1].[Year] AS [Year], [T3_1].[Month] AS [Month], [T3_1].[col] AS [col1] FROM (SELECT SUM([T4_1].[TotalProfit]) AS [col], SUM([T4_1].[cb]) AS [col1], [T4_1].[CustomerId] AS [CustomerId], [T4_1].[Year] AS [Year], [T4_1].[Month] AS [Month] FROM (SELECT [T5_1].[CustomerId] AS [CustomerId], [T5_1].[TotalProfit] AS [TotalProfit], [T5_1].[cb] AS [cb], [T5_1].[Month] AS [Month], [T5_1].[Year] AS [Year] FROM [SQLPool01].[wwi_perf].[mvCustomerSales] AS T5_1) AS T4_1 GROUP BY [T4_1].[CustomerId], [T4_1].[Year], [T4_1].[Month]) AS T3_1) AS T2_1 WHERE ([T2_1].[col] != CAST ((0) AS BIGINT))) AS T1_1
-    OPTION (MAXDOP 6)</select>
+        <select>SELECT [T1_1].[CustomerId] AS [CustomerId], [T1_1].[Year] AS [Year], [T1_1].[Month] AS [Month], [T1_1].[col] AS [col] FROM (SELECT TOP (CAST ((1000) AS BIGINT)) [T2_1].[CustomerId] AS [CustomerId], [T2_1].[Year] AS [Year], [T2_1].[Month] AS [Month], [T2_1].[col1] AS [col] FROM (SELECT ISNULL([T3_1].[col], CONVERT (BIGINT, 0, 0)) AS [col], [T3_1].[CustomerId] AS [CustomerId], [T3_1].[Year] AS [Year], [T3_1].[Month] AS [Month], [T3_1].[col1] AS [col1] FROM (SELECT SUM([T4_1].[cb]) AS [col], SUM([T4_1].[TotalProfit]) AS [col1], [T4_1].[CustomerId] AS [CustomerId], [T4_1].[Year] AS [Year], [T4_1].[Month] AS [Month] FROM (SELECT [T5_1].[CustomerId] AS [CustomerId], [T5_1].[TotalProfit] AS [TotalProfit], [T5_1].[cb] AS [cb], [T5_1].[Month] AS [Month], [T5_1].[Year] AS [Year] FROM [SQLPool01].[wwi_perf].[mvCustomerSales] AS T5_1) AS T4_1 GROUP BY [T4_1].[CustomerId], [T4_1].[Year], [T4_1].[Month]) AS T3_1) AS T2_1 WHERE ([T2_1].[col] != CAST ((0) AS BIGINT))) AS T1_1 OPTION (MAXDOP 4)</select>
         </dsql_operation>
     </dsql_operations>
     </dsql_query>
@@ -663,7 +612,7 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
 
     ![Check result set caching settings at the database level](./media/lab3_result_set_caching_db.png)
 
-    If `False` is returned for your SQL pool, run the following query to activate it (you need to run it on the `master` database and replace `<sql_pool> with the name of your SQL pool):
+    If `False` is returned for your SQL pool, run the following query to activate it (you need to run it on the `master` database and replace `<sql_pool>` with the name of your SQL pool):
 
     ```sql
     ALTER DATABASE [<sql_pool>]
@@ -810,7 +759,7 @@ As opposed to a standard view, a materialized view pre-computes, stores, and mai
     DBCC DROPRESULTSETCACHE
     ```
 
-6. Finally, disable result set caching on the database using the following query (you need to run it on the `master` database and replace `<sql_pool> with the name of your SQL pool):
+6. Finally, disable result set caching on the database using the following query (you need to run it on the `master` database and replace `<sql_pool> with the name of your SQL pool): (It can take up to a minute to disable Result Set Caching.)
 
     ```sql
     ALTER DATABASE [<sql_pool>]
