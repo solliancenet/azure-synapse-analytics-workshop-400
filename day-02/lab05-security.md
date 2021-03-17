@@ -27,6 +27,18 @@ For the remainder of this guide, the following terms will be used for various AS
 | Azure Subscription                | `WorkspaceSubscription`                                                            |
 | Azure Region                      | `WorkspaceRegion`                                                                  |
 
+## Lab pre-requisite
+
+Start the SQL Pool in your lab environment.
+
+1. Open the Synapse Studio workspace and navigate to the **Manage** hub.
+
+    ![The Manage menu item is highlighted.](media/manage-hub.png "Manage hub")
+
+2. From the center menu, select **SQL pools** from beneath the **Analytics pools** heading. Locate `SQLPool01`, and select the **Resume** button.
+
+    ![The Manage menu item is selected, with SQL pools selected from the center menu. The resume button is selected next to the SQLPool01 item.](media/resume-sql-pool.png "SQL pools listing")
+
 ## Exercise 1 - Securing Azure Synapse Analytics supporting infrastructure
 
 Azure Synapse Analytics (ASA) is a powerful solution that handles security for many of the resources that it creates and manages. In order to run ASA, however, some foundational security measures need to be put in place to ensure the infrastructure that it relies upon is secure. In this exercise, we will walk through securing the supporting infrastructure of ASA.
@@ -55,12 +67,9 @@ Having robust Internet security is a must for every technology system. One way t
 
     ![On the Synapse Workspace screen, the + Add Client IP button is selected from the toolbar menu.](media/lab5_synapsefirewalladdclientipmenu.png)  
 
-
 > **Note**: When connecting to Synapse from your local network, certain ports need to be open. To support the functions of Synapse Studio, ensure outgoing TCP ports 80, 443, and 1143, and UDP port 53 are open.
 
-
 ## Exercise 2 - Securing the Azure Synapse Analytics workspace and managed services
-
 
 ### Task 1 - Managing secrets with Azure Key Vault
 
@@ -106,13 +115,13 @@ It is recommended to store any secrets that are part of your pipeline in Azure K
 
     ![On the Secret Version form, the Copy icon is selected next to the Secret Identifier text field.](media/lab5_keyvaultsecretidentifier.png)
 
-4. Open the Azure Synapse Analytics Studio, select **Orchestrate** from the left menu.
+4. Open the Azure Synapse Analytics Studio, select **Integrate** from the left menu.
 
-    ![The Azure Synapse Analytics Studio left menu is displayed with the Orchestrate item selected.](media/lab5_synapsestudioorchestratemenu.png)
+    ![The Azure Synapse Analytics Studio left menu is displayed with the Integrate item selected.](media/lab5_synapsestudioorchestratemenu.png)
 
-5. From the **Orchestrate** blade, select the **+** button and add a new **Pipeline**.
+5. From the **Integrate** blade, select the **+** button and add a new **Pipeline**.
 
-    ![On the Orchestrate blade the + button is expanded with the Pipeline item selected beneath it.](media/lab5_synapsestudiocreatenewpipelinemenu.png)
+    ![On the Integrate blade the + button is expanded with the Pipeline item selected beneath it.](media/lab5_synapsestudiocreatenewpipelinemenu.png)
 
 6. On the **Pipeline** tab, in the **Activities** pane search for **Web** and then drag an instance of a **Web** activity to the design area.
 

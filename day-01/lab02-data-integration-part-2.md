@@ -29,6 +29,18 @@ For the remainder of this guide, the following terms will be used for various AS
 | Default file system container | `DefaultFileSystem` |
 | SQL Pool | `SqlPool01` |
 
+## Lab prerequisite
+
+Start the SQL Pool in your lab environment.
+
+1. Open the Synapse Studio workspace and navigate to the **Manage** hub.
+
+    ![The Manage menu item is highlighted.](media/manage-hub.png "Manage hub")
+
+2. From the center menu, select **SQL pools** from beneath the **Analytics pools** heading. Locate `SQLPool01`, and select the **Resume** button.
+
+    ![The Manage menu item is selected, with SQL pools selected from the center menu. The resume button is selected next to the SQLPool01 item.](media/resume-sql-pool.png "SQL pools listing")
+
 ## Exercise 1: Create datasets and SQL tables
 
 ### Task 1: Create SQL tables

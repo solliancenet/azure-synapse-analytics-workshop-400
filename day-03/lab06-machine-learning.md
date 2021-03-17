@@ -1,5 +1,19 @@
 # Machine Learning
 
+## Lab pre-requisite
+
+Start the SQL Pool in your lab environment.
+
+1. Open the Synapse Studio workspace and navigate to the **Manage** hub.
+
+    ![The Manage menu item is highlighted.](media/manage-hub.png "Manage hub")
+
+2. From the center menu, select **SQL pools** from beneath the **Analytics pools** heading. Locate `SQLPool01`, and select the **Resume** button.
+
+    ![The Manage menu item is selected, with SQL pools selected from the center menu. The resume button is selected next to the SQLPool01 item.](media/resume-sql-pool.png "SQL pools listing")
+
+## Lab overview
+
 Azure Synapse Analytics provides a unified environment for both data science and data engineering. What this means in practice, is that your data scientists can train and deploy models using Azure Synapse Analytics and your data engineers can write T-SQL queries that use those models to make predictions against tabular data stored in a SQL Pool database table.
 
 In this lab, you will create several machine learning models and use them to make predictions using the T-SQL `Predict` statement.
@@ -8,7 +22,7 @@ For context, the following are the high level steps taken to create a Spark ML b
 
 ![The process for registering and using a model](media/lab06-machine-learning-process.png "Review model registration process")
 
-All of the steps are performed within your Azure Synapse Analytics Studio.
+All of the steps are performed within Synapse Studio.
 
 - Within a notebook, a data scientist will:
 
