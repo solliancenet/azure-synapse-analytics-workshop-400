@@ -213,19 +213,17 @@ When you query Parquet files using a serverless SQL pool, you can explore the da
 
     ![The Spark pool list is displayed.](media/attach-spark-pool.png "Attach to Spark pool")
 
-4. Update the cell to **remove** the `%%pyspark` line. If you do not do this, you will receive an error when you update the cell during the steps that follow.
-
-5. Select **Run all** on the notebook toolbar to execute the notebook.
+4. Select **Run all** on the notebook toolbar to execute the notebook.
 
     > **Note:** The first time you run a notebook in a Spark pool, Synapse creates a new session. This can take approximately 3-5 minutes.
 
     > **Note:** To run just the cell, either hover over the cell and select the _Run cell_ icon to the left of the cell, or select the cell then type **Ctrl+Enter** on your keyboard.
 
-6. Create a new cell underneath by selecting **{} Add code** when hovering over the blank space at the bottom of the notebook.
+5. Create a new cell underneath by hovering over the **+** button and selecting the **Code cell** item. The **+** button is located beneath the notebook cell on the left. Alternatively, you can also expand the **+ Cell** menu in the Notebook toolbar and select the **Code cell** item.
 
     ![The Add Code menu option is highlighted.](media/new-cell.png "Add code")
 
-7. The Spark engine can analyze the Parquet files and infer the schema. To do this, enter the following in the new cell:
+6. The Spark engine can analyze the Parquet files and infer the schema. To do this, enter the following in the new cell:
 
     ```python
     df.printSchema()
@@ -248,7 +246,7 @@ When you query Parquet files using a serverless SQL pool, you can explore the da
         |-- StoreId: short (nullable = true)
     ```
 
-8. Now let's use the dataframe to perform the same grouping and aggregate query we performed with the serverless SQL pool. Create a new cell and enter the following:
+7. Now let's use the dataframe to perform the same grouping and aggregate query we performed with the serverless SQL pool. Create a new cell and enter the following:
 
     ```python
     from pyspark.sql import SparkSession

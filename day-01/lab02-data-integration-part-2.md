@@ -432,17 +432,15 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
     ![Drag the data flow activity onto the pipeline canvas.](media/pipeline-campaign-analysis-drag-data-flow.png "Pipeline canvas")
 
-5. In the `Adding data flow` blade, select **Use existing data flow**, then select the `asal400_lab2_writecampaignanalyticstoasa` existing data flow you created in the previous task.
+5. In the `General` tab of the Data flow activity, enter **campaign_analytics_data** as the name.
 
-    ![The adding data flow form is displayed with the described configuration.](media/pipeline-campaign-analysis-adding-data-flow.png "Adding data flow")
+    ![The mapping data flow General tab is shown](media/pipelinedfactivitygeneralca.png "General tab of Data flow activity")
 
-6. Select **Finish**.
-
-7. Select the mapping data flow activity on the canvas. Select the **Settings** tab, then ensure `AutoResolveIntegrationRuntime` is selected for **Run on (Azure IR)**. Choose the `Compute Optimized` **Compute type** and select `16 (+ 16 cores)` for the **Core count**.
+6. Select the **Settings** tab, select `asal400_lab2_writecampaignanalytics` in the Data flow field, then ensure `AutoResolveIntegrationRuntime` is selected for **Run on (Azure IR)**. Choose the `Compute Optimized` **Compute type** and select `16 (+ 16 cores)` for the **Core count**.
 
     ![The custom IR is selected in the mapping data flow activity settings.](media/pipeline-campaign-analysis-data-flow-settings.png "Mapping data flow activity settings")
 
-8. Select **Publish all** to save your new pipeline.
+7. Select **Publish all** to save your new pipeline.
 
     ![Publish all is highlighted.](media/publish-all-1.png "Publish all")
 
@@ -538,7 +536,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The new data flow link is highlighted.](media/new-data-flow-link.png "New data flow")
 
-3. In the **General** section of the **Profiles** pane of the new data flow, update the **Name** to the following: `asal400_lab2_writeuserprofiledatatoasa`.
+3. In the **General** section of the **Properties** pane of the new data flow, update the **Name** to the following: `asal400_lab2_writeuserprofiledatatoasa`.
 
 4. Select **Add Source** on the data flow canvas.
 
@@ -555,7 +553,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 6. Select the **Source options** tab, then configure the following:
 
     - **Wildcard paths**: Enter `online-user-profiles-02/*.json`.
-    - **JSON Settings**: Expand this section, then select the **Single document** setting. This denotes that each file contains a single JSON document.
+    - **JSON Settings**: Expand this section, then select the **Single document** setting for the **Document form** field. This denotes that each file contains a single JSON document.
 
     ![The source options are configured as described.](media/data-flow-user-profiles-source-options.png "Source options")
 
@@ -575,7 +573,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The derived column's settings are configured as described.](media/data-flow-user-profiles-derived-column-settings.png "Derived column's settings")
 
-9. Select the **+** to the right of the `userId` step, then select the **Flatten** schema modifier from the context menu.
+9. Select the **+** to the right of the `userId` step, then select the **Flatten** Formatter from the context menu.
 
     ![The plus sign and the Flatten schema modifier are highlighted.](media/data-flow-user-profiles-new-flatten.png "New Flatten schema modifier")
 
@@ -597,6 +595,21 @@ The query results output includes the standard Table view, as well as a Chart vi
     These settings provide a flattened view of the data source with one or more rows per `visitorId`, similar to when you explored the data within the Spark notebook in lab 1. Using data preview requires you to enable Debug mode, which we are not enabling for this lab. *The following screenshot is for illustration only*:
 
     ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-flatten-data-preview.png "Data preview")
+
+    > **IMPORTANT**: A bug was introduced with the latest release, and the userId source columns are not being updated from the user interface. As a temporary fix, access the script for the data flow (located in the toolbar). Find the `userId` activity in the script, and in the mapColumn function, ensure you append the appropriate source field. For `productId`, ensure it is sourced from **topProductPurchases.productId**, and that **itemsPurchasedLast12Months** is sourced from **topProductPurchases.itemsPurchasedLast12Months**.
+
+    ![Data flow script button.](media/dataflowactivityscript.png "Data flow script button")
+
+    ```javascript
+    userId foldDown(unroll(topProductPurchases),
+        mapColumn(
+            visitorId,
+            productId = topProductPurchases.productId,
+            itemsPurchasedLast12Months = topProductPurchases.itemsPurchasedLast12Months
+        )
+    ```
+
+    ![The script for the data flow is displayed with the userId portion identified and the property names added are highlighted.](media/appendpropertynames_script.png "Data flow script")
 
 11. Select the **+** to the right of the `UserTopProducts` step, then select the **Derived Column** schema modifier from the context menu.
 
@@ -651,9 +664,9 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-data-preview2.png "Data preview")
 
-18. Select the **+** to the right of the `UserProfiles` source, then select the **Flatten** schema modifier from the context menu.
+18. Select the **+** to the right of the `UserProfiles` source, then select the **Flatten** formatter from the context menu.
 
-    ![The plus sign and the Flatten schema modifier are highlighted.](media/data-flow-user-profiles-new-flatten2.png "New Flatten schema modifier")
+    ![The plus sign and the Flatten formatter are highlighted.](media/data-flow-user-profiles-new-flatten2.png "New Flatten formatter activity")
 
 19. Under **Flatten settings**, configure the following:
 
@@ -806,15 +819,15 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
     ![Drag the data flow activity onto the pipeline canvas.](media/pipeline-campaign-analysis-drag-data-flow.png "Pipeline canvas")
 
-5. In the `Adding data flow` blade, select **Use existing data flow**, then select the `asal400_lab2_writeuserprofiledatatoasa` existing data flow you created in the previous task.
+5. In the `Data flow` activity **General** tab, name the activity **user_profile_data**.
 
     ![The adding data flow form is displayed with the described configuration.](media/pipeline-user-profiles-adding-data-flow.png "Adding data flow")
 
-6. Select **Finish**.
+6. Select the **Settings** tab, and select `asal400_lab2_writeuserprofiledatatoasa` in the Data flow field.
 
-7. Select the mapping data flow activity on the canvas. Select the **Settings** tab, then ensure `AutoResolveIntegrationRuntime` is selected for **Run on (Azure IR)**. Choose the `Compute Optimized` **Compute type** and select `16 (+ 16 cores)` for the **Core count**.
+7. Remaining on the **Settings** tab, then ensure `AutoResolveIntegrationRuntime` is selected for **Run on (Azure IR)**. Choose the `Compute Optimized` **Compute type** and select `16 (+ 16 cores)` for the **Core count**.
 
-8. Expand **PolyBase** and configure the following:
+8. Expand **staging** and configure the following:
 
     - **Staging linked service**: Select the `asadatalakeSUFFIX` linked service.
     - **Staging storage folder**: Enter `staging/userprofiles`. The `userprofiles` folder will be automatically created for you during the first pipeline run.
@@ -879,7 +892,7 @@ Now that we have processed, joined, and imported the user profile data, let's an
 
     > **Note:** To run just the cell, either hover over the cell and select the _Run cell_ icon to the left of the cell, or select the cell then type **Ctrl+Enter** on your keyboard.
 
-5. Create a new cell underneath by selecting **{} Add code** when hovering over the blank space at the bottom of the notebook.
+5. Create a new cell underneath by hovering over the **+** button and selecting the **Code cell** item. The **+** button is located beneath the notebook cell on the left. Alternatively, you can also expand the **+ Cell** menu in the Notebook toolbar and select the **Code cell** item.
 
     ![The Add Code menu option is highlighted.](media/new-cell.png "Add code")
 
