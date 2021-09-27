@@ -88,6 +88,8 @@ Our data sources for labs 1 and 2 include files stored in ADLS Gen2 and Azure Co
 
     ![New Azure Cosmos DB linked service.](media/create-cosmos-db-linked-service.png "New linked service")
 
+4. Select **Create** to create the linked service.
+
 ### Task 2: Create datasets
 
 1. Navigate to the **Data** hub.
@@ -219,7 +221,7 @@ When you query Parquet files using a serverless SQL pool, you can explore the da
 
     > **Note:** To run just the cell, either hover over the cell and select the _Run cell_ icon to the left of the cell, or select the cell then type **Ctrl+Enter** on your keyboard.
 
-5. Create a new cell underneath by hovering over the **+** button and selecting the **Code cell** item. The **+** button is located beneath the notebook cell on the left. Alternatively, you can also expand the **+ Cell** menu in the Notebook toolbar and select the **Code cell** item.
+5. Create a new cell underneath by hovering over the cell and selecting the **+ Code** button beneath the notebook cell.
 
     ![The Add Code menu option is highlighted.](media/new-cell.png "Add code")
 
@@ -497,7 +499,7 @@ You will also create a new `Sale` clustered columnstore table within the `wwi_st
 
     ![The SQL script context menu item is highlighted.](media/synapse-studio-new-sql-script.png "New SQL script")
 
-3. In the toolbar menu, connect to the **SQL Pool** database to execute the query.
+3. In the toolbar menu, connect to the **Dedicated SQL Pool** resource to execute the query.
 
     ![The connect to option is highlighted in the query toolbar.](media/synapse-studio-query-toolbar-connect.png "Query toolbar")
 
@@ -951,3 +953,15 @@ To run loads with appropriate compute resources, create loading users designated
     DROP WORKLOAD CLASSIFIER HeavyLoader;
     DROP WORKLOAD GROUP BigDataLoad;
     ```
+
+## Cleanup: Pause the dedicated SQL pool
+
+1. Navigate to the **Manage** hub.
+
+    ![The Manage menu item is highlighted.](media/manage-hub.png "Manage hub")
+
+2. From the center menu, select **SQL pools** from beneath the **Analytics pools** heading. Locate `SQLPool01`, and select the **Pause** button.
+
+    ![The Manage menu item is selected, with SQL pools selected from the center menu. The resume button is selected next to the SQLPool01 item.](media/pause-sql-pool.png "SQL pools listing")
+
+3. When prompted, select **Pause**.
