@@ -181,7 +181,7 @@ Issues include invalid characters in the revenue currency data, and misaligned c
 
     - **Compression type**: Select `none`.
     - **Column delimiter**: Select `Comma (,)`.
-    - **Row delimiter**: Select `Auto detect (\r,\n, or \r\n)`.
+    - **Row delimiter**: Select `Default (\r,\n, or \r\n)`.
     - **Encoding**: Select `Default(UTF-8)`.
     - **Escape character**: Select `Backslash (\)`.
     - **Quote character**: Select `Double quote (")`.
@@ -291,7 +291,7 @@ If you **did not** complete Exercise 1 in lab 1, where you configure the linked 
 5. Under **Source settings**, configure the following:
 
     - **Output stream name**: Enter `CampaignAnalytics`.
-    - **Source type**: Select `Dataset`.
+    - **Source type**: Select `Integration dataset`.
     - **Dataset**: Select `asal400_campaign_analytics_source`.
     - **Options**: Select `Allow schema drift` and leave the other options unchecked.
     - **Skip line count**: Enter `1`. This allows us to skip the header row which has two fewer columns than the rest of the rows in the CSV file, truncating the last two data columns.
@@ -392,7 +392,7 @@ If you **did not** complete Exercise 1 in lab 1, where you configure the linked 
 
     - **Output stream name**: Enter `CampaignAnalyticsASA`.
     - **Incoming stream**: Select `SelectCampaignAnalyticsColumns`.
-    - **Sink type**: Select `Dataset`.
+    - **Sink type**: Select `Integration dataset`.
     - **Dataset**: Select `asal400_wwi_campaign_analytics_asa`, which is the CampaignAnalytics SQL table.
     - **Options**: Check `Allow schema drift` and uncheck `Validate schema`.
 
@@ -436,7 +436,7 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
     ![The mapping data flow General tab is shown](media/pipelinedfactivitygeneralca.png "General tab of Data flow activity")
 
-6. Select the **Settings** tab, select `asal400_lab2_writecampaignanalytics` in the Data flow field, then ensure `AutoResolveIntegrationRuntime` is selected for **Run on (Azure IR)**. Choose the `Compute Optimized` **Compute type** and select `16 (+ 16 cores)` for the **Core count**.
+6. Select the **Settings** tab, select `asal400_lab2_writecampaignanalytics` in the Data flow field, then ensure `AutoResolveIntegrationRuntime` is selected for **Run on (Azure IR)**. Choose the `Standard (Memory Optimized)` **Compute type** and select `16 (+ 16 cores)` for the **Core count**.
 
     ![The custom IR is selected in the mapping data flow activity settings.](media/pipeline-campaign-analysis-data-flow-settings.png "Mapping data flow activity settings")
 
@@ -545,7 +545,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 5. Under **Source settings**, configure the following:
 
     - **Output stream name**: Enter `EcommerceUserProfiles`.
-    - **Source type**: Select `Dataset`.
+    - **Source type**: Select `Integration dataset`.
     - **Dataset**: Select `asal400_ecommerce_userprofiles_source`.
 
     ![The source settings are configured as described.](media/data-flow-user-profiles-source-settings.png "Source settings")
@@ -553,7 +553,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 6. Select the **Source options** tab, then configure the following:
 
     - **Wildcard paths**: Enter `online-user-profiles-02/*.json`.
-    - **JSON Settings**: Expand this section, then select the **Single document** setting for the **Document form** field. This denotes that each file contains a single JSON document.
+    - **JSON Settings**: Expand this section, then select the **Array of documents** setting for the **Document form** field. This denotes that each file contains multiple JSON documents contained within an array.
 
     ![The source options are configured as described.](media/data-flow-user-profiles-source-options.png "Source options")
 
@@ -596,21 +596,6 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The data preview tab is displayed with a sample of the file contents.](media/data-flow-user-profiles-flatten-data-preview.png "Data preview")
 
-    > **IMPORTANT**: A bug was introduced with the latest release, and the userId source columns are not being updated from the user interface. As a temporary fix, access the script for the data flow (located in the toolbar). Find the `userId` activity in the script, and in the mapColumn function, ensure you append the appropriate source field. For `productId`, ensure it is sourced from **topProductPurchases.productId**, and that **itemsPurchasedLast12Months** is sourced from **topProductPurchases.itemsPurchasedLast12Months**.
-
-    ![Data flow script button.](media/dataflowactivityscript.png "Data flow script button")
-
-    ```javascript
-    userId foldDown(unroll(topProductPurchases),
-        mapColumn(
-            visitorId,
-            productId = topProductPurchases.productId,
-            itemsPurchasedLast12Months = topProductPurchases.itemsPurchasedLast12Months
-        )
-    ```
-
-    ![The script for the data flow is displayed with the userId portion identified and the property names added are highlighted.](media/appendpropertynames_script.png "Data flow script")
-
 11. Select the **+** to the right of the `UserTopProducts` step, then select the **Derived Column** schema modifier from the context menu.
 
     ![The plus sign and Derived Column schema modifier are highlighted.](media/data-flow-user-profiles-new-derived-column2.png "New Derived Column")
@@ -628,14 +613,14 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     ![The derived column's settings are configured as described.](media/data-flow-user-profiles-derived-column2-settings.png "Derived column's settings")
 
-13. Select **Add Source** on the data flow canvas beneath the `EcommerceUserProfiles` source.
+13. Select **Add Source** on the data flow canvas beneath the `UserProfiles` source.
 
     ![Select Add Source on the data flow canvas.](media/data-flow-user-profiles-add-source.png "Add Source")
 
 14. Under **Source settings**, configure the following:
 
     - **Output stream name**: Enter `UserProfiles`.
-    - **Source type**: Select `Dataset`.
+    - **Source type**: Select `Integration dataset`.
     - **Dataset**: Select `asal400_customerprofile_cosmosdb`.
 
     ![The source settings are configured as described.](media/data-flow-user-profiles-source2-settings.png "Source settings")
@@ -764,7 +749,7 @@ The query results output includes the standard Table view, as well as a Chart vi
 
     - **Output stream name**: Enter `UserTopProductPurchasesASA`.
     - **Incoming stream**: Select `Filter1`.
-    - **Sink type**: Select `Dataset`.
+    - **Sink type**: Select `Integration dataset`.
     - **Dataset**: Select `asal400_wwi_usertopproductpurchases_asa`, which is the UserTopProductPurchases SQL table.
     - **Options**: Check `Allow schema drift` and uncheck `Validate schema`.
 
@@ -825,7 +810,7 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
 6. Select the **Settings** tab, and select `asal400_lab2_writeuserprofiledatatoasa` in the Data flow field.
 
-7. Remaining on the **Settings** tab, then ensure `AutoResolveIntegrationRuntime` is selected for **Run on (Azure IR)**. Choose the `Compute Optimized` **Compute type** and select `16 (+ 16 cores)` for the **Core count**.
+7. Remaining on the **Settings** tab, then ensure `AutoResolveIntegrationRuntime` is selected for **Run on (Azure IR)**. Choose the `Basic (General Purpose)` **Compute type** and select `16 (+ 16 cores)` for the **Core count**.
 
 8. Expand **staging** and configure the following:
 
@@ -862,11 +847,11 @@ In order to run the new data flow, you need to create a new pipeline and add a d
 
     ![The data flow details icon is highlighted.](media/pipeline-user-profiles-activity-runs.png "Activity runs")
 
-6. The data flow details displays the data flow steps and processing details. In our example, processing time took around 30 seconds to process and output around 510k rows. You can see which activities took longest to complete. The cluster startup time contributed almost three and a half minutes to the total pipeline run.
+6. The data flow details displays the data flow steps and processing details. In our example, processing time took around 30 seconds to process and output around 1 million rows. You can see which activities took longest to complete. The cluster startup time contributed over two minutes to the total pipeline run.
 
     ![The data flow details are displayed.](media/pipeline-user-profiles-data-flow-details.png "Data flow details")
 
-7. Select the `UserTopProductPurchasesASA` sink to view its details. We can see that 501,795 rows were calculated with a total of 30 partitions. It took around 3 seconds to stage the data in ADLS Gen2 prior to writing the data to the SQL table. The total sink processing time in our case was around 30 seconds. It is also apparent that we have a hot partition that is significantly larger than the others. If we need to squeeze extra performance out of this pipeline, we can re-evaluate data partitioning to more evenly spread the partitions to better facilitate parallel data loading and filtering. We could also experiment with disabling staging to see if there's a processing time difference. Finally, the size of the SQL Pool plays a factor in how long it takes to ingest data into the sink.
+7. Select the `UserTopProductPurchasesASA` sink to view its details. We can see that 1,622,203 rows were calculated with a total of 30 partitions. It took around 3 seconds to stage the data in ADLS Gen2 prior to writing the data to the SQL table. The total sink processing time in our case was around 30 seconds. It is also apparent that we have a hot partition that is significantly larger than the others. If we need to squeeze extra performance out of this pipeline, we can re-evaluate data partitioning to more evenly spread the partitions to better facilitate parallel data loading and filtering. We could also experiment with disabling staging to see if there's a processing time difference. Finally, the size of the SQL Pool plays a factor in how long it takes to ingest data into the sink.
 
     ![The sink details are displayed.](media/pipeline-user-profiles-data-flow-sink-details.png "Sink details")
 
@@ -892,7 +877,7 @@ Now that we have processed, joined, and imported the user profile data, let's an
 
     > **Note:** To run just the cell, either hover over the cell and select the _Run cell_ icon to the left of the cell, or select the cell then type **Ctrl+Enter** on your keyboard.
 
-5. Create a new cell underneath by hovering over the **+** button and selecting the **Code cell** item. The **+** button is located beneath the notebook cell on the left. Alternatively, you can also expand the **+ Cell** menu in the Notebook toolbar and select the **Code cell** item.
+5. Create a new cell underneath by selecting the **+ Code** button beneath the notebook cell.
 
     ![The Add Code menu option is highlighted.](media/new-cell.png "Add code")
 
@@ -984,7 +969,7 @@ Now that we have processed, joined, and imported the user profile data, let's an
     print('before filter: ', topPreferredProducts.count(), ', after filter: ', top5Products.count())
     ```
 
-    The output should be similar to `before filter:  7, after filter:  5`.
+    `before filter:  1215643 , after filter:  178450`.
 
 12. Finally, let's calculate the top five products overall, based on those that are both preferred by customers and purchased the most. To do this, execute the following in a new cell:
 
@@ -1006,11 +991,11 @@ Now that we have processed, joined, and imported the user profile data, let's an
     +---------+-----+
     |ProductId|Total|
     +---------+-----+
-    |     2107| 91  |
-    |     4833| 83  |
-    |      347| 53  |
-    |     3459| 32  |
-    |     4246| 28  |
+    |     2107| 6038|
+    |     2805| 5868|
+    |     2486| 5849|
+    |     2746| 5676|
+    |     2119| 5607|
     +---------+-----+
     ```
 
