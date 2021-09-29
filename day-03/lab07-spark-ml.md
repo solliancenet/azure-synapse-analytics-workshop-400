@@ -24,4 +24,16 @@ In this task, you will train a recommender model using the ALS algorithm from Sp
 
 2. Under **Notebooks**, select the notebook called `Lab 07 - Spark ML `.
 
-3. Read thru the notebook and execute the cells as instructed in the notebook. When you have finished in the notebook, you have completed this lab.
+3. Read through the notebook and execute the cells as instructed in the notebook. When you have finished in the notebook, you have completed this lab.
+
+## Cleanup: Pause the dedicated SQL pool
+
+1. Navigate to the **Manage** hub.
+
+    ![The Manage menu item is highlighted.](media/manage-hub.png "Manage hub")
+
+2. From the center menu, select **SQL pools** from beneath the **Analytics pools** heading. Locate `SQLPool01`, and select the **Pause** button.
+
+    ![The Manage menu item is selected, with SQL pools selected from the center menu. The resume button is selected next to the SQLPool01 item.](media/pause-sql-pool.png "SQL pools listing")
+
+3. When prompted, select **Pause**.

@@ -221,3 +221,15 @@ In this task, you will author a T-SQL query that uses the previously trained mod
 7. Run the script and view the results, notice that the `Label` column is the model's prediction of the `Seasonality` property of each product, this will value is located in the last column.
 
    ![Viewing the prediction results in the query result pane](media/lab06-view-prediction-results.png "View prediction results")
+
+## Cleanup: Pause the dedicated SQL pool
+
+1. Navigate to the **Manage** hub.
+
+    ![The Manage menu item is highlighted.](media/manage-hub.png "Manage hub")
+
+2. From the center menu, select **SQL pools** from beneath the **Analytics pools** heading. Locate `SQLPool01`, and select the **Pause** button.
+
+    ![The Manage menu item is selected, with SQL pools selected from the center menu. The resume button is selected next to the SQLPool01 item.](media/pause-sql-pool.png "SQL pools listing")
+
+3. When prompted, select **Pause**.
