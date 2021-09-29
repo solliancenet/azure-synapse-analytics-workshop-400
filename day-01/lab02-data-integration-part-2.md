@@ -33,7 +33,7 @@ For the remainder of this guide, the following terms will be used for various AS
 
 Start the SQL Pool in your lab environment.
 
-1. Open the Synapse Studio workspace and navigate to the **Manage** hub.
+1. Open the [Synapse Studio workspace](https://web.azuresynapse.net/) and navigate to the **Manage** hub.
 
     ![The Manage menu item is highlighted.](media/manage-hub.png "Manage hub")
 

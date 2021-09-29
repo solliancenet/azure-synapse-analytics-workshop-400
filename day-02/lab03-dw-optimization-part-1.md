@@ -4,7 +4,7 @@
 
 Start the SQL Pool in your lab environment.
 
-1. Open the Synapse Studio workspace and navigate to the **Manage** hub.
+1. Open the [Synapse Studio workspace](https://web.azuresynapse.net/) and navigate to the **Manage** hub.
 
     ![The Manage menu item is highlighted.](media/manage-hub.png "Manage hub")
 
@@ -25,7 +25,7 @@ Start the SQL Pool in your lab environment.
         [wwi_perf].[Sale_Heap]
     ```
 
-    The script takes up to 15 seconds to execute and returns a count of ~ 340 million rows in the table.
+    The script takes around 20 seconds to execute and returns a count of ~ 340 million rows in the table.
 
 2. Run the following (more complex) statement:
 
@@ -54,7 +54,7 @@ Start the SQL Pool in your lab environment.
     >```
     >
 
-3. Check the structure of the `Sale_Heap` table, by right-clicking on it in the `Data` hub and selecting `New SQL script` and then `CREATE`. Take a look at the script used to create the table:
+3. Check the structure of the `Sale_Heap` table, by right-clicking on it in the `Data` hub and selecting `New SQL script` and then `CREATE`. Take a look at the script used to create the table (**Do NOT run this script**):
 
     ```sql
     CREATE TABLE [wwi_perf].[Sale_Heap]
@@ -190,7 +190,7 @@ Start the SQL Pool in your lab environment.
 
     ![Retrieving the query id](./media/lab3_query_id.png)
 
-6. With the query id (`QID6366` in this case) you can now investigate the individual steps of the query:
+6. With the query id from the previous step (`QID6366` in this case), you can now investigate the individual steps of the query:
 
     ```sql
     SELECT
@@ -207,7 +207,7 @@ Start the SQL Pool in your lab environment.
 
     ![Query execution steps](./media/lab3_shuffle_move_2.png)
 
-7. Get more details on the problematic step using the following SQL statement:
+7. Get more details on the problematic step using the following SQL statement (replace the `request_id` and `step_index` values from the previous query results):
 
     ```sql
     SELECT
@@ -1075,3 +1075,15 @@ Queries with the following patterns typically run faster with ordered CCI:
 >**Note**
 >
 >You will learn more about the internal organization of the clustered columnstore indexes in the following lab.
+
+## Cleanup: Pause the dedicated SQL pool
+
+1. Navigate to the **Manage** hub.
+
+    ![The Manage menu item is highlighted.](media/manage-hub.png "Manage hub")
+
+2. From the center menu, select **SQL pools** from beneath the **Analytics pools** heading. Locate `SQLPool01`, and select the **Pause** button.
+
+    ![The Manage menu item is selected, with SQL pools selected from the center menu. The resume button is selected next to the SQLPool01 item.](media/pause-sql-pool.png "SQL pools listing")
+
+3. When prompted, select **Pause**.
