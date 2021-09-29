@@ -348,6 +348,8 @@ Start the SQL Pool in your lab environment.
 
     There is a significant difference in the rowgroup states from the previous one. This highlights one of the potential advantages of ordered CCIs.
 
+<!-- COMMENTED OUT 9/29/2021 BY JOEL: The reduced data set does not show any significant differences in column types.
+
 ## Exercise 3 - Study the impact of wrong choices for column data types
 
 ### Task 1 - Create and populate tables with optimal column data types
@@ -483,9 +485,9 @@ Minimizing the size of data types shortens the row length, which leads to better
 
 >**Note**
 >
->If you are using PolyBase external tables to load your SQL pool tables, the defined length of the table row cannot exceed 1 MB. When a row with variable-length data exceeds 1 MB, you can load the row with BCP, but not with PolyBase.
+>If you are using PolyBase external tables to load your SQL pool tables, the defined length of the table row cannot exceed 1 MB. When a row with variable-length data exceeds 1 MB, you can load the row with BCP, but not with PolyBase. -->
 
-## Exercise 4 - Study the impact of materialized views
+## Exercise 3 - Study the impact of materialized views
 
 ### Task 1 - Analyze the execution plan of a query
 
@@ -843,7 +845,7 @@ Minimizing the size of data types shortens the row length, which leads to better
     </dsql_query>
     ```
 
-## Exercise 5 - Avoid extensive logging
+## Exercise 4 - Avoid extensive logging
 
 ### Task 1 - Explore rules for minimally logged operations
 
@@ -924,3 +926,15 @@ Loading data into a non-empty table with a clustered index can often contain a m
     >**Note**
     >
     >The query will run for a potentially long time. Once the time exceeds significantly the time to run the previous CTAS query, you can cancel it (as you can already see the benefit of the CTAS-based approach).
+
+## Cleanup: Pause the dedicated SQL pool
+
+1. Navigate to the **Manage** hub.
+
+    ![The Manage menu item is highlighted.](media/manage-hub.png "Manage hub")
+
+2. From the center menu, select **SQL pools** from beneath the **Analytics pools** heading. Locate `SQLPool01`, and select the **Pause** button.
+
+    ![The Manage menu item is selected, with SQL pools selected from the center menu. The resume button is selected next to the SQLPool01 item.](media/pause-sql-pool.png "SQL pools listing")
+
+3. When prompted, select **Pause**.
