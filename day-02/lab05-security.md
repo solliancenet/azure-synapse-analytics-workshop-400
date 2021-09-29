@@ -59,9 +59,9 @@ Having robust Internet security is a must for every technology system. One way t
 
 1. In the **Azure Portal**,  open the Synapse workspace (do not launch Studio).
 
-2. From the left menu of the **Azure Synapse Analytics** page, select **Firewalls**.
+2. From the left menu of the **Azure Synapse Analytics** page, select **Networking**.
 
-   ![The Synapse Workspace screen is displayed, with the Firewalls item selected from the left menu.](media/lab5_synapseworkspacefirewallmenu.png)
+   ![The Synapse Workspace screen is displayed, with the Firewalls item selected from the left menu.](media/networking.png)
 
 3. Notice that an IP Firewall rule of `Allow All` has already been created for you in the lab environment. If you wanted to add your specific IP address you would instead select **+ Add Client IP** from the taskbar menu (you should not do this in this lab).
 
@@ -133,7 +133,7 @@ It is recommended to store any secrets that are part of your pipeline in Azure K
   
     2. **Method**: Select **Get**.
 
-    3. Expand the **Advanced** section, and for **Authentication** select **MSI**. We have already established an Access Policy for the Managed Service Identity of our Synapse workspace, this means that the pipeline activity has permissions to access the key vault via an HTTP call.
+    3. Expand the **Advanced** section, and for **Authentication** select **Managed Identity**. We have already established an Access Policy for the Managed Service Identity of our Synapse workspace, this means that the pipeline activity has permissions to access the key vault via an HTTP call.
   
     4. **Resource**: Enter **<https://vault.azure.net>**
 
@@ -169,7 +169,7 @@ It is recommended to store any secrets that are part of your pipeline in Azure K
 
 Transparent Data Encryption (TDE) is a feature of SQL Server that provides encryption and decryption of data at rest, this includes: databases, log files, and back ups. When using this feature with ASA SQL Pools, it will use a built in symmetric Database Encryption Key (DEK) that is provided by the pool itself. With TDE, all stored data is encrypted on disk, when the data is requested, TDE will decrypt this data at the page level as it's read into memory, and vice-versa encrypting in-memory data before it gets written back to disk. As with the name, this happens transparently without affecting any application code. When creating a SQL Pool through ASA, Transparent Data Encryption is not enabled. The first part of this task will show you how to enable this feature.
 
-1. In the **Azure Portal**, open your resource group, then locate and open the `SqlPool01` resource.
+1. In the **Azure Portal**, open your resource group, then locate and open the `SqlPool01` Dedicated SQL pool resource.
 
     ![The SQLPool01 resource is highlighted in the Resource Group.](media/resource-group-sqlpool01.png "Resource Group: SQLPool01")
 
@@ -243,6 +243,18 @@ It is important to identify data columns of that hold sensitive information. Typ
    ![The Synapse Studio toolbar is displayed with the Run button selected.](media/lab5_synapsestudioqueryruntoolbarmenu.png)
 
 5. You may now close the script tab, when prompted choose to **Discard all changes**.
+
+## Cleanup: Pause the dedicated SQL pool
+
+1. Navigate to the **Manage** hub.
+
+    ![The Manage menu item is highlighted.](media/manage-hub.png "Manage hub")
+
+2. From the center menu, select **SQL pools** from beneath the **Analytics pools** heading. Locate `SQLPool01`, and select the **Pause** button.
+
+    ![The Manage menu item is selected, with SQL pools selected from the center menu. The resume button is selected next to the SQLPool01 item.](media/pause-sql-pool.png "SQL pools listing")
+
+3. When prompted, select **Pause**.
 
 ## Reference
 
