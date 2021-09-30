@@ -157,6 +157,8 @@ Users should avoid a workload management solution that configures 100% workload 
 
 5. Select **Run** from the toolbar menu to execute the SQL command.
 
+    > **Please note:** If this query takes more than 30 seconds to execute, stop the query and run again. You might have to do this a few times, depending on how long it takes for the SQL queries executed by the pipeline to end.
+
 6. In the query window, replace the script with the following to create a workload Classifier called `CEODreamDemo` that assigns a workload group and importance to incoming requests:
 
     ```sql
@@ -315,7 +317,7 @@ All logins to your data warehouse are logged to `sys.dm_pdw_exec_sessions`. This
 
 13. Select **Run** from the toolbar menu to execute the SQL command. You should see the previously run query in the results view.
 
-14. In the query window, replace the script with the following to retrieve the query's distributed SQL (DSQL) plan from `sys.dm_pdw_request_steps`. **Be sure to replace** the `QID#####` with the `Request_ID` you noted in Step 8:
+14. In the query window, replace the script with the following to retrieve the query's distributed SQL (DSQL) plan from `sys.dm_pdw_request_steps`. **Be sure to replace** the `QID#####` with the `Request_ID` you noted in Step 12:
 
     ```sql
     SELECT * FROM sys.dm_pdw_request_steps
@@ -355,9 +357,21 @@ All logins to your data warehouse are logged to `sys.dm_pdw_exec_sessions`. This
 
     ![The SQL requests blade is displayed within the Monitor hub.](media/ex02-task03-02.png "Monitor - SQL requests")
 
-4. Hover onto a SQL Request log and select `Request Content` to access the actual T-SQL command executed as part of the SQL Request.
+4. Select **More** on a request to access the actual T-SQL command executed as part of the SQL Request.
 
     ![The request content link is displayed over a SQL request.](media/ex02-task03-03.png "SQL requests")
+
+## Cleanup: Pause the dedicated SQL pool
+
+1. Navigate to the **Manage** hub.
+
+    ![The Manage menu item is highlighted.](media/manage-hub.png "Manage hub")
+
+2. From the center menu, select **SQL pools** from beneath the **Analytics pools** heading. Locate `SQLPool01`, and select the **Pause** button.
+
+    ![The Manage menu item is selected, with SQL pools selected from the center menu. The resume button is selected next to the SQLPool01 item.](media/pause-sql-pool.png "SQL pools listing")
+
+3. When prompted, select **Pause**.
 
 ## Resources
 
