@@ -621,7 +621,7 @@ PolyBase requires the following elements:
         )
     WITH
         (
-            LOCATION = '/sale-small%2FYear%3D2019',  
+            LOCATION = '/sale-small/Year=2019',  
             DATA_SOURCE = ABSS,
             FILE_FORMAT = [ParquetFormat]  
         )  
