@@ -8,7 +8,8 @@ When preparing for an L-400 event delivery, perform the following before the sta
 4. Sign in into the Whiteboard app (to demo the correct use to the audience at the end of the first presentation).
 5. Request six (one per proctor) L400 environments from cloudlabs-support@spektrasystems.com.
 6. Confirm that the environments include the required data for the labs and exercises.
-7. Reset the public repo (<https://github.com/solliancenet/data-ai-technical-bootcamp>):
+7. Setup scheduling application (<https://aka.solliance.net/synapse-schedule>)
+8. Reset the public repo (<https://github.com/solliancenet/data-ai-technical-bootcamp>):
    1. Checkout
 
         `git checkout --orphan latest_branch`
