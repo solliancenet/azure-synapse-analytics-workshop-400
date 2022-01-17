@@ -1481,47 +1481,47 @@ For example, if the optimizer estimates that the date your query is filtering on
 
 To determine if statistics are set to be automatically created in the database, you would query the `is_auto_create_stats_on` column from the sys.databases table.
 
-    ```sql
-    SELECT name, is_auto_create_stats_on
-    FROM sys.databases
-    ```
+```sql
+SELECT name, is_auto_create_stats_on
+FROM sys.databases
+```
 
 To retrieve a listing of statistics that have been automatically created, use the `sys.dm_pdw_exec_requests` DMV.
 
-    ```sql
-    SELECT
-        *
-    FROM 
-        sys.dm_pdw_exec_requests
-    WHERE 
-        Command like 'CREATE STATISTICS%'
-    ```
+```sql
+SELECT
+    *
+FROM 
+    sys.dm_pdw_exec_requests
+WHERE 
+    Command like 'CREATE STATISTICS%'
+```
 
-    Notice the special name pattern used for automatically created statistics:
+Notice the special name pattern used for automatically created statistics:
 
-    ![View automatically created statistics](./media/lab3_statistics_automated.png)
+![View automatically created statistics](./media/lab3_statistics_automated.png)
 
-To determine if there are any statistics created for a specific column, you can leverage `DBCC SHOW_STATISTICS`. In our secnario, let's determine the statistics set on the `CustomerId` column from the `wwi_perf.Sale_Hash` table.
+To determine if there are any statistics created for a specific column, you can leverage `DBCC SHOW_STATISTICS`. In our scenario, let's determine the statistics set on the `CustomerId` column from the `wwi_perf.Sale_Hash` table.
 
-    ```sql
-    DBCC SHOW_STATISTICS ('wwi_perf.Sale_Hash', CustomerId) WITH HISTOGRAM
-    ```
+```sql
+DBCC SHOW_STATISTICS ('wwi_perf.Sale_Hash', CustomerId) WITH HISTOGRAM
+```
 
 If there is no statistics for `CustomerId`, an error will occur. To create statistics for the `CustomerId` table, use the `CREATE STATISTICS` statement.
 
-    ```sql
-    CREATE STATISTICS Sale_Hash_CustomerId ON wwi_perf.Sale_Hash (CustomerId)
-    ```
+```sql
+CREATE STATISTICS Sale_Hash_CustomerId ON wwi_perf.Sale_Hash (CustomerId)
+```
 
 An example of statistics retrieved using `DBCC SHOW_STATISTICS` is as follows. The `Chart` option has been selected to see the visual.
 
-    ![Statistics created for CustomerId](./media/lab3_statistics_customerid.png)
- 
-    > **Important**: The more SQL pool knows about your data, the faster it can execute queries against it. After loading data into SQL pool, collecting statistics on your data is one of the most important things you can do to optimize your queries.
-    >
-    >The SQL pool query optimizer is a cost-based optimizer. It evaluates the cost of multiple query plans, and then chooses the plan with the lowest cost. In most cases, it chooses the plan that will execute the fastest.
-    >
-    >For example, if the optimizer estimates that the date your query is filtering on will return one row it will choose one plan. If it estimates that the selected date will return 1 million rows, it will return a different plan.
+![Statistics created for CustomerId](./media/lab3_statistics_customerid.png)
+
+> **Important**: The more SQL pool knows about your data, the faster it can execute queries against it. After loading data into SQL pool, collecting statistics on your data is one of the most important things you can do to optimize your queries.
+>
+>The SQL pool query optimizer is a cost-based optimizer. It evaluates the cost of multiple query plans, and then chooses the plan with the lowest cost. In most cases, it chooses the plan that will execute the fastest.
+>
+>For example, if the optimizer estimates that the date your query is filtering on will return one row it will choose one plan. If it estimates that the selected date will return 1 million rows, it will return a different plan.
 
 ## 3.6. Monitor space usage
 
@@ -1529,7 +1529,7 @@ It's important to monitor the physical space used by your tables. This will allo
 
 ### 3.6.1. Analyze space used by tables
 
-We can obtain the space used by a table using the `DBCC PDW_SHOWSPACEUSED` commmand, this command also reports on the number of rows in each distribution to denote the skewness of the data. With respect to skewness, those numbers should be as even as possible. You can see from the results of the following command, that rows are equally distributed across distributions.
+We can obtain the space used by a table using the `DBCC PDW_SHOWSPACEUSED` command, this command also reports on the number of rows in each distribution to denote the skewness of the data. With respect to skewness, those numbers should be as even as possible. You can see from the results of the following command, that rows are equally distributed across distributions.
 
     ```sql
     DBCC PDW_SHOWSPACEUSED('wwi_perf.Sale_Hash');
