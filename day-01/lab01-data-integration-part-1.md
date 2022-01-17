@@ -954,6 +954,181 @@ To run loads with appropriate compute resources, create loading users designated
     DROP WORKLOAD GROUP BigDataLoad;
     ```
 
+## Exercise 5: Post load maintenance
+
+### Task 1: Statistics
+
+The more the SQL pool resource knows about your data, the faster it can execute queries. After loading data into SQL pool, collecting statistics on your data is one of the most important things you can do for query optimization. The SQL pool query optimizer is a cost-based optimizer. It compares the cost of various query plans, and then chooses the plan with the lowest cost. In most cases, it chooses the plan that will execute the fastest.
+
+> For example, if the optimizer estimates that the date your query is filtering on will return one row it will choose one plan. If it estimates that the selected date will return 1 million rows, it will return a different plan.
+
+1. To determine if statistics are set to be automatically created in your database, execute the following query in a new SQL script tab in Synapse Studio. The `is_auto_create_stats_on` column from the `sys.databases` table indicates whether statistics have been enabled.
+
+    ```sql
+    SELECT name, is_auto_create_stats_on
+    FROM sys.databases
+    ```
+
+2. To retrieve a listing of statistics that have been automatically created, use the `sys.dm_pdw_exec_requests` DMV.
+
+    ```sql
+    SELECT
+        *
+    FROM 
+        sys.dm_pdw_exec_requests
+    WHERE 
+        Command like 'CREATE STATISTICS%'
+    ```
+
+    Notice the special name pattern used for automatically created statistics:
+
+    ![View automatically created statistics](media/lab3_statistics_automated.png)
+
+3. To determine if there are any statistics created for a specific column, you can leverage `DBCC SHOW_STATISTICS`. In our scenario, let's determine the statistics set on the `CustomerId` column from the `wwi_perf.Sale_Hash` table.
+
+    ```sql
+    DBCC SHOW_STATISTICS ('wwi_perf.Sale_Heap', CustomerId) WITH HISTOGRAM
+    ```
+
+4. If there is no statistics for `CustomerId`, an error will occur. To create statistics for the `CustomerId` column, use the `CREATE STATISTICS` statement.
+
+    ```sql
+    CREATE STATISTICS Sale_Heap_CustomerId ON wwi_perf.Sale_Heap (CustomerId)
+    ```
+
+5. Execute the following query to view the statistics created by the `CREATE STATISTICS` command:
+
+    ```sql
+    DBCC SHOW_STATISTICS ('wwi_perf.Sale_Heap', Sale_Heap_CustomerId) WITH HISTOGRAM
+    ```
+
+6. An example of statistics retrieved using `DBCC SHOW_STATISTICS` is as follows. The `Chart` option has been selected to see the visual.
+
+    ![Statistics created for CustomerId](media/lab3_statistics_customerid.png)
+
+### Task 2: Check for skew
+
+Data skew occurs when data is not distributed correctly across different storage distributions. Skew decreases the performance of your dedicated SQL pools by forcing some compute nodes to work harder to read and retrieve data from the tables.
+
+> Azure Synapse Analytics dedicated SQL pools have 60 storage distributions and when selecting a distribution key for your hash, the goal is to select the optimal column for distributing data evenly.
+
+To identify data skew in your hash distributed tables:
+
+1. Use `DBCC PDW_SHOWSPACEUSED()` to find data skew. In a new SQL script tab, copy, paste and execute the following query:
+
+    ```sql
+    -- Find data skew for a distributed table
+    DBCC PDW_SHOWSPACEUSED('wwi_staging.Sale');
+    ```
+
+    > This is a very quick and simple way to see the number of table rows that are stored in each of the 60 distributions of your database. Remember that for the most balanced performance, the rows in your distributed table should be spread evenly across all the distributions.
+
+2. By leveraging Azure Synapse Analytics Dynamic Management Views (DMVs), you can perform a more detailed skew analysis. Copy, paste, and execute the following script to create a view to identify which tables have data skew.
+
+    ```sql
+    CREATE VIEW dbo.vDistributionSkew
+    AS
+    WITH base
+    AS
+    (
+        SELECT 
+            SUBSTRING(@@version,34,4) AS [build_number]
+            ,GETDATE() AS [execution_time]
+            ,DB_NAME() AS [database_name]
+            ,s.name AS [schema_name]
+            ,t.name AS [table_name]
+            ,QUOTENAME(s.name)+'.'+QUOTENAME(t.name) AS [two_part_name]
+            ,nt.[name] AS [node_table_name]
+            ,ROW_NUMBER() OVER(PARTITION BY nt.[name] ORDER BY (SELECT NULL)) AS [node_table_name_seq]
+            ,tp.[distribution_policy_desc] AS [distribution_policy_name]
+            ,nt.[distribution_id] AS [distribution_id]
+            ,nt.[pdw_node_id] AS [pdw_node_id]
+            ,pn.[type] AS [pdw_node_type]
+            ,pn.[name] AS [pdw_node_name]
+            ,nps.[partition_number] AS [partition_nmbr]
+            ,nps.[reserved_page_count] AS [reserved_space_page_count]
+            ,nps.[reserved_page_count] - nps.[used_page_count] AS [unused_space_page_count]
+            ,nps.[in_row_data_page_count] 
+            + nps.[row_overflow_used_page_count] + nps.[lob_used_page_count] AS [data_space_page_count]
+            ,nps.[reserved_page_count] 
+            - (nps.[reserved_page_count] - nps.[used_page_count]) 
+            - ([in_row_data_page_count]+[row_overflow_used_page_count]+[lob_used_page_count]) AS  [index_space_page_count]
+            ,nps.[row_count] AS [row_count]
+        FROM sys.schemas s
+        JOIN sys.tables t ON s.[schema_id] = t.[schema_id]
+        JOIN sys.pdw_table_distribution_properties tp ON t.[object_id] = tp.[object_id]
+        JOIN sys.pdw_table_mappings tm ON t.[object_id] = tm.[object_id]
+        JOIN sys.pdw_nodes_tables nt ON tm.[physical_name] = nt.[name]
+        JOIN sys.dm_pdw_nodes pn ON nt.[pdw_node_id] = pn.[pdw_node_id]
+        JOIN sys.dm_pdw_nodes_db_partition_stats nps ON nt.[object_id] = nps.[object_id]
+                                                        AND nt.[pdw_node_id] = nps.[pdw_node_id]
+                                                        AND nt.[distribution_id] = nps.[distribution_id]
+    )
+    ,size
+    AS
+    (
+        SELECT
+            [build_number]
+            ,[execution_time]
+            ,[database_name]
+            ,[schema_name]
+            ,[table_name]
+            ,[two_part_name]
+            ,[node_table_name]
+            ,[node_table_name_seq]
+            ,[distribution_policy_name]
+            ,[distribution_id]
+            ,[pdw_node_id]
+            ,[pdw_node_type]
+            ,[pdw_node_name]
+            ,[partition_nmbr]
+            ,[reserved_space_page_count]
+            ,[unused_space_page_count]
+            ,[data_space_page_count]
+            ,[index_space_page_count]
+            ,[row_count]
+            ,([reserved_space_page_count] * 8.0) AS [reserved_space_KB]
+            ,([reserved_space_page_count] * 8.0)/1000 AS [reserved_space_MB]
+            ,([reserved_space_page_count] * 8.0)/1000000 AS [reserved_space_GB]
+            ,([reserved_space_page_count] * 8.0)/1000000000 AS [reserved_space_TB]
+            ,([unused_space_page_count] * 8.0) AS [unused_space_KB]
+            ,([unused_space_page_count] * 8.0)/1000 AS [unused_space_MB]
+            ,([unused_space_page_count] * 8.0)/1000000 AS [unused_space_GB]
+            ,([unused_space_page_count] * 8.0)/1000000000 AS [unused_space_TB]
+            ,([data_space_page_count] * 8.0) AS [data_space_KB]
+            ,([data_space_page_count] * 8.0)/1000 AS [data_space_MB]
+            ,([data_space_page_count] * 8.0)/1000000 AS [data_space_GB]
+            ,([data_space_page_count] * 8.0)/1000000000 AS [data_space_TB]
+            ,([index_space_page_count] * 8.0) AS [index_space_KB]
+            ,([index_space_page_count] * 8.0)/1000 AS [index_space_MB]
+            ,([index_space_page_count] * 8.0)/1000000 AS [index_space_GB]
+            ,([index_space_page_count] * 8.0)/1000000000 AS [index_space_TB]
+        FROM base
+    )
+    SELECT * FROM size;
+    ```
+
+3. Query the view:
+
+    ```sql
+    SELECT
+        [two_part_name]
+        ,[distribution_id]
+        ,[row_count]
+        ,[reserved_space_GB]
+        ,[unused_space_GB]
+        ,[data_space_GB]
+        ,[index_space_GB]
+    FROM [dbo].[vDistributionSkew]
+    WHERE [table_name] = 'Sale'
+        AND [schema_name] = 'wwi_staging'
+    ORDER BY [row_count] DESC
+    ```
+
+    > To decide if you should resolve data skew in a table, you should understand as much as possible about the data volumes and queries in your workload.
+    >
+    > Distributing data is a matter of finding the right balance between minimizing data skew and minimizing data movement. These can be opposing goals, and sometimes you will want to keep data skew in order to reduce data movement. For example, when the distribution column is frequently the shared column in joins and aggregations, you will be minimizing data movement. The benefit of having the minimal data movement might outweigh the impact of having data skew.
+
 ## Cleanup: Pause the dedicated SQL pool
 
 1. Navigate to the **Manage** hub.
