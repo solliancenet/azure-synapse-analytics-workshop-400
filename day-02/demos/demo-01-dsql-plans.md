@@ -162,7 +162,7 @@ Finally, examine the query execution plan in SQL Server Management Studio (SSMS)
     ) T
     ```
 
-3. On the SSMS toolbar, select the **Display Estimated Execute Plan** button and observe the plan generated in the **Results** pane.
+3. On the SSMS toolbar, select the **Display Estimated Execution Plan** button and observe the plan generated in the **Results** pane.
 
     ![The Display Estimated Execution Plan button on the SSMS toolbar is highlighted.](../media/ssms-toolbar-display-estimated-execution-plan.png "SSMS toolbar")
 
