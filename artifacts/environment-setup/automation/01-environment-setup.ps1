@@ -509,7 +509,8 @@ Write-Information "Creating Spark notebooks..."
 
 $notebooks = [ordered]@{
         "Activity 05 - Model Training" = "$artifactsPath\day-03"
-        "Lab 06 - Machine Learning" = "$artifactsPath\day-03\lab-06-machine-learning"
+        "Lab 06 - Part 1 - Synapse ML" = "$artifactsPath\day-03\lab-06-machine-learning"
+        "Lab 06 - Part 2 - AutoML with Spark" = "$artifactsPath\day-03\lab-06-machine-learning"
         "Lab 07 - Spark ML" = "$artifactsPath\day-03\lab-07-spark-ml"
 }
 
