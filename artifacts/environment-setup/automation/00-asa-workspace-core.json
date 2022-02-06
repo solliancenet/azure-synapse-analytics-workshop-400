@@ -22,7 +22,8 @@
     "adlsStorageAccountName": "[concat('asadatalake', parameters('uniqueSuffix'))]",
     "defaultDataLakeStorageFilesystemName": "tempdata",
     "sqlComputeName": "SQLPool01",
-    "sparkComputeName": "SparkPool01",
+    "sparkComputeName1": "SparkPool01",
+    "sparkComputeName2": "SparkPool02",
     "computeSubnetId": "",
     "sqlServerSKU": "DW500c",
     "storageBlobDataContributorRoleID": "ba92f5b4-2d11-453d-a403-e96b0029c9fe",
@@ -36,14 +37,16 @@
     "sparkNodeSize": "Small",
     "sparkAutoPauseEnabled": "true",
     "sparkAutoPauseDelayInMinutes": "15",
-    "sparkVersion": "2.4",
+    "sparkVersion1": "2.4",
+    "sparkVersion2": "3.1",
     "packagesRequirementsFileName": "",
     "packagesRequirementsContent": "",
     "keyVaultName": "[concat('asakeyvault', parameters('uniqueSuffix'))]",
     "blobStorageAccountName": "[concat('asastore', parameters('uniqueSuffix'))]",
     "applicationInsightsName": "[concat('asaappinsights', parameters('uniqueSuffix'))]",
-    "amlWorkspaceName": "[concat('amlworkspace', parameters('uniqueSuffix'))]",
-    "cosmosDbAccountName": "[concat('asacosmosdb', parameters('uniqueSuffix'))]"
+    "amlWorkspaceName": "[concat('asaamlworkspace', parameters('uniqueSuffix'))]",
+    "cosmosDbAccountName": "[concat('asacosmosdb', parameters('uniqueSuffix'))]",
+    "cognitiveServicesAccountName": "[concat('asacognitiveservices', parameters('uniqueSuffix'))]"
   },
   "resources": [
     {
@@ -212,7 +215,8 @@
           "computeSubnetId": "[variables('computeSubnetId')]"
         },
         "sqlAdministratorLogin": "[variables('sqlAdministratorLogin')]",
-        "sqlAdministratorLoginPassword": "[parameters('sqlAdministratorLoginPassword')]"
+        "sqlAdministratorLoginPassword": "[parameters('sqlAdministratorLoginPassword')]",
+        "managedResourceGroupName": "[concat(resourceGroup().location, '-internal')]"
       },
       "resources": [
         {
@@ -261,7 +265,7 @@
     {
       "type": "Microsoft.Synapse/workspaces/bigDataPools",
       "apiVersion": "2019-06-01-preview",
-      "name": "[concat(variables('workspaceName'), '/', variables('sparkComputeName'))]",
+      "name": "[concat(variables('workspaceName'), '/', variables('sparkComputeName1'))]",
       "location": "[variables('location')]",
       "dependsOn": [
         "[concat('Microsoft.Synapse/workspaces/', variables('workspaceName'))]"
@@ -279,7 +283,35 @@
           "enabled": "[variables('sparkAutoPauseEnabled')]",
           "delayInMinutes": "[variables('sparkAutoPauseDelayInMinutes')]"
         },
-        "sparkVersion": "[variables('sparkVersion')]",
+        "sparkVersion": "[variables('sparkVersion1')]",
+        "libraryRequirements": {
+          "filename": "[variables('packagesRequirementsFileName')]",
+          "content": "[variables('packagesRequirementsContent')]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Synapse/workspaces/bigDataPools",
+      "apiVersion": "2019-06-01-preview",
+      "name": "[concat(variables('workspaceName'), '/', variables('sparkComputeName2'))]",
+      "location": "[variables('location')]",
+      "dependsOn": [
+        "[concat('Microsoft.Synapse/workspaces/', variables('workspaceName'))]"
+      ],
+      "properties": {
+        "nodeCount": "[variables('sparkNodeCount')]",
+        "nodeSizeFamily": "[variables('sparkNodeSizeFamily')]",
+        "nodeSize": "[variables('sparkNodeSize')]",
+        "autoScale": {
+          "enabled": "[variables('sparkAutoScaleEnabled')]",
+          "minNodeCount": "[variables('sparkMinNodeCount')]",
+          "maxNodeCount": "[variables('sparkMaxNodeCount')]"
+        },
+        "autoPause": {
+          "enabled": "[variables('sparkAutoPauseEnabled')]",
+          "delayInMinutes": "[variables('sparkAutoPauseDelayInMinutes')]"
+        },
+        "sparkVersion": "[variables('sparkVersion2')]",
         "libraryRequirements": {
           "filename": "[variables('packagesRequirementsFileName')]",
           "content": "[variables('packagesRequirementsContent')]"
@@ -293,7 +325,8 @@
       "location": "[variables('location')]",
       "dependsOn": [
         "[concat('Microsoft.Synapse/workspaces/', variables('workspaceName'))]",
-        "[concat('Microsoft.Synapse/workspaces/', variables('workspaceName'), '/bigDataPools/', variables('sparkComputeName'))]"
+        "[concat('Microsoft.Synapse/workspaces/', variables('workspaceName'), '/bigDataPools/', variables('sparkComputeName1'))]",
+        "[concat('Microsoft.Synapse/workspaces/', variables('workspaceName'), '/bigDataPools/', variables('sparkComputeName2'))]"
       ],
       "sku": {
         "name": "[variables('sqlServerSKU')]"
@@ -335,6 +368,22 @@
         "keyVault": "[resourceId('Microsoft.KeyVault/vaults',variables('keyVaultName'))]",
         "applicationInsights": "[resourceId('Microsoft.Insights/components',variables('applicationInsightsName'))]",
         "storageAccount": "[resourceId('Microsoft.Storage/storageAccounts/',variables('blobStorageAccountName'))]"
+      }
+    },
+    {
+      "type": "Microsoft.CognitiveServices/accounts",
+      "apiVersion": "2021-04-30",
+      "name": "[variables('cognitiveServicesAccountName')]",
+      "location": "[variables('location')]",
+      "kind": "CognitiveServices",
+      "sku": {
+        "name": "S0"
+      },
+      "identity": {
+        "type": "systemAssigned"
+      },
+      "properties": {
+          "customSubDomainName": "[toLower(variables('cognitiveServicesAccountName'))]"
       }
     },
     {
