@@ -1,0 +1,25 @@
+{
+    "name": "#LINKED_SERVICE_NAME#",
+    "properties": {
+        "annotations": [],
+        "type": "CognitiveService",
+        "typeProperties": {
+            "subscriptionId": "#SUBSCRIPTION_ID#",
+            "csName": "#COGNITIVE_SERVICES_ACCOUNT_NAME#",
+            "csKind": "CognitiveServices",
+            "endPoint": "https://#COGNITIVE_SERVICES_ACCOUNT_NAME#.cognitiveservices.azure.com/",
+            "csKey": {
+                "type": "AzureKeyVaultSecret",
+                "store": {
+                    "referenceName": "#KEY_VAULT_LINKED_SERVICE_NAME#",
+                    "type": "LinkedServiceReference"
+                },
+                "secretName": "#SECRET_NAME#"
+            }
+        },
+        "connectVia": {
+            "referenceName": "AutoResolveIntegrationRuntime",
+            "type": "IntegrationRuntimeReference"
+        }
+    }
+}

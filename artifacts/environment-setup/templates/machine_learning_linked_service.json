@@ -1,0 +1,17 @@
+{
+    "name": "#LINKED_SERVICE_NAME#",
+    "properties": {
+        "annotations": [],
+        "type": "AzureMLService",
+        "typeProperties": {
+            "subscriptionId": "#SUBSCRIPTION_ID#",
+            "resourceGroupName": "#RESOURCE_GROUP_NAME#",
+            "mlWorkspaceName": "#ML_WORKSPACE_NAME#",
+            "authentication": "MSI"
+        },
+        "connectVia": {
+            "referenceName": "AutoResolveIntegrationRuntime",
+            "type": "IntegrationRuntimeReference"
+        }
+    }
+}

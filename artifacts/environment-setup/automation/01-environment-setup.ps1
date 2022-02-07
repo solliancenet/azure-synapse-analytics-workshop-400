@@ -79,6 +79,7 @@ if($IsCloudLabs){
 Write-Information "Using $resourceGroupName";
 
 $uniqueId =  (Get-AzResourceGroup -Name $resourceGroupName).Tags["DeploymentId"]
+$resourceGroupLocation = (Get-AzResourceGroup -Name $resourceGroupName).Location
 $subscriptionId = (Get-AzContext).Subscription.Id
 $tenantId = (Get-AzContext).Tenant.Id
 $global:logindomain = (Get-AzContext).Tenant.Id;
@@ -91,10 +92,13 @@ $dataLakeAccountName = "asadatalake$($uniqueId)"
 $blobStorageAccountName = "asastore$($uniqueId)"
 $keyVaultName = "asakeyvault$($uniqueId)"
 $keyVaultSQLUserSecretName = "SQL-USER-ASA"
+$keyVaultCognitiveServicesSecretName = "COGNITIVE-SERVICES-KEY"
 $sqlPoolName = "SQLPool01"
 $integrationRuntimeName = "AzureIntegrationRuntime01"
-$sparkPoolName = "SparkPool01"
+$sparkPoolName1 = "SparkPool01"
+$sparkPoolName2 = "SparkPool02"
 $amlWorkspaceName = "asaamlworkspace$($uniqueId)"
+$cognitiveServicesAccountName = "asacognitiveservices$($uniqueId)"
 $global:sqlEndpoint = "$($workspaceName).sql.azuresynapse.net"
 $global:sqlUser = "asa.sql.admin"
 
@@ -124,9 +128,13 @@ Assign-SynapseRole -WorkspaceName $workspaceName -RoleId "c3a6d2f1-a26f-4810-9b0
 #Set the Azure AD Admin - otherwise it will bail later
 Set-SqlAdministrator $username $user.id;
 
-#add the permission to the datalake to workspace
+# Set workspace managed identity permissions
 $id = (Get-AzADServicePrincipal -DisplayName $workspacename).id
 New-AzRoleAssignment -Objectid $id -RoleDefinitionName "Storage Blob Data Owner" -Scope "/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Storage/storageAccounts/$dataLakeAccountName" -ErrorAction SilentlyContinue;
+New-AzRoleAssignment -ObjectId $id -RoleDefinitionName "Contributor" -Scope "/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.MachineLearningServices/workspaces/$amlWorkspaceName" -ErrorAction SilentlyContinue;
+New-AzRoleAssignment -ObjectId $id -RoleDefinitionName "Contributor" -Scope "/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.CognitiveServices/accounts/$cognitiveServicesAccountName" -ErrorAction SilentlyContinue;
+
+# Set current user permissions
 New-AzRoleAssignment -SignInName $username -RoleDefinitionName "Storage Blob Data Owner" -Scope "/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Storage/storageAccounts/$dataLakeAccountName" -ErrorAction SilentlyContinue;
 
 Write-Information "Setting Key Vault Access Policy"
@@ -134,11 +142,16 @@ Set-AzKeyVaultAccessPolicy -ResourceGroupName $resourceGroupName -VaultName $key
 Set-AzKeyVaultAccessPolicy -ResourceGroupName $resourceGroupName -VaultName $keyVaultName -ObjectId $id -PermissionsToSecrets set,delete,get,list
 
 #remove need to ask for the password in script.
-$global:sqlPassword = $(Get-AzKeyVaultSecret -VaultName $keyVaultName -Name "SqlPassword").SecretValueText
+$global:sqlPassword = (Get-AzKeyVaultSecret -VaultName $keyVaultName -Name "SqlPassword" -AsPlainText)
 
 Write-Information "Create SQL-USER-ASA Key Vault Secret"
 $secretValue = ConvertTo-SecureString $sqlPassword -AsPlainText -Force
 Set-AzKeyVaultSecret -VaultName $keyVaultName -Name $keyVaultSQLUserSecretName -SecretValue $secretValue
+
+Write-Information "Create Cognitive Services Key Vault Secret"
+$cognitiveServicesAccountKey = $(Get-AzCognitiveServicesAccountKey -ResourceGroupName $resourceGroupName -name $cognitiveServicesAccountName).Key1
+$secretValue = ConvertTo-SecureString $cognitiveServicesAccountKey -AsPlainText -Force
+Set-AzKeyVaultSecret -VaultName $keyVaultName -Name $keyVaultCognitiveServicesSecretName -SecretValue $secretValue
 
 Write-Information "Create KeyVault linked service $($keyVaultName)"
 
@@ -160,6 +173,30 @@ Write-Information "Create Blob Storage linked service $($blobStorageAccountName)
 
 $blobStorageAccountKey = List-StorageAccountKeys -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName -Name $blobStorageAccountName
 $result = Create-BlobStorageLinkedService -TemplatesPath $templatesPath -WorkspaceName $workspaceName -Name $blobStorageAccountName  -Key $blobStorageAccountKey
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
+
+# CJ: New approach for more generic creation of linked services (removes the need to create dedicated Create-*LinkedService commandlets for each new type of linked service that is introduced)
+Write-Information "Create Machine Learning linked service $($amlWorkspaceName)"
+$templateParams = @{
+        WORKSPACE_NAME = $workspaceName
+        LINKED_SERVICE_NAME = $amlWorkspaceName
+        SUBSCRIPTION_ID = $subscriptionId
+        RESOURCE_GROUP_NAME = $resourceGroupName
+        ML_WORKSPACE_NAME = $amlWorkspaceName
+}
+$result = Create-LinkedService -TemplatePath "$($TemplatesPath)/machine_learning_linked_service.json" -TemplateParameters $templateParams
+Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
+
+Write-Information "Create Cognitive Services linked service $($cognitiveServicesAccountName)"
+$templateParams = @{
+        WORKSPACE_NAME = $workspaceName
+        LINKED_SERVICE_NAME = $cognitiveServicesAccountName
+        SUBSCRIPTION_ID = $subscriptionId
+        COGNITIVE_SERVICES_ACCOUNT_NAME = $cognitiveServicesAccountName
+        KEY_VAULT_LINKED_SERVICE_NAME = $keyVaultName
+        SECRET_NAME = $keyVaultCognitiveServicesSecretName
+}
+$result = Create-LinkedService -TemplatePath "$($TemplatesPath)/cognitive_services_linked_service.json" -TemplateParameters $templateParams
 Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
 
 Write-Information "Copy Public Data"
@@ -508,10 +545,15 @@ foreach ($pipeline in $workloadPipelines.Keys) {
 Write-Information "Creating Spark notebooks..."
 
 $notebooks = [ordered]@{
-        "Activity 05 - Model Training" = "$artifactsPath\day-03"
         "Lab 06 - Part 1 - Synapse ML" = "$artifactsPath\day-03\lab-06-machine-learning"
         "Lab 06 - Part 2 - AutoML with Spark" = "$artifactsPath\day-03\lab-06-machine-learning"
-        "Lab 07 - Spark ML" = "$artifactsPath\day-03\lab-07-spark-ml"
+        "Lab 07 - Spark" = "$artifactsPath\day-03\lab-07-spark"
+}
+
+$notebookSparkPools = [ordered]@{
+        "Lab 06 - Part 1 - Synapse ML" = $sparkPoolName2
+        "Lab 06 - Part 2 - AutoML with Spark" = $sparkPoolName1
+        "Lab 07 - Spark" = $sparkPoolName2
 }
 
 $cellParams = [ordered]@{
@@ -519,8 +561,11 @@ $cellParams = [ordered]@{
         "#SUBSCRIPTION_ID#" = $subscriptionId
         "#RESOURCE_GROUP_NAME#" = $resourceGroupName
         "#AML_WORKSPACE_NAME#" = $amlWorkspaceName
+        "#AML_WORKSPACE_LOCATION#" = $resourceGroupLocation
         "#DATA_LAKE_ACCOUNT_NAME#" = $dataLakeAccountName
         "#DATA_LAKE_ACCOUNT_KEY#" = $dataLakeAccountKey
+        "#KEY_VAULT_NAME#" = $keyVaultName
+        "#COGNITIVE_SERVICES_SECRET_NAME#" = $keyVaultCognitiveServicesSecretName
 }
 
 foreach ($notebookName in $notebooks.Keys) {
@@ -529,7 +574,7 @@ foreach ($notebookName in $notebooks.Keys) {
         Write-Information "Creating notebook $($notebookName) from $($notebookFileName)"
         
         $result = Create-SparkNotebook -TemplatesPath $templatesPath -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName `
-                -WorkspaceName $workspaceName -SparkPoolName $sparkPoolName -Name $notebookName -NotebookFileName $notebookFileName -CellParams $cellParams
+                -WorkspaceName $workspaceName -SparkPoolName $notebookSparkPools[$notebookName] -Name $notebookName -NotebookFileName $notebookFileName -CellParams $cellParams
         $result = Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
         $result
 }

@@ -336,6 +336,33 @@ function Create-SQLPoolKeyVaultLinkedService {
     return $result
 }
 
+function Create-LinkedService {
+
+    param(
+    
+    [parameter(Mandatory=$true)]
+    [String]
+    $TemplatePath,
+
+    [parameter(Mandatory=$true)]
+    [Hashtable]
+    $TemplateParameters
+    )
+
+    $itemTemplate = Get-Content -Path $TemplatePath
+
+    foreach ($key in $TemplateParameters.Keys) {
+        $itemTemplate = $itemTemplate.Replace("#$($key)#", $TemplateParameters[$key])
+    }
+
+    $uri = "https://$($TemplateParameters.WORKSPACE_NAME).dev.azuresynapse.net/linkedServices/$($TemplateParameters.LINKED_SERVICE_NAME)?api-version=2019-06-01-preview"
+
+    Ensure-ValidTokens
+    $result = Invoke-RestMethod  -Uri $uri -Method PUT -Body $itemTemplate -Headers @{ Authorization="Bearer $synapseToken" } -ContentType "application/json"
+
+    return $result
+}
+
 function Create-IntegrationRuntime {
     
     param(
@@ -1651,6 +1678,7 @@ Function Generate-CosmosDbMasterKeyAuthorizationSignature {
 
 Export-ModuleMember -Function List-StorageAccountKeys
 Export-ModuleMember -Function List-CosmosDBKeys
+Export-ModuleMember -Function Create-LinkedService
 Export-ModuleMember -Function Create-KeyVaultLinkedService
 Export-ModuleMember -Function Create-BlobStorageLinkedService
 Export-ModuleMember -Function Create-DataLakeLinkedService
