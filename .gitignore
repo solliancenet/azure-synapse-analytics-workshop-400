@@ -1,2 +1,3 @@
 /artifacts/environment-setup/automation/azcopy_*
 /artifacts/environment-setup/automation/azCopy.zip
+**/*debug.json

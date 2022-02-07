@@ -574,9 +574,10 @@ foreach ($notebookName in $notebooks.Keys) {
         Write-Information "Creating notebook $($notebookName) from $($notebookFileName)"
         
         $result = Create-SparkNotebook -TemplatesPath $templatesPath -SubscriptionId $subscriptionId -ResourceGroupName $resourceGroupName `
-                -WorkspaceName $workspaceName -SparkPoolName $notebookSparkPools[$notebookName] -Name $notebookName -NotebookFileName $notebookFileName -CellParams $cellParams
-        $result = Wait-ForOperation -WorkspaceName $workspaceName -OperationId $result.operationId
-        $result
+                -WorkspaceName $workspaceName -SparkPoolName $notebookSparkPools[$notebookName] -Name $notebookName -NotebookFileName $notebookFileName -CellParams $cellParams -PersistPayload $false
+        Write-Information "Create notebook initiated..."
+        $operationResult = Wait-ForSparkNotebookOperation -WorkspaceName $workspaceName -OperationId $result.operationId
+        $operationResult
 }
 
 Write-Information "Create SQL scripts for Lab 05"

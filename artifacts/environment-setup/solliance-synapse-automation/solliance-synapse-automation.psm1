@@ -665,6 +665,43 @@ function Wait-ForOperation {
     return $result
 }
 
+function Wait-ForSparkNotebookOperation {
+    
+    param(
+
+    [parameter(Mandatory=$true)]
+    [String]
+    $WorkspaceName,
+
+    [parameter(Mandatory=$false)]
+    [String]
+    $OperationId
+    )
+
+    if ([string]::IsNullOrWhiteSpace($OperationId)) {
+        Write-Information "Cannot wait on an empty operation id."
+        return
+    }
+
+    $uri = "https://$($WorkspaceName).dev.azuresynapse.net/notebookOperationResults/$($OperationId)?api-version=2019-06-01-preview"
+    Ensure-ValidTokens
+    $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $synapseToken" }
+
+    while ($result.status -ne $null) {
+        
+        if ($result.status -eq "Failed") {
+            throw $result.error
+        }
+
+        Write-Information "Waiting for operation to complete (status is $($result.status))..."
+        Start-Sleep -Seconds 10
+        Ensure-ValidTokens
+        $result = Invoke-RestMethod  -Uri $uri -Method GET -Headers @{ Authorization="Bearer $synapseToken" }
+    }
+
+    return $result
+}
+
 function Delete-ASAObject {
     
     param(
@@ -1181,7 +1218,11 @@ function Create-SparkNotebook {
 
     [parameter(Mandatory=$false)]
     [Hashtable]
-    $CellParams
+    $CellParams,
+
+    [parameter(Mandatory=$false)]
+    [Boolean]
+    $PersistPayload = $false
     )
 
 
@@ -1214,6 +1255,10 @@ function Create-SparkNotebook {
     }
     
     $item = ConvertTo-Json $jsonItem -Depth 100
+
+    if ($PersistPayload) {
+        $item | Out-File -FilePath .\create_spark_notebook_debug.json
+    }
 
     $uri = "https://$($WorkspaceName).dev.azuresynapse.net/notebooks/$($Name)?api-version=2019-06-01-preview"
 
@@ -1708,6 +1753,7 @@ Export-ModuleMember -Function Create-SparkNotebook
 Export-ModuleMember -Function Start-SparkNotebookSession
 Export-ModuleMember -Function Get-SparkNotebookSession
 Export-ModuleMember -Function Wait-ForSparkNotebookSession
+Export-ModuleMember -Function Wait-ForSparkNotebookOperation
 Export-ModuleMember -Function Delete-SparkNotebookSession
 Export-ModuleMember -Function Start-SparkNotebookSessionStatement
 Export-ModuleMember -Function Get-SparkNotebookSessionStatement
