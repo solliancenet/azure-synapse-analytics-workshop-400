@@ -560,12 +560,14 @@ $cellParams = [ordered]@{
         "#SQL_POOL_NAME#" = $sqlPoolName
         "#SUBSCRIPTION_ID#" = $subscriptionId
         "#RESOURCE_GROUP_NAME#" = $resourceGroupName
+        "#RESOURCE_GROUP_LOCATION#" = $resourceGroupLocation
         "#AML_WORKSPACE_NAME#" = $amlWorkspaceName
         "#AML_WORKSPACE_LOCATION#" = $resourceGroupLocation
         "#DATA_LAKE_ACCOUNT_NAME#" = $dataLakeAccountName
         "#DATA_LAKE_ACCOUNT_KEY#" = $dataLakeAccountKey
         "#KEY_VAULT_NAME#" = $keyVaultName
         "#COGNITIVE_SERVICES_SECRET_NAME#" = $keyVaultCognitiveServicesSecretName
+        "#COGNITIVE_SERVICES_ACCOUNT_LOCATION#" = $resourceGroupLocation
 }
 
 foreach ($notebookName in $notebooks.Keys) {
