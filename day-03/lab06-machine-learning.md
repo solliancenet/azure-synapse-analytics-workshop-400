@@ -16,7 +16,7 @@ Start the SQL Pool in your lab environment.
 
 Azure Synapse Analytics provides a unified environment for both data science and data engineering. What this means in practice, is that your data scientists can train and deploy models using Azure Synapse Analytics and your data engineers can write T-SQL queries that use those models to make predictions against tabular data stored in a SQL Pool database table.
 
-In this lab, you will create several machine learning models and use them to make predictions using the T-SQL `Predict` statement.
+In this lab, you will create several machine learning models using AutoML with Spark compute and Spark libraries like Synapse Machine Learning (Synapse ML). You will also experience the integration between Synapse ML and Cognitive Services. Finally, you will use one of the models registered in Azure Machine Learning to make predictions using the T-SQL `Predict` statement.
 
 For context, the following are the high level steps taken to create a Spark ML based model and deploy it so it is ready for use from T-SQL.
 
@@ -26,11 +26,9 @@ All of the steps are performed within Synapse Studio.
 
 - Within a notebook, a data scientist will:
 
-  a. Train a model using Spark ML, the machine learning library included with Apache Spark. Models can also be trained using other approaches, including by using Azure Machine Learning automated ML. The main requirement is that the model format must be supported by ONNX.
+  a. Train a model using Synapse ML, the machine learning library included with Apache Spark. Models can also be trained using other approaches, including by using Azure Machine Learning Automated ML. The main requirement is that the model format must be supported by ONNX.
 
-  b. Convert the model to the ONNX format using the `onnxml` tools.
-
-  c. Save a hexadecimal encoded version of the ONNX model to a table in the SQL Pool database. This is an interim step while this feature is in preview.
+  b. Deploy the ONNX model to a table in the SQL Pool database using Synapse Studio.
 
 - To use the model for making predictions, in a SQL Script a data engineer will:
 
@@ -40,196 +38,69 @@ All of the steps are performed within Synapse Studio.
 
 > What is ONNX? [ONNX](https://onnx.ai/) is an acronym for the Open Neural Network eXchange and is an open format built to represent machine learning models, regardless of what frameworks were used to create the model. This enables model portability, as models in the ONNX format can be run using a wide variety of frameworks, tools, runtimes and platforms. Think of it like a universal file format for machine learning models.
 
-## Exercise 1 - Training models
+## Exercise 1 - Synapse Machine Learning in action
 
-Open the `Lab 06 - Machine Learning` notebook (located in the `Develop` hub, under `Notebooks` in Synapse Studio) and run it step by step to complete this exercise. Some of the most important tasks you will perform are:
+Open the `Lab 06 - Part 1 - Synapse ML` notebook (located in the `Develop` hub, under `Notebooks` in Synapse Studio) and run it step by step to complete this exercise. Some of the most important tasks you will perform are:
 
-- Exploratory data analysis (basic stats)
-- Use PCA for dimensionality reduction
-- Train ensemble of trees classifier (using XGBoost)
-- Train classifier using Auto ML
+- Install Synapse ML in a Spark session
+- Use Synapse ML to perform Entity Recognition with Cognitive Services
+- Prepare and analyze data
+- Train classifier using Synapse ML and LightGBMClassifier
+- Perform predictions and analyze classifier performance
 
 Please note that each of these tasks will be addressed through several cells in the notebook.
 
-## Exercise 2 - Registering and using models in Synapse Analytics
+## Exercise 2- Training and registering models with AutoML
 
-### Task 1 - Registering the models with Azure Synapse Analytics
+Open the `Lab 06 - Part 2 - AutoML with Spark` notebook (located in the `Develop` hub, under `Notebooks` in Synapse Studio) and run it step by step to complete this exercise. Some of the most important tasks you will perform are:
 
-In this task, you will explore the model registration process in Azure Synapse Analytics that enables trained model for use from T-SQL. This task picks up where you left off, with the ONNX model being made available in Azure Storage.
+- Use Azure Machine Learning AutoML with Synapse Spark compute to train a classification model (the local Spark session of the notebook is used as a compute resource by AutoML)
+- Register the ONNX version of the model in the AML model registry using MLFlow
+- Persist test data to the dedicated Synapse SQL pool
 
-1. One step that is not shown by the notebook is an offline step that converts the ONNX model to hexadecimal. The resulting hex encoded model is also upload to Azure Storage. This conversion is currently performed with [this PowerShell script](../artifacts/day-03/lab-06-machine-learning/convert-to-hex.ps1), but could be automated using any scripting platform.
+Please note that each of these tasks will be addressed through several cells in the notebook.
 
-2. Open Synapse Analytics Studio, and then navigate to the `Data` hub.
+## Exercise 3 - Using registered models in Synapse Analytics
 
-3. Expand the Databases listing, right click your SQL Pool and then select `New SQL Script`, and then `Empty script`.
+>**NOTE**:
+>
+>Successfully completing Exercise 2 is a prerequisite for this exercise.
 
-   ![Showing the context menu, selecting New SQL Script, Empty Script](media/lab06-new-sql-script.png "Create new script")
+In this exercise you will use the model registered in Exercise 2 to perform predictions using the AML integration features of Synapse Studio.
 
-4. Replace the contents of this script with following:
+1. In Synapse Studio, select the `Data` hub, `Workspace` section, `SQLPool01` SQL database, and locate the `wwi_ml.CustomerTest` table (the one created at the end of Exercise 2).
 
-    ```sql
-    SELECT
-        *
-    FROM
-        [wwi_ml].[MLModelExt]
-    ```
+2. Select the context menu of the table and then select `Machine Learning` -> `Predict with a model`.
 
-    The result shows your persisted ONNX model in hexadecimal format:
+    ![Start prediction with AML model](./media/lab06-predict-with-a-model.png)
 
-    ![Persisted ONNX model in hexadecimal format](./media/lab06-persisted-model.png)
+3. In the `Choose a pre-trained model` dialog, select the highest version of the model named `aml-synapse-classifier` and then select `Continue`.
 
-5. `MLModelExt` is an external table that maps to the data lake location where the trained model was persisted (and then converted to hexadecimal format). Take a moment to read through the code that was used to create the external table (you don't need to run this code as it was already run during the deployment of your environment):
+    ![Select latest version of registered model](./media/lab06-select-latest-model.png)
 
-    ``` sql
-    CREATE MASTER KEY
-    GO
+4. Leave the column mappings unchanged and select `Continue`.
 
-    -- Replace <data_lake_account_key> with the key of the primary data lake account
+    >**NOTE**:
+    >
+    >The model schema generated with MLFlow and used to register the model enables Synapse Studio to suggest the mappings.
 
-    CREATE DATABASE SCOPED CREDENTIAL StorageCredential
-    WITH
-    IDENTITY = 'SHARED ACCESS SIGNATURE'
-    ,SECRET = '<data_lake_account_key>'
+    ![Model column mappings](./media/lab06-model-inputs-mapping.png)
 
-    -- Create an external data source with CREDENTIAL option.
-    -- Replace <data_lake_account_name> with the actual name of the primary data lake account
+5. In the `Store objects in the database` dialog, select the following:
 
-    CREATE EXTERNAL DATA SOURCE ModelStorage
-    WITH
-    ( 
-        LOCATION = 'wasbs://wwi-02@<data_lake_account_name>.blob.core.windows.net'
-        ,CREDENTIAL = StorageCredential
-        ,TYPE = HADOOP
-    )
+    - Script type: View
+    - View name: enter `wwi_ml.CustomerPrediction`
+    - Database table: Existing table
+    - Existing target table: select the `wwi_ml.AMLModel` table
 
-    CREATE EXTERNAL FILE FORMAT csv
-    WITH (
-        FORMAT_TYPE = DELIMITEDTEXT,
-        FORMAT_OPTIONS (
-            FIELD_TERMINATOR = ',',
-            STRING_DELIMITER = '',
-            DATE_FORMAT = '',
-            USE_TYPE_DEFAULT = False
-        )
-    );
+    Select `Deploy model + open script` to continue. Synapse Studio will deploy the model into the `AMLModel` table and create SQL scoring script for you.
 
-    CREATE EXTERNAL TABLE [wwi_ml].[MLModelExt]
-    (
-    [Model] [varbinary](max) NULL
-    )
-    WITH
-    (
-        LOCATION='/ml/onnx-hex' ,
-        DATA_SOURCE = ModelStorage ,
-        FILE_FORMAT = csv ,
-        REJECT_TYPE = VALUE ,
-        REJECT_VALUE = 0
-    )
-    GO
+    ![Deploy ML model to database](./media/lab06-deploy-model-to-database.png)
 
-    CREATE TABLE [wwi_ml].[MLModel]
-    (
-        [Id] [int] IDENTITY(1,1) NOT NULL,
-        [Model] [varbinary](max) NULL,
-        [Description] [varchar](200) NULL
-    )
-    WITH
-    (
-        DISTRIBUTION = REPLICATE,
-        HEAP
-    )
-    GO
-    ```
+6. Run the generated SQL script.
 
-6. Import the persisted ONNX model in hexadecimal format into the main models table (to be later used with the `PREDICT` function):
+    ![Run the PREDICT T-SQL statement](./media/lab06-run-predict-sql-statement.png)
 
-    ```sql
-    -- Register the model by inserting it into the table.
+7. Observe the results of the prediction.
 
-    INSERT INTO
-        [wwi_ml].[MLModel]
-    SELECT
-        Model, 'Product Seasonality Classifier'
-    FROM
-        [wwi_ml].[MLModelExt]
-    ```
-
-## Task 2 - Making predictions with the registered models
-
-In this task, you will author a T-SQL query that uses the previously trained model to make predictions.
-
-1. Open Synapse Analytics Studio, and then navigate to the `Data` hub.
-
-2. Expand the Databases listing, right click your SQL Pool and then select `New SQL Script`, and then `Empty script`.
-
-   ![Showing the context menu, selecting New SQL Script, Empty Script](media/lab06-new-sql-script.png "Create new script")
-
-3. Replace the contents of this script with the following - this will cast the columns of our input data to the values expected by the model:
-
-   ```sql
-    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f00] [real] NULL;
-    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f01] [real] NULL;
-    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f02] [real] NULL;
-    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f03] [real] NULL;
-    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f04] [real] NULL;
-    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f05] [real] NULL;
-    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f06] [real] NULL;
-    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f07] [real] NULL;
-    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f08] [real] NULL;
-    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f09] [real] NULL;
-    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f10] [real] NULL;
-    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f11] [real] NULL;
-    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f12] [real] NULL;
-    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f13] [real] NULL;
-    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f14] [real] NULL;
-    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f15] [real] NULL;
-    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f16] [real] NULL;
-    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f17] [real] NULL;
-    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f18] [real] NULL;
-    ALTER TABLE [wwi_ml].[ProductPCA] ALTER COLUMN [f19] [real] NULL;
-    GO
-    ```
-
-4. Delete the query you just executed, and replace the contents of this script with following:
-
-    ```sql
-    SELECT TOP 100
-        *
-    FROM
-        [wwi_ml].[ProductPCA]
-    WHERE
-        ProductId > 4500
-    ```
-
-    This is the input data you will use to make the predictions.
-
-5. Select **Run** from the menubar.
-
-   ![The Run button](media/lab06-select-run.png "Select Run")
-
-6. Create another new SQL script and replace the contents with the following:
-
-   ```sql
-    -- Retrieve the latest hex encoded ONNX model from the table
-    DECLARE @model varbinary(max) = (SELECT Model FROM [wwi_ml].[MLModel] WHERE Id = (SELECT Top(1) max(ID) FROM [wwi_ml].[MLModel]));
-    -- Run a prediction query
-    SELECT d.*, p.*
-    FROM PREDICT(MODEL = @model, DATA = [wwi_ml].[ProductPCA] AS d,
-        RUNTIME = ONNX) WITH ([label] bigint) AS p;
-   ```
-
-7. Run the script and view the results, notice that the `Label` column is the model's prediction of the `Seasonality` property of each product, this will value is located in the last column.
-
-   ![Viewing the prediction results in the query result pane](media/lab06-view-prediction-results.png "View prediction results")
-
-## Cleanup: Pause the dedicated SQL pool
-
-1. Navigate to the **Manage** hub.
-
-    ![The Manage menu item is highlighted.](media/manage-hub.png "Manage hub")
-
-2. From the center menu, select **SQL pools** from beneath the **Analytics pools** heading. Locate `SQLPool01`, and select the **Pause** button.
-
-    ![The Manage menu item is selected, with SQL pools selected from the center menu. The resume button is selected next to the SQLPool01 item.](media/pause-sql-pool.png "SQL pools listing")
-
-3. When prompted, select **Pause**.
+    ![View prediction results](./media/lab06-prediction-results.png)

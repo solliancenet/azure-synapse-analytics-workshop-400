@@ -1,3 +1,6 @@
+
+-- THIS SCRIPT IS OBSOLETE
+
 CREATE EXTERNAL TABLE [wwi_ml].[MLModelExt]
 (
 [Model] [varbinary](max) NULL

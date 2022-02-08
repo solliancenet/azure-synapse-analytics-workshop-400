@@ -254,7 +254,6 @@ if ($download)
                 products = "wwi-02/data-generators/generator-product/generator-product.csv"
                 dates = "wwi-02/data-generators/generator-date.csv"
                 customer = "wwi-02/data-generators/generator-customer.csv"
-                onnx = "wwi-02/ml/onnx-hex/product_seasonality_classifier.onnx.hex"
         }
 
         foreach ($singleFile in $singleFiles.Keys) {
