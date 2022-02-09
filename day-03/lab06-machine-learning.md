@@ -50,7 +50,7 @@ Open the `Lab 06 - Part 1 - Synapse ML` notebook (located in the `Develop` hub, 
 
 Please note that each of these tasks will be addressed through several cells in the notebook.
 
-## Exercise 2- Training and registering models with AutoML
+## Exercise 2 - Training and registering models with AutoML
 
 Open the `Lab 06 - Part 2 - AutoML with Spark` notebook (located in the `Develop` hub, under `Notebooks` in Synapse Studio) and run it step by step to complete this exercise. Some of the most important tasks you will perform are:
 
