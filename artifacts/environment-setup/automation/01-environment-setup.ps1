@@ -271,6 +271,7 @@ if ($download)
                 factsale = "wwi-02,wwi-02/sale-csv/"
                 security = "wwi-02,wwi-02-reduced/security/"
                 salespoc = "wwi-02,wwi-02/sale-poc/"
+                sparkjob = "wwi-02,wwi-02/spark-job"
         }
 
         foreach ($dataDirectory in $dataDirectories.Keys) {
@@ -546,13 +547,17 @@ Write-Information "Creating Spark notebooks..."
 $notebooks = [ordered]@{
         "Lab 06 - Part 1 - Synapse ML" = "$artifactsPath\day-03\lab-06-machine-learning"
         "Lab 06 - Part 2 - AutoML with Spark" = "$artifactsPath\day-03\lab-06-machine-learning"
-        "Lab 07 - Spark" = "$artifactsPath\day-03\lab-07-spark"
+        "Lab 07 - Part 1 - Spark DataFrames" = "$artifactsPath\day-03\lab-07-spark"
+        "Lab 07 - Part 2 - Spark Delta Lake" = "$artifactsPath\day-03\lab-07-spark"
+        "Lab 07 - Part 3 - Spark Hyperspace" = "$artifactsPath\day-03\lab-07-spark"
 }
 
 $notebookSparkPools = [ordered]@{
         "Lab 06 - Part 1 - Synapse ML" = $sparkPoolName2
         "Lab 06 - Part 2 - AutoML with Spark" = $sparkPoolName1
-        "Lab 07 - Spark" = $sparkPoolName2
+        "Lab 07 - Part 1 - Spark DataFrames" = $sparkPoolName2
+        "Lab 07 - Part 2 - Spark Delta Lake" = $sparkPoolName2
+        "Lab 07 - Part 3 - Spark Hyperspace" = $sparkPoolName2
 }
 
 $cellParams = [ordered]@{
