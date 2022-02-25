@@ -23,98 +23,136 @@ Event [preflight checklist](artifacts/environment-setup/README.md).
         </tr>
         <tr>
             <td>08:00</td>
-            <td rowspan=2>Keynote: Welcome, objectives, Synapse 101</td>
-            <td rowspan=4>Design Presentation: DW Optimization (*)</td>
-            <td rowspan=4>Design Presentation: Spark for Data Science (*)</td>
+            <td rowspan=2>Azure Synapse Analytics 101</td>
+            <td rowspan=3>Design Presentation: DW Optimization (*)</td>
+            <td rowspan=4>Design Presentation: Synapse Spark (*)</td>
             <td rowspan=2><a href="./day-04/challenge-introduction.md">Challenge Introduction (****)</a></td>
         </tr>
         <tr><td>08:15</td></tr>
         <tr>
             <td>08:30</td>
-            <td rowspan=2>Demo Walkthrough - MDW In Action</td>
-            <td rowspan=5>Begin POC Challenge (****)</td>
+            <td rowspan=1>Demo Walkthrough - Synapse Analytics In Action</td>
+            <td rowspan=4>Begin POC Challenge (****)</td>
         </tr>
-        <tr><td>08:45</td></tr>
+        <tr>
+            <td>08:45</td>
+            <td>Break</td>
+            <td rowspan=5><a href="./day-02/lab03-dw-optimization-part-1.md">Build Hands-on: DW Optimization Part 1 (***)</a></td>
+        </tr>
         <tr>
             <td>09:00</td>
-            <td>Break</td>
-            <td>Break</td>
-            <td>Break</td>
+            <td rowspan=4>Design Presentation: Data Loading & Data Lake Organization (*)</td>
+            <td rowspan=4><a href="./day-03/lab06-machine-learning.md">Build Hands-on: Machine Learning (***)</a></td>
         </tr>
         <tr>
             <td>09:15</td>
-            <td rowspan=4>Design Presentation: Data Loading & Data Lake Organization (*)</td>
-            <td rowspan=4><a href="./day-02/lab03-dw-optimization-part-1.md">Build Hands-on: DW Optimization Part 1 (***)</a></td>
-            <td rowspan=4><a href="./day-03/lab06-machine-learning.md">Build Hands-on: Machine Learning (***)</a></td>
         </tr>
-        <tr><td>09:30</td></tr>
         <tr>
-            <td>09:45</td>
+            <td>09:30</td>
             <td>Break</td>
         </tr>
         <tr>
-            <td>10:00</td>
+            <td>09:45</td>
             <td rowspan=5>Continue POC Challenge (****)</td>
         </tr>
         <tr>
-            <td>10:15</td>
+            <td>10:00</td>
             <td rowspan=4>Q&A / Digital Cohort Activity: Data Lake Design & Security Considerations (**)</td>
             <td rowspan=2>Q&A / Digital Cohort Activity: DW Optimization (**)</td>
-            <td rowspan=4>Q&A / Digital Cohort Activity: Model Implementation (Predict) (**)</td>
+            <td>Break</td>
         </tr>
-        <tr><td>10:30</td></tr>
+        <tr>
+            <td>10:15</td>
+            <td rowspan=3><a href="./day-03/lab07-spark-ml.md">Build Hands-on: Spark (***)</a></td>
+        </tr>
+        <tr>
+            <td>10:30</td>
+            <td>Break</td>
+        </tr>
         <tr>
             <td>10:45</td>
             <td rowspan=2>Design Presentation: DW Optimization Part 2 (*)</td>
         </tr>
-        <tr><td>11:00</td></tr>
-        <tr><td>11:15</td><td>Break</td><td>Break</td><td>Break</td><td>Break</td></tr>
         <tr>
-            <td>11:30</td>
+            <td>11:00</td>
+            <td>Break</td>
+            <td rowspan=3>Demo Walkthrough - CI/CD with Synapse Workspaces (**)</td>
+            <td>Break</td>
+        </tr>
+        <tr>
+            <td>11:15</td>
             <td rowspan=3><a href="./day-01/lab01-data-integration-part-1.md">Build Hands-on: Data Integration Part 1 (***)</a></td>
-            <td rowspan=3><a href="./day-02/lab04-dw-optimization-part-2.md">Build Hands-on: DW Optimization Part 2 (***)</a></td>
-            <td rowspan=3><a href="./day-03/lab07-spark-ml.md">Build Hands-on: Spark ML (***)</a></td>
+            <td rowspan=2><a href="./day-02/lab04-dw-optimization-part-2.md">Build Hands-on: DW Optimization Part 2 (***)</a></td>
             <td rowspan=3>Continue POC Challenge (****)</td>
         </tr>
-            <tr><td>11:45</td></tr>
-            <tr><td>12:00</td></tr>
+        <tr>
+            <td>11:30</td>
+        </tr>
+        <tr>
+            <td>11:45</td>
+            <td rowspan=4>Main Break</td>
+            <td rowspan=4>Main Break</td>
+        </tr>
+        <tr>
+            <td>12:00</td>
+            <td rowspan=4>Main Break</td>
+            <td rowspan=4>Main Break</td>
+        </tr>
         <tr>
             <td>12:15</td>
-            <td rowspan=4>Lunch</td>
-            <td rowspan=4>Lunch</td>
-            <td rowspan=4>Lunch</td>
-            <td rowspan=4>Lunch</td>
         </tr>
-        <tr><td>12:30</td></tr>
-        <tr><td>12:45</td></tr>
-        <tr><td>13:00</td></tr>
         <tr>
-            <td>13:15</td>
-            <td rowspan=2>Design Presentation: Data Transformations (*)</td>
-            <td rowspan=4>Q&A / Digital Cohort Activity: Security (**)</td>
+            <td>12:30</td>
+        </tr>
+        <tr>
+            <td>12:45</td>
+            <td rowspan=3>Design Presentation: Security (*)</td>
             <td rowspan=2>Design Presentation: Monitor & Manage (*)</td>
+        </tr>
+        <tr>
+            <td>13:00</td>
+            <td rowspan=2>Design Presentation: Data Transformations (*)</td>
             <td rowspan=4>Finish POC Challenge (****)</td>
         </tr>
-        <tr><td>13:30</td></tr>
         <tr>
-            <td>13:45</td>
-            <td rowspan=2>Q&A / Digital Cohort Activity: Data Engineering Discussion (**)</td>
+            <td>13:15</td>
             <td rowspan=2>Q&A / Digital Cohort Activity: Monitor & Manage (**)</td>
         </tr>
-        <tr><td>14:00</td></tr>
         <tr>
-            <td>14:15</td>
+            <td>13:30</td>
+            <td rowspan=2>Q&A / Digital Cohort Activity: Data Engineering Discussion (**)</td>
+            <td rowspan=2>Q&A / Digital Cohort Activity: Security (**)</td>
+        </tr>
+        <tr>
+            <td>13:45</td>
+            <td>Break</td>
+        </tr>
+        <tr>
+            <td>14:00</td>
             <td rowspan=4><a href="./day-01/lab02-data-integration-part-2.md">Build Hands-on: Data Integration Part 2 (***)</a></td>
-            <td rowspan=4><a href="./day-02/lab05-security.md">Build Hands-on: Security (***)</a></td>
-            <td rowspan=4><a href="./day-03/lab08-monitoring.md">Build Hands-on: Monitoring (***)</a></td>
+            <td>Break</td>
+            <td rowspan=3><a href="./day-03/lab08-monitoring.md">Build Hands-on: Monitoring (***)</a></td>
             <td rowspan=2>Challenge Debrief (****)</td>
         </tr>
-        <tr><td>14:30</td></tr>
         <tr>
-            <td>14:45</td>
+            <td>14:15</td>
+            <td rowspan=3><a href="./day-02/lab05-security.md">Build Hands-on: Security (***)</a></td>
+        </tr>
+        <tr>
+            <td>14:30</td>
             <td rowspan=2>Closing</td>
         </tr>
-        <tr><td>15:00</td></tr>
+        <tr>
+            <td>14:45</td>
+            <td rowspan=1>Q&A<br/>Closing (if 3-day event)</td>
+        </tr>
+        <tr>
+            <td>15:00</td>
+            <td>End of Day 1</td>
+            <td>End of Day 2</td>
+            <td>End of Day 3</td>
+            <td>End of Day 4</td>
+        </tr>
         <tr><td colspan=5>&nbsp;</td></tr>
         <tr>
             <td>&nbsp;</td>
@@ -145,9 +183,9 @@ Event [preflight checklist](artifacts/environment-setup/README.md).
         <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
         <tr>
             <td>&nbsp;</td>
-            <td>9hr</td>
-            <td>7.25hr</td>
-            <td>5.75hr</td>
+            <td>8 hr 45 min</td>
+            <td>7 hr 15 min</td>
+            <td>5 hr 30 min</td>
             <td>&nbsp;</td>
         </tr>
         <tr>
