@@ -63,7 +63,7 @@ Event [preflight checklist](artifacts/environment-setup/README.md).
         </tr>
         <tr>
             <td>10:15</td>
-            <td rowspan=3><a href="./day-03/lab07-spark-ml.md">Build Hands-on: Spark (***)</a></td>
+            <td rowspan=3><a href="./day-03/lab07-spark.md">Build Hands-on: Spark (***)</a></td>
         </tr>
         <tr>
             <td>10:30</td>
