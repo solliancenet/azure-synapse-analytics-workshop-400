@@ -17,8 +17,8 @@ Event [preflight checklist](artifacts/environment-setup/README.md).
         <tr>
             <td>&nbsp;</td>
             <td>Ingest & Transform</td>
-            <td>Optimize & Query</td>
-            <td>Model, Manage & Secure</td>
+            <td>Optimize, Query & Secure</td>
+            <td>Work with Spark, Machine Learning, Monitor & Manage</td>
             <td>Challenge-based Learning</td>
         </tr>
         <tr>
