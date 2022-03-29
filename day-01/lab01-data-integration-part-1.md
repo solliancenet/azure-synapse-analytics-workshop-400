@@ -977,7 +977,7 @@ The more the SQL pool resource knows about your data, the faster it can execute 
     FROM 
         sys.dm_pdw_exec_requests
     WHERE 
-        Command like 'CREATE STATISTICS%'
+        Command like '%CREATE STATISTICS%'
     ```
 
     Notice the special name pattern used for automatically created statistics:
