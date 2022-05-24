@@ -120,11 +120,11 @@ Event [preflight checklist](artifacts/environment-setup/README.md).
         </tr>
         <tr>
             <td>13:30</td>
-            <td rowspan=1>Q&A / Digital Cohort Activity: Data Engineering Discussion (**)</td>
             <td rowspan=2>Q&A / Digital Cohort Activity: Security (**)</td>
         </tr>
         <tr>
             <td>13:45</td>
+            <td >Q&A / Digital Cohort Activity: Data Engineering Discussion (**)</td>
             <td>Break</td>
         </tr>
         <tr>
