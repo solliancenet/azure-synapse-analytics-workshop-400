@@ -111,7 +111,7 @@ Event [preflight checklist](artifacts/environment-setup/README.md).
         </tr>
         <tr>
             <td>13:00</td>
-            <td rowspan=2>Design Presentation: Data Transformations (*)</td>
+            <td rowspan=3>Design Presentation: Data Transformations (*)</td>
             <td rowspan=4>Finish POC Challenge (****)</td>
         </tr>
         <tr>
@@ -120,7 +120,7 @@ Event [preflight checklist](artifacts/environment-setup/README.md).
         </tr>
         <tr>
             <td>13:30</td>
-            <td rowspan=2>Q&A / Digital Cohort Activity: Data Engineering Discussion (**)</td>
+            <td rowspan=1>Q&A / Digital Cohort Activity: Data Engineering Discussion (**)</td>
             <td rowspan=2>Q&A / Digital Cohort Activity: Security (**)</td>
         </tr>
         <tr>
