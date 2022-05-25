@@ -14,7 +14,25 @@ Start the SQL Pool in your lab environment.
 
 ## Exercise 1 - Check for skewed data and space usage
 
-### Task 1 - Analyze the space used by tables
+### Task 1: OPTIONAL - Create table from DW Optimization Part 1
+
+1. If you did not complete the previous lab, please create the [wwi_perf].[Sale_Hash] table with the following:
+
+    ```SQL
+    CREATE TABLE [wwi_perf].[Sale_Hash]
+    WITH
+    (
+        DISTRIBUTION = HASH ( [CustomerId] ),
+        CLUSTERED COLUMNSTORE INDEX
+    )
+    AS
+    SELECT
+        *
+    FROM
+        [wwi_perf].[Sale_Heap]
+    ```
+
+### Task 2 - Analyze the space used by tables
 
 1. Run the following DBCC command:
 
@@ -86,7 +104,7 @@ Start the SQL Pool in your lab environment.
 
     Without diving too much into the mathematical and statistical aspects of it, this histogram displays the reason why there is virtually no skew in the data distribution of the `Sale_Hash` table. If you haven't figured it out yet, the reason we are talking about is the quasi-normal distribution of the per-customer transaction items counts.
 
-### Task 2 - Use a more advanced approach to understand table space usage
+### Task 3 - Use a more advanced approach to understand table space usage
 
 1. Run the following script to create the `vTableSizes` view:
 
