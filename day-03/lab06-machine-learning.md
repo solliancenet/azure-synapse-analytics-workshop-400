@@ -50,6 +50,10 @@ Open the `Lab 06 - Part 1 - Synapse ML` notebook (located in the `Develop` hub, 
 
 Please note that each of these tasks will be addressed through several cells in the notebook.
 
+> **Note**: Please attach to `SparkPool02`, and ensure the proper Azure **location** is specified in the second code cell(matching the region of the deployed Cognitive Services account).
+
+![A Spark notebook displays attached to SparkPool02 and there is a value in the location variable.](media/sparkpool02_location_lab6.png "Lab 6 Notebook")
+
 ## Exercise 2 - Training and registering models with AutoML
 
 Open the `Lab 06 - Part 2 - AutoML with Spark` notebook (located in the `Develop` hub, under `Notebooks` in Synapse Studio) and run it step by step to complete this exercise. Some of the most important tasks you will perform are:

@@ -22,7 +22,7 @@ In this exercise you will learn how to work with Spark DataFrames in Synapse Spa
 
 1. Open Synapse Analytics Studio, and then navigate to the `Develop` hub.
 
-2. Under **Notebooks**, select the notebook called `Lab 07 - Part 1 - Spark DataFrames`.
+2. Under **Notebooks**, select the notebook called `Lab 07 - Part 1 - Spark DataFrames`. Please connect to `SparkPool01` for this notebook.
 
 3. Read through the notebook and execute the cells as instructed in the notebook. When you have finished in the notebook, you have completed this lab.
 
