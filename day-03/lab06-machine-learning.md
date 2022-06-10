@@ -58,6 +58,8 @@ Please note that each of these tasks will be addressed through several cells in 
 
 Open the `Lab 06 - Part 2 - AutoML with Spark` notebook (located in the `Develop` hub, under `Notebooks` in Synapse Studio) and run it step by step to complete this exercise. Some of the most important tasks you will perform are:
 
+> **NOTE**: Please attach to `SparkPool01` for this notebook.
+
 - Use Azure Machine Learning AutoML with Synapse Spark compute to train a classification model (the local Spark session of the notebook is used as a compute resource by AutoML)
 - Register the ONNX version of the model in the AML model registry using MLFlow
 - Persist test data to the dedicated Synapse SQL pool
